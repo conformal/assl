@@ -1,0 +1,4 @@
+#/bin/sh
+mkdir -p ca/private
+chmod 700 ca/private
+openssl req -x509 -days 3650 -newkey rsa:1024 -keyout ca/private/ca.key -out ca/ca.crt

@@ -1,0 +1,5 @@
+#/bin/sh
+mkdir -p client/private
+chmod 700 client/private
+openssl genrsa -out client/private/client.key 1024
+openssl req -new -key client/private/client.key -out client/client.csr

@@ -1,0 +1,35 @@
+Make sure CA has been created first!
+
+=============================================================================
+$ sh create_server
+Generating RSA private key, 1024 bit long modulus
+................++++++
+.................................++++++
+e is 65537 (0x10001)
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) []:US
+State or Province Name (full name) []:Texas
+Locality Name (eg, city) []:Round Rock
+Organization Name (eg, company) []:Assl
+Organizational Unit Name (eg, section) []:Server
+Common Name (eg, fully qualified host name) []:
+Email Address []:marco@peereboom.us
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+
+=============================================================================
+
+$ sh sign_server
+Signature ok
+subject=/C=US/ST=Texas/L=Round Rock/O=assl/OU=server/emailAddress=marco@peereboom.us
+Getting CA Private Key
+Enter pass phrase for ../ca/private/ca.key:
