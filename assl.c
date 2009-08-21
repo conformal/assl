@@ -17,6 +17,8 @@
 
 #include "assl.h"
 
+static const char *version = "$assl$";
+
 /* XXX todo:
  * read/write blocking
  * read/write non-blocking
