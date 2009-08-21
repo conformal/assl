@@ -113,25 +113,25 @@ The function returns a non-zero value to indicate failure.
 .Sh EXAMPLES
 The following code fragment illustrates the client case:
 .Bd -literal -offset indent
-#include "tinyssl.h"
+#include "assl.h"
 
 int
 main(int argc, char *argv[])
 {
-	struct tssl_context	*c;
+	struct assl_context	*c;
 
-	tssl_initialize();
+	assl_initialize();
 
-	c = tssl_alloc_context(TSSL_M_TLSV1_CLIENT);
+	c = assl_alloc_context(ASSL_M_TLSV1_CLIENT);
 	if (c == NULL)
-		errx(1, "tssl_alloc_context");
+		errx(1, "assl_alloc_context");
 
-	if (tssl_load_file_certs(c, "ca/ca.crt", "client/client.crt",
-	    "client/private/client.key"))
-		errx(1, "tssl_load_certs");
+	if (assl_load_file_certs(c, "../ca/ca.crt",
+	    "client/client.crt", "client/private/client.key"))
+		errx(1, "assl_load_certs");
 
-	if (tssl_connect(c, "localhost", TSSL_DEFAULT_PORT))
-		errx(1, "tssl_connect");
+	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT))
+		errx(1, "assl_connect");
 
 	return (0);
 }
@@ -139,25 +139,25 @@ main(int argc, char *argv[])
 .Pp
 The following code fragment illustrates the server case:
 .Bd -literal -offset indent
-#include "tinyssl.h"
+#include "assl.h"
 
 void			serve_callback(int);
 
 void
 serve_callback(int s)
 {
-	struct tssl_context	*c;
+	struct assl_context	*c;
 
-	c = tssl_alloc_context(TSSL_M_ALL_SERVER);
+	c = assl_alloc_context(ASSL_M_ALL_SERVER);
 	if (c == NULL)
-		errx(1, "tssl_alloc_context");
+		errx(1, "assl_alloc_context");
 
-	if (tssl_load_file_certs(c, "ca/ca.crt", "server/server.crt",
-	    "server/private/server.key"))
-		errx(1, "tssl_load_certs");
+	if (assl_load_file_certs(c, "../ca/ca.crt",
+	    "server/server.crt", "server/private/server.key"))
+		errx(1, "assl_load_certs");
 
-	if (tssl_accept(c, s))
-		errx(1, "tssl_accept");
+	if (assl_accept(c, s))
+		errx(1, "assl_accept");
 
 	errx(1, "do something!");
 }
@@ -165,9 +165,9 @@ serve_callback(int s)
 int
 main(int argc, char *argv[])
 {
-	tssl_initialize();
+	assl_initialize();
 
-	tssl_serve(NULL, TSSL_DEFAULT_PORT, serve_callback);
+	assl_serve(NULL, ASSL_DEFAULT_PORT, serve_callback);
 	
 	return (0);
 }
