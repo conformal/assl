@@ -17,6 +17,20 @@
 
 #include "assl.h"
 
+/* XXX todo:
+ * read/write blocking
+ * read/write non-blocking
+ * session teardown
+ * LDAP integration for certs
+ * create CA certificate
+ * create machine cerrtificates
+ * sign machine certificates
+ * sane error logging
+ *
+ * man page:
+ * add all connection methods to the man page
+ */
+
 /* utility functions */
 int
 assl_set_nonblock(int fd)
@@ -244,8 +258,10 @@ assl_accept(struct assl_context *c, int s)
 		/* deal with connetcions that were opened but send no data */
 		/* poll for an x amount of time */
 		serr = SSL_get_error(c->as_ssl, r);
-		if (serr == SSL_ERROR_WANT_READ || serr == SSL_ERROR_WANT_READ)
+		if (serr == SSL_ERROR_WANT_READ || serr == SSL_ERROR_WANT_WRITE) {
+			errx(1, "fix assl_accept");
 			continue;
+		}
 
 		return (1);
 	}
