@@ -27,7 +27,7 @@ static const char *version = "$assl$";
  * create CA certificate
  * create machine cerrtificates
  * sign machine certificates
- * sane error logging
+ * come up with a scheme to deal with errors, < 0 for ssl and  > 0 libc
  *
  * man page:
  * add all connection methods to the man page
@@ -75,7 +75,7 @@ assl_geterror(int et)
 
 	switch (et) {
 	case ERR_LIBC:
-		strlcpy(assl_geterror, strerror(errno), sizeof assl_geterror);
+		strlcpy(assl_last_error, strerror(errno), sizeof assl_last_error);
 		break;
 	case ERR_SSL:
 		es = (char *)ERR_lib_error_string(ERR_get_error());
@@ -347,7 +347,7 @@ unwind:
 int
 assl_connect(struct assl_context *c, char *host, char *port)
 {
-	int			p, r, rv = -1;
+	int			p, r, serr, rv = -1;
 
 	assl_err_stack_unwind();
 
@@ -391,11 +391,14 @@ assl_connect(struct assl_context *c, char *host, char *port)
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 
 	if ((r = SSL_connect(c->as_ssl)) <= 0) {
-		printf("r = %d  serr = %d\n", r, SSL_get_error(c->as_ssl, r));
-		ERROR_OUT(ERR_SSL, done);
+		serr = SSL_get_error(c->as_ssl, r);
+		if (serr == SSL_ERROR_SYSCALL)
+			ERROR_OUT(ERR_LIBC, done);
+		else
+			ERROR_OUT(ERR_SSL, done);
 	}
 
-	if (SSL_get_verify_result(c->as_ssl) != X509_V_OK)
+	if ((r = SSL_get_verify_result(c->as_ssl)) != X509_V_OK)
 		ERROR_OUT(ERR_SSL, done);
 
 	rv = 0;
@@ -440,7 +443,10 @@ assl_accept(struct assl_context *c, int s)
 		}
 
 		/* failure */
-		ERROR_OUT(ERR_SSL, done);
+		if (serr == SSL_ERROR_SYSCALL)
+			ERROR_OUT(ERR_LIBC, done);
+		else
+			ERROR_OUT(ERR_SSL, done);
 	}
 
 	rv = 0;
