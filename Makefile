@@ -7,7 +7,7 @@ LIB=	assl
 SRCS=	assl.c
 DEBUG+= -ggdb3 
 CFLAGS+= -Wall
-NOMAN=
+MAN=assl.3
 
 .include <bsd.own.mk>
 .include <bsd.lib.mk>
