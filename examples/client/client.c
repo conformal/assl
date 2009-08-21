@@ -32,7 +32,7 @@ main(int argc, char *argv[])
 	    "client/private/client.key"))
 		assl_fatalx("assl_load_certs");
 
-	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT))
+	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK))
 		assl_fatalx("assl_connect");
 
 	return (0);

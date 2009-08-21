@@ -42,7 +42,7 @@ main(int argc, char *argv[])
 {
 	assl_initialize();
 
-	assl_serve(NULL, ASSL_DEFAULT_PORT, serve_callback);
+	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK, serve_callback);
 	
 	return (0);
 }

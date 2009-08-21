@@ -29,11 +29,13 @@
 .Ft int
 .Fn assl_load_file_certs "struct assl_context *ctx, char *ca, char *cert, char *key"
 .Ft int
-.Fn assl_connect "struct assl_context *ctx, char *host, char *port"
+.Fn assl_connect "struct assl_context *ctx, char *host, char *port, int flags"
 .Ft int
-.Fn assl_serve "char *host, char *port, void (*callback)(int sock)"
+.Fn assl_serve "char *host, char *port, int flags, void (*callback)(int sock)"
 .Ft int
 .Fn assl_accept "struct assl_context *ctx, int sock"
+.Ft void
+.Fn assl_fatalx "char *errstr"
 .Sh DESCRIPTION
 .Fn assl_initialize
 prepares the library for first use.
@@ -74,6 +76,9 @@ function returns a non-zero value to indicate failure.
 More precisely, -1 for libc failures and 1 for
 .Xr openssl 1
 failures.
+If
+.Fa flags
+is set to ASSL_F_NONBLOCK then the socket will be setup as non-blocking.
 .Pp
 .Fn assl_serve
 is a blocking function that sets up a listening socket that waits for
@@ -98,6 +103,9 @@ case the server will listen on all possible IP addresses and in the
 case the server will listen on port 4433.
 This function can only return failure and this condition  shall be
 considered fatal.
+If
+.Fa flags
+is set to ASSL_F_NONBLOCK then the socket will be setup as non-blocking.
 .Pp
 .Fn assl_accept
 is the equivalent of the
@@ -110,6 +118,13 @@ to
 .Fn assl_serve
 function after a context has been allocated in said function.
 The function returns a non-zero value to indicate failure.
+.Pp
+.Fn assl_fatalx
+prints
+.Fa errstr
+and exits.
+If the library is compiled with ASSL_NO_FANCY_ERRORS then it will not
+record the calling stack.
 .Sh EXAMPLES
 The following code fragment illustrates the client case:
 .Bd -literal -offset indent
@@ -124,14 +139,14 @@ main(int argc, char *argv[])
 
 	c = assl_alloc_context(ASSL_M_TLSV1_CLIENT);
 	if (c == NULL)
-		errx(1, "assl_alloc_context");
+		assl_fatalx("assl_alloc_context");
 
-	if (assl_load_file_certs(c, "../ca/ca.crt",
-	    "client/client.crt", "client/private/client.key"))
-		errx(1, "assl_load_certs");
+	if (assl_load_file_certs(c, "../ca/ca.crt", "client/client.crt",
+	    "client/private/client.key"))
+		assl_fatalx("assl_load_certs");
 
-	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT))
-		errx(1, "assl_connect");
+	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK))
+		assl_fatalx("assl_connect");
 
 	return (0);
 }
@@ -148,16 +163,16 @@ serve_callback(int s)
 {
 	struct assl_context	*c;
 
-	c = assl_alloc_context(ASSL_M_ALL_SERVER);
+	c = assl_alloc_context(ASSL_M_TLSV1_SERVER);
 	if (c == NULL)
-		errx(1, "assl_alloc_context");
+		assl_fatalx("assl_alloc_context");
 
-	if (assl_load_file_certs(c, "../ca/ca.crt",
-	    "server/server.crt", "server/private/server.key"))
-		errx(1, "assl_load_certs");
+	if (assl_load_file_certs(c, "../ca/ca.crt", "server/server.crt",
+	    "server/private/server.key"))
+		assl_fatalx("assl_load_file_certs");
 
 	if (assl_accept(c, s))
-		errx(1, "assl_accept");
+		assl_fatalx("assl_accept");
 
 	errx(1, "do something!");
 }
@@ -167,7 +182,7 @@ main(int argc, char *argv[])
 {
 	assl_initialize();
 
-	assl_serve(NULL, ASSL_DEFAULT_PORT, serve_callback);
+	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK, serve_callback);
 	
 	return (0);
 }

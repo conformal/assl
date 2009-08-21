@@ -39,6 +39,7 @@
 #include "openssl/err.h"
 
 #define ASSL_DEFAULT_PORT	"4433"
+#define ASSL_F_NONBLOCK		(1<<0)
 
 enum assl_method {
 	ASSL_M_ALL,
@@ -81,8 +82,9 @@ void			assl_initialize(void);
 struct assl_context	*assl_alloc_context(enum assl_method);
 int			assl_load_file_certs(struct assl_context *, char *,
 			    char *, char *);
-int			assl_connect(struct assl_context *, char *, char *);
-int			assl_serve(char *, char *, void (*)(int));
+int			assl_connect(struct assl_context *, char *, char *,
+			    int);
+int			assl_serve(char *, char *, int, void (*)(int));
 int			assl_accept(struct assl_context *, int);
 void			assl_fatalx(char *);
 #endif /* AGGLOMERATEDSSL_H */

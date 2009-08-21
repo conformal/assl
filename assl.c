@@ -176,14 +176,14 @@ assl_set_nonblock(int fd)
 
 	val = fcntl(fd, F_GETFL, 0);
 	if (val < 0)
-		ERROR_OUT(ERR_OWN, done);
+		ERROR_OUT(ERR_LIBC, done);
 
 	if (val & O_NONBLOCK)
 		return (0);
 
 	val |= O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, val) == -1)
-		ERROR_OUT(ERR_OWN, done);
+		ERROR_OUT(ERR_LIBC, done);
 
 	rv = 0;
 done:
@@ -345,7 +345,7 @@ unwind:
 }
 
 int
-assl_connect(struct assl_context *c, char *host, char *port)
+assl_connect(struct assl_context *c, char *host, char *port, int flags)
 {
 	int			p, r, serr, rv = -1;
 
@@ -382,6 +382,12 @@ assl_connect(struct assl_context *c, char *host, char *port)
 	if (connect(c->as_sock, (struct sockaddr *)&c->as_addr,
 	    sizeof c->as_addr) == -1)
 		ERROR_OUT(ERR_LIBC, done);
+
+	if (flags & ASSL_F_NONBLOCK)
+		if (assl_set_nonblock(c->as_sock)) {
+			close(c->as_sock);
+			goto done; /* error stack exists */
+		}
 
 	rv = 1; /* positive for ssl errors */
 
@@ -455,7 +461,7 @@ done:
 }
 
 int
-assl_serve(char *listen_ip, char *listen_port, void (*cb)(int))
+assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int))
 {
 	struct addrinfo		hints, *res, *ai;
 	int			s = -1, on = 1, i, nfds, x, c;
@@ -487,10 +493,11 @@ assl_serve(char *listen_ip, char *listen_port, void (*cb)(int))
 		s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (s < 0)
 			continue;
-		if (assl_set_nonblock(s) == -1) {
-			close(s);
-			continue;
-		}
+		if (flags & ASSL_F_NONBLOCK)
+			if (assl_set_nonblock(s)) {
+				close(s);
+				goto done; /* error stack exists */
+			}
 		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
 		if (bind(s, ai->ai_addr, ai->ai_addrlen) < 0) {
