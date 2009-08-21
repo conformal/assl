@@ -29,6 +29,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/queue.h>
 
 #include <netinet/in.h>
 #include <netdb.h>
@@ -83,4 +84,5 @@ int			assl_load_file_certs(struct assl_context *, char *,
 int			assl_connect(struct assl_context *, char *, char *);
 int			assl_serve(char *, char *, void (*)(int));
 int			assl_accept(struct assl_context *, int);
+void			assl_fatalx(char *);
 #endif /* AGGLOMERATEDSSL_H */

@@ -26,14 +26,14 @@ main(int argc, char *argv[])
 
 	c = assl_alloc_context(ASSL_M_TLSV1_CLIENT);
 	if (c == NULL)
-		errx(1, "assl_alloc_context");
+		assl_fatalx("assl_alloc_context");
 
 	if (assl_load_file_certs(c, "../ca/ca.crt", "client/client.crt",
 	    "client/private/client.key"))
-		errx(1, "assl_load_certs");
+		assl_fatalx("assl_load_certs");
 
 	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT))
-		errx(1, "assl_connect");
+		assl_fatalx("assl_connect");
 
 	return (0);
 }

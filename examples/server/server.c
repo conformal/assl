@@ -23,16 +23,16 @@ serve_callback(int s)
 {
 	struct assl_context	*c;
 
-	c = assl_alloc_context(ASSL_M_ALL_SERVER);
+	c = assl_alloc_context(ASSL_M_TLSV1_SERVER);
 	if (c == NULL)
-		errx(1, "assl_alloc_context");
+		assl_fatalx("assl_alloc_context");
 
 	if (assl_load_file_certs(c, "../ca/ca.crt", "server/server.crt",
 	    "server/private/server.key"))
-		errx(1, "assl_load_certs");
+		assl_fatalx("assl_load_file_certs");
 
 	if (assl_accept(c, s))
-		errx(1, "assl_accept");
+		assl_fatalx("assl_accept");
 
 	errx(1, "do something!");
 }
