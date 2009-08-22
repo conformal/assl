@@ -22,10 +22,10 @@ static const char *version = "$assl$";
 /* XXX todo:
  * read/write blocking
  * read/write non-blocking
- * session teardown
+ * session tear down
  * LDAP integration for certs
  * create CA certificate
- * create machine cerrtificates
+ * create machine certificates
  * sign machine certificates
  * come up with a scheme to deal with errors, < 0 for ssl and  > 0 libc
  *
@@ -176,14 +176,14 @@ assl_set_nonblock(int fd)
 
 	val = fcntl(fd, F_GETFL, 0);
 	if (val < 0)
-		ERROR_OUT(ERR_LIBC, done);
+		goto done;
 
 	if (val & O_NONBLOCK)
 		return (0);
 
 	val |= O_NONBLOCK;
 	if (fcntl(fd, F_SETFL, val) == -1)
-		ERROR_OUT(ERR_LIBC, done);
+		goto done;
 
 	rv = 0;
 done:
@@ -386,7 +386,7 @@ assl_connect(struct assl_context *c, char *host, char *port, int flags)
 	if (flags & ASSL_F_NONBLOCK)
 		if (assl_set_nonblock(c->as_sock)) {
 			close(c->as_sock);
-			goto done; /* error stack exists */
+			ERROR_OUT(ERR_LIBC, done);
 		}
 
 	rv = 1; /* positive for ssl errors */
@@ -496,7 +496,7 @@ assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int))
 		if (flags & ASSL_F_NONBLOCK)
 			if (assl_set_nonblock(s)) {
 				close(s);
-				goto done; /* error stack exists */
+				ERROR_OUT(ERR_LIBC, done);
 			}
 		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
