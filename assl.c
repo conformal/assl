@@ -425,7 +425,7 @@ assl_accept(struct assl_context *c, int s)
 	if (r < 0)
 		ERROR_OUT(ERR_LIBC, done);
 	c->as_nonblock = r & O_NONBLOCK ? 1 : 0;
-printf("nonblock %d\n", c->as_nonblock);
+
 	/* seup ssl connection */
 	assl_setup_ssl(c);
 
