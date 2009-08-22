@@ -42,12 +42,43 @@ prepares the library for first use.
 This function must be called before any other function is called.
 .Pp
 .Fn assl_alloc_context
-allocates a
+allocates an
 .Nm
 context.
 A context contains all SSL/TLS connection specfic details.
 The
-function will return NULL to indicate failure.
+.Fa method
+parameter indicates what SSL/TLS type and version to use for the context.
+Possible
+.Fa method
+values are:
+.Bl -tag -width "ASSL_M_TLSV1_SERVER" -offset indent -compact
+.It Cm ASSL_M_SSLV2
+SSL V2 client or server connection.
+.It Cm ASSL_M_SSLV2_CLIENT
+SSL V2 client connection.
+.It Cm ASSL_M_SSLV2_SERVER
+SSL V2 server connection.
+.It Cm ASSL_M_SSLV3
+SSL V3 client or server connection.
+.It Cm ASSL_M_SSLV3_CLIENT
+SSL V3 client connection.
+.It Cm ASSL_M_SSLV3_SERVER
+SSL V3 server connection.
+.It Cm ASSL_M_TLSV1
+TLS V1 client or server connection.
+.It Cm ASSL_M_TLSV1_CLIENT
+TLS V1 client connection.
+.It Cm ASSL_M_TLSV1_SERVER
+TLS V1 server connection.
+.It ASSL_M_ALL
+any version of a client or server connection.
+.It ASSL_M_ALL_CLIENT
+any version of a client connection.
+.It ASSL_M_ALL_SERVER
+any version of a server connection.
+.El
+The function will return NULL to indicate failure.
 .Pp
 .Fn assl_load_file_certs
 loads all required keys & certificates to authenticate a client or server.
@@ -73,7 +104,7 @@ tries to establish a SSL/TLS connection to
 .Fa port.
 The
 function returns a non-zero value to indicate failure.
-More precisely, -1 for libc failures and 1 for
+More precisely, 1 for libc failures and -1 for
 .Xr openssl 1
 failures.
 If
