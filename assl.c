@@ -19,7 +19,8 @@
 
 static const char *version = "$assl$";
 
-/* XXX todo:
+/*
+ * XXX todo:
  * read/write blocking
  * read/write non-blocking
  * session tear down
@@ -28,9 +29,6 @@ static const char *version = "$assl$";
  * create machine certificates
  * sign machine certificates
  * come up with a scheme to deal with errors, < 0 for ssl and  > 0 libc
- *
- * man page:
- * add all connection methods to the man page
  */
 
 /* error handling */
@@ -163,7 +161,6 @@ assl_fatalx(char *errstr)
 
 	exit(1);
 }
-
 #endif /* ASSL_NO_FANCY_ERRORS */
 
 /* utility functions */
@@ -335,7 +332,6 @@ assl_alloc_context(enum assl_method m)
 	c->as_verify_mode = SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_PEER;
 	c->as_verify_depth = 1;
 
-
 	return (c);
 unwind:
 	if (c)
@@ -347,7 +343,7 @@ unwind:
 int
 assl_connect(struct assl_context *c, char *host, char *port, int flags)
 {
-	int			p, r, serr, rv = -1;
+	int			p, r, serr, rv = 1;
 
 	assl_err_stack_unwind();
 
@@ -389,7 +385,7 @@ assl_connect(struct assl_context *c, char *host, char *port, int flags)
 			ERROR_OUT(ERR_LIBC, done);
 		}
 
-	rv = 1; /* positive for ssl errors */
+	rv = -1; /* negative for ssl errors */
 
 	/* go do ssl magic */
 	c->as_ssl = SSL_new(c->as_ctx);
