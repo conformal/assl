@@ -125,6 +125,8 @@ prints
 and exits.
 If the library is compiled with ASSL_NO_FANCY_ERRORS then it will not
 record the calling stack.
+The error handling code is not thread or re-entrant safe.
+It was written to accomodate finite state machines instead.
 .Sh EXAMPLES
 The following code fragment illustrates the client case:
 .Bd -literal -offset indent
