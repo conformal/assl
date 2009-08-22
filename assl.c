@@ -339,9 +339,83 @@ unwind:
 }
 
 int
+assl_pollin(int sock, int seconds)
+{
+	struct pollfd		fds[1];
+	int			nfds, rv = 1;
+
+	fds[0].fd = sock;
+	fds[0].events = POLLIN;
+	nfds = poll(fds, 1, seconds * 1000);
+	if (nfds == 0) {
+		assl_err_own("poll timeout");
+		ERROR_OUT(ERR_OWN, done);
+	} else if (nfds == -1)
+		ERROR_OUT(ERR_LIBC, done);
+
+	if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
+		ERROR_OUT(ERR_LIBC, done);
+	if (!(fds[0].revents & POLLIN)) {
+		assl_err_own("poll didn't return POLLIN");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	rv = 0;
+done:
+	return (rv);
+}
+
+int
+assl_negotiate_nonblock(struct assl_context *c)
+{
+	int			r, serr, rv = 1;
+
+	for (;;) {
+		if (c->as_server)
+			r = SSL_accept(c->as_ssl);
+		else
+			r = SSL_connect(c->as_ssl);
+
+		if (r == 1)
+			break;
+		else if (r == 2) {
+			close(c->as_sock);
+			ERROR_OUT(ERR_SSL, done);
+		} else if (r == -1)
+			serr = SSL_get_error(c->as_ssl, r);
+		else
+			ERROR_OUT(ERR_SSL, done); /* should not be reached */
+
+		/* sanity since we can only get here if we are non-block*/
+		if (c->as_nonblock == 0) {
+			assl_err_own("want read/write without non-block");
+			ERROR_OUT(ERR_OWN, done);
+		}
+
+		if (serr == SSL_ERROR_WANT_READ ||
+		    serr == SSL_ERROR_WANT_WRITE) {
+			if (assl_pollin(c->as_sock, 10)) {
+				assl_err_own("expected POLLIN");
+				ERROR_OUT(ERR_OWN, done);
+			}
+			continue;
+		}
+
+		/* failure */
+		if (serr == SSL_ERROR_SYSCALL)
+			ERROR_OUT(ERR_LIBC, done);
+		else
+			ERROR_OUT(ERR_SSL, done);
+	}
+	rv = 0;
+done:
+	return (rv);
+}
+
+int
 assl_connect(struct assl_context *c, char *host, char *port, int flags)
 {
-	int			p, r, serr, rv = 1;
+	int			p, r, rv = 1;
 
 	assl_err_stack_unwind();
 
@@ -392,12 +466,9 @@ assl_connect(struct assl_context *c, char *host, char *port, int flags)
 	c->as_sbio = BIO_new_socket(c->as_sock, BIO_NOCLOSE);
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 
-	if ((r = SSL_connect(c->as_ssl)) <= 0) {
-		serr = SSL_get_error(c->as_ssl, r);
-		if (serr == SSL_ERROR_SYSCALL)
-			ERROR_OUT(ERR_LIBC, done);
-		else
-			ERROR_OUT(ERR_SSL, done);
+	if (assl_negotiate_nonblock(c)) {
+		assl_err_own("SSL/TLS connect failed");
+		ERROR_OUT(ERR_OWN, done);
 	}
 
 	if ((r = SSL_get_verify_result(c->as_ssl)) != X509_V_OK)
@@ -411,7 +482,7 @@ done:
 int
 assl_accept(struct assl_context *c, int s)
 {
-	int			r, serr, rv = 1;
+	int			r, rv = 1;
 
 	assl_err_stack_unwind();
 
@@ -432,28 +503,10 @@ assl_accept(struct assl_context *c, int s)
 	c->as_ssl = SSL_new(c->as_ctx);
 	c->as_sbio = BIO_new_socket(c->as_sock, BIO_NOCLOSE);
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
-	for (;;) {
-		r = SSL_accept(c->as_ssl);
-		if (r == 1)
-			break;
-		else if (r == 2) {
-			/* XXX close ssl */
-			close(c->as_sock);
-			ERROR_OUT(ERR_SSL, done);
-		}
-		/* deal with connetcions that were opened but send no data */
-		/* poll for an x amount of time */
-		serr = SSL_get_error(c->as_ssl, r);
-		if (serr == SSL_ERROR_WANT_READ || serr == SSL_ERROR_WANT_WRITE) {
-			errx(1, "fix assl_accept"); /* XXX */
-			continue;
-		}
 
-		/* failure */
-		if (serr == SSL_ERROR_SYSCALL)
-			ERROR_OUT(ERR_LIBC, done);
-		else
-			ERROR_OUT(ERR_SSL, done);
+	if (assl_negotiate_nonblock(c)) {
+		assl_err_own("SSL/TLS accept failed");
+		ERROR_OUT(ERR_OWN, done);
 	}
 
 	rv = 0;
