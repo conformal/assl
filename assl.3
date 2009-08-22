@@ -34,6 +34,8 @@
 .Fn assl_serve "char *host, char *port, int flags, void (*callback)(int sock)"
 .Ft int
 .Fn assl_accept "struct assl_context *ctx, int sock"
+.Ft int
+.Fn assl_close "struct assl_context *ctx"
 .Ft void
 .Fn assl_fatalx "char *errstr"
 .Sh DESCRIPTION
@@ -107,6 +109,9 @@ function returns a non-zero value to indicate failure.
 More precisely, 1 for libc failures and -1 for
 .Xr openssl 1
 failures.
+The caller is responsible for calling
+.Fn assl_close
+to unwind the context.
 If
 .Fa flags
 is set to ASSL_F_NONBLOCK then the socket will be setup as non-blocking.
@@ -149,6 +154,12 @@ to
 .Fn assl_serve
 function after a context has been allocated in said function.
 The function returns a non-zero value to indicate failure.
+.Pp
+.Fn assl_close
+function terminates all connections and unwinds all resources, including
+context memory.
+Do not use the context pointer after calling this function.
+It is recommended to set the context pointer to NULL after this call.
 .Pp
 .Fn assl_fatalx
 prints

@@ -58,15 +58,11 @@ enum assl_method {
 
 struct assl_context {
 	/* generic */
-	int			as_nonblock;	/* set to enable nb io */
-	int			as_server;	/* 1 if in server role */
+	int			as_nonblock;	/* 1 when non-block */
+	int			as_server;	/* 1 if server mode */
 	SSL			*as_ssl;
 	int			as_sock;
 	BIO			*as_sbio;
-
-	/* client */
-	struct sockaddr_in	as_addr;
-	struct hostent		*as_raddr;
 
 	/* openssl */
 	SSL_METHOD		*as_method;
@@ -87,4 +83,5 @@ int			assl_connect(struct assl_context *, char *, char *,
 int			assl_serve(char *, char *, int, void (*)(int));
 int			assl_accept(struct assl_context *, int);
 void			assl_fatalx(char *);
+int			assl_close(struct assl_context *);
 #endif /* AGGLOMERATEDSSL_H */

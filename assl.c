@@ -317,6 +317,7 @@ assl_alloc_context(enum assl_method m)
 		ERROR_OUT(ERR_LIBC, unwind);
 
 	/* set some sane values */
+	c->as_sock = -1;
 	c->as_server = server;
 	c->as_method = meth;
 	c->as_ctx = SSL_CTX_new(meth);
@@ -378,10 +379,9 @@ assl_negotiate_nonblock(struct assl_context *c)
 
 		if (r == 1)
 			break;
-		else if (r == 2) {
-			close(c->as_sock);
+		else if (r == 2)
 			ERROR_OUT(ERR_SSL, done);
-		} else if (r == -1)
+		else if (r == -1)
 			serr = SSL_get_error(c->as_ssl, r);
 		else
 			ERROR_OUT(ERR_SSL, done); /* should not be reached */
@@ -415,7 +415,8 @@ done:
 int
 assl_connect(struct assl_context *c, char *host, char *port, int flags)
 {
-	int			p, r, rv = 1;
+	struct addrinfo		hints, *res = NULL, *ai;
+	int			p, s = -1, on = 1, rv = 1, retries;
 
 	assl_err_stack_unwind();
 
@@ -436,47 +437,76 @@ assl_connect(struct assl_context *c, char *host, char *port, int flags)
 	/* prepare ssl connection parameters */
 	assl_setup_ssl(c);
 
-	/* setup socket */
-	if ((c->as_raddr = gethostbyname(host)) == NULL)
+	bzero(&hints, sizeof(struct addrinfo));
+	hints.ai_flags = AI_CANONNAME;
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if (getaddrinfo(host, port, &hints, &res))
 		ERROR_OUT(ERR_LIBC, done);
 
-	bzero(&c->as_addr, sizeof c->as_addr);
-	c->as_addr.sin_addr = *(struct in_addr *)c->as_raddr->h_addr_list[0];
-	c->as_addr.sin_family = AF_INET;
-	c->as_addr.sin_port = htons(p);
-
-	if ((c->as_sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-		ERROR_OUT(ERR_LIBC, done);
-	if (connect(c->as_sock, (struct sockaddr *)&c->as_addr,
-	    sizeof c->as_addr) == -1)
-		ERROR_OUT(ERR_LIBC, done);
-
-	if (flags & ASSL_F_NONBLOCK) {
-		if (assl_set_nonblock(c->as_sock)) {
-			close(c->as_sock);
+	for (ai = res; ai; ai = ai->ai_next) {
+		retries = 0;
+		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
+		    continue;
+retry:
+		s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+		if (s < 0)
+			ERROR_OUT(ERR_LIBC, done);
+		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on,
+		    sizeof(on)) == -1) {
+			close(s);
 			ERROR_OUT(ERR_LIBC, done);
 		}
-		c->as_nonblock = 1;
+
+		if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0) {
+			/*
+			 * required for unit test
+			 * without this quick connections will eventually
+			 * fail with a "Address already in use" error
+			 */
+			if (errno == EADDRINUSE) {
+				if (retries > 5)
+					ERROR_OUT(ERR_LIBC, done);
+				close(s);
+				retries++;
+				goto retry;
+			}
+
+			ERROR_OUT(ERR_LIBC, done);
+		}
+
+		c->as_sock = s;
+		if (flags & ASSL_F_NONBLOCK) {
+			if (assl_set_nonblock(s))
+				ERROR_OUT(ERR_LIBC, done);
+			c->as_nonblock = 1;
+		}
+
+		rv = -1; /* negative for ssl errors */
+
+		/* go do ssl magic */
+		c->as_ssl = SSL_new(c->as_ctx);
+		c->as_sbio = BIO_new_socket(c->as_sock, BIO_NOCLOSE);
+		SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
+
+		if (assl_negotiate_nonblock(c)) {
+			assl_err_own("SSL/TLS connect failed");
+			ERROR_OUT(ERR_OWN, done);
+		}
+
+		if (SSL_get_verify_result(c->as_ssl) != X509_V_OK)
+			ERROR_OUT(ERR_SSL, done);
+
+		/* all done */
+		break;
 	}
-
-	rv = -1; /* negative for ssl errors */
-
-	/* go do ssl magic */
-	c->as_ssl = SSL_new(c->as_ctx);
-	c->as_sbio = BIO_new_socket(c->as_sock, BIO_NOCLOSE);
-	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
-
-	if (assl_negotiate_nonblock(c)) {
-		assl_err_own("SSL/TLS connect failed");
-		ERROR_OUT(ERR_OWN, done);
-	}
-
-	if ((r = SSL_get_verify_result(c->as_ssl)) != X509_V_OK)
-		ERROR_OUT(ERR_SSL, done);
 
 	rv = 0;
 done:
-	return(rv);
+	if (res)
+		freeaddrinfo(res);
+	return (rv);
 }
 
 int
@@ -492,12 +522,13 @@ assl_accept(struct assl_context *c, int s)
 	}
 	c->as_sock = s;
 
+	/* figure out if context is non-blocking */
 	r = fcntl(s, F_GETFL, 0);
 	if (r < 0)
 		ERROR_OUT(ERR_LIBC, done);
 	c->as_nonblock = r & O_NONBLOCK ? 1 : 0;
 
-	/* seup ssl connection */
+	/* prepare ssl connection parameters */
 	assl_setup_ssl(c);
 
 	c->as_ssl = SSL_new(c->as_ctx);
@@ -593,4 +624,30 @@ assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int))
 	/* NOTREACHED */
 done:
 	return (1);
+}
+
+int
+assl_close(struct assl_context *c)
+{
+	assl_err_stack_unwind();
+
+	if (c->as_ssl) {
+		SSL_shutdown(c->as_ssl);
+		close(c->as_sock);
+		SSL_free(c->as_ssl);
+		c->as_ssl = NULL;
+		c->as_sock = -1;
+	}
+	if (c->as_sock != -1) {
+		close(c->as_sock);
+		c->as_sock = -1;
+	}
+	if (c->as_ctx) {
+		SSL_CTX_free(c->as_ctx);
+		c->as_ctx = NULL;
+	}
+
+	free(c);
+
+	return (0);
 }
