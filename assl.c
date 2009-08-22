@@ -169,8 +169,6 @@ assl_set_nonblock(int fd)
 {
 	int			val, rv = 1;
 
-	assl_err_stack_unwind();
-
 	val = fcntl(fd, F_GETFL, 0);
 	if (val < 0)
 		goto done;
@@ -379,11 +377,13 @@ assl_connect(struct assl_context *c, char *host, char *port, int flags)
 	    sizeof c->as_addr) == -1)
 		ERROR_OUT(ERR_LIBC, done);
 
-	if (flags & ASSL_F_NONBLOCK)
+	if (flags & ASSL_F_NONBLOCK) {
 		if (assl_set_nonblock(c->as_sock)) {
 			close(c->as_sock);
 			ERROR_OUT(ERR_LIBC, done);
 		}
+		c->as_nonblock = 1;
+	}
 
 	rv = -1; /* negative for ssl errors */
 
@@ -421,6 +421,11 @@ assl_accept(struct assl_context *c, int s)
 	}
 	c->as_sock = s;
 
+	r = fcntl(s, F_GETFL, 0);
+	if (r < 0)
+		ERROR_OUT(ERR_LIBC, done);
+	c->as_nonblock = r & O_NONBLOCK ? 1 : 0;
+printf("nonblock %d\n", c->as_nonblock);
 	/* seup ssl connection */
 	assl_setup_ssl(c);
 
@@ -489,11 +494,13 @@ assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int))
 		s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (s < 0)
 			continue;
+
 		if (flags & ASSL_F_NONBLOCK)
 			if (assl_set_nonblock(s)) {
 				close(s);
 				ERROR_OUT(ERR_LIBC, done);
 			}
+
 		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
 		if (bind(s, ai->ai_addr, ai->ai_addrlen) < 0) {
