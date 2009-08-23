@@ -34,6 +34,10 @@
 .Fn assl_serve "char *host, char *port, int flags, void (*callback)(int sock)"
 .Ft int
 .Fn assl_accept "struct assl_context *ctx, int sock"
+.Ft ssize_t
+.Fn assl_read "struct assl_context *ctx, void *buf, size_t nbytes"
+.Ft ssize_t
+.Fn assl_write "struct assl_context *ctx, void *buf, size_t nbytes"
 .Ft int
 .Fn assl_close "struct assl_context *ctx"
 .Ft void
@@ -154,6 +158,37 @@ to
 .Fn assl_serve
 function after a context has been allocated in said function.
 The function returns a non-zero value to indicate failure.
+.Pp
+.Fn assl_read
+will read
+.Fa nbytes
+into
+.Fa buf
+from the
+.Fa ctx
+socket.
+Regardless of the underlying blocking/non-blocking mode of the socket the
+.Fa assl_read
+function can not return before the specified size has been completly read;
+this is due to limitations in the underlying crypto code.
+Therefore care must be taken to prevent read stalls.
+The socket poll command has a 10 second timeout.
+The function returns -1 to indicate failure and -2 to indicate a timeout.
+.Pp
+.Fn assl_write
+will write
+.Fa nbytes
+from
+.Fa buf
+to the
+.Fa ctx
+socket.
+Regardless of the underlying blocking/non-blocking mode of the socket the
+.Fa assl_write
+function can not return before the specified size has been completly written;
+this is due to limitations in the underlying crypto code.
+The socket poll command has a 10 second timeout.
+The function returns -1 to indicate failure and -2 to indicate a timeout.
 .Pp
 .Fn assl_close
 function terminates all connections and unwinds all resources, including

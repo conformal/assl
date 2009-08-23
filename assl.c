@@ -655,12 +655,16 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 				goto done;
 			break;
 		case SSL_ERROR_WANT_READ:
-			if (assl_poll(c->as_sock, 10, POLLIN))
+			if (assl_poll(c->as_sock, 10, POLLIN)) {
+				tot = -2;
 				ERROR_OUT(ERR_LIBC, done);
+			}
 			break;
 		case SSL_ERROR_WANT_WRITE:
-			if (assl_poll(c->as_sock, 10, POLLOUT))
+			if (assl_poll(c->as_sock, 10, POLLOUT)) {
+				tot = -2;
 				ERROR_OUT(ERR_LIBC, done);
+			}
 			break;
 		case SSL_ERROR_SYSCALL:
 			tot = -1;
