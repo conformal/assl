@@ -21,13 +21,17 @@ static const char *version = "$assl$";
 
 /*
  * XXX todo:
- * read/write blocking
- * read/write non-blocking
+ * fgets/fputs blocking
+ * fgets/fputs non-blocking
  * LDAP integration for certs
  * create CA certificate
  * create machine certificates
  * sign machine certificates
+ * keep stats on read/write performance and connection overhead
  * come up with a scheme to deal with errors, < 0 for ssl and  > 0 libc
+ * add poll with 0 time for api to test for blocking conditions
+ * add reconnect code
+ * write proper regress tests
  */
 
 /* error handling */
@@ -78,11 +82,9 @@ assl_geterror(int et)
 		es = (char *)ERR_lib_error_string(ERR_get_error());
 		if (es)
 			strlcpy(assl_last_error, es, sizeof assl_last_error);
-		else {
-			es = assl_last_error;
+		else
 			strlcpy(assl_last_error, "unknown SSL error",
 			    sizeof assl_last_error);
-		}
 		break;
 	default:
 		strlcpy(assl_last_error, "unknown error",
@@ -348,6 +350,7 @@ assl_poll(int sock, int seconds, short event)
 	fds[0].events = event;
 	nfds = poll(fds, 1, seconds * 1000);
 	if (nfds == 0) {
+		rv = ETIMEDOUT;
 		assl_err_own("poll timeout");
 		ERROR_OUT(ERR_OWN, done);
 	} else if (nfds == -1)
@@ -369,7 +372,7 @@ done:
 int
 assl_negotiate_nonblock(struct assl_context *c)
 {
-	int			r, serr, rv = 1;
+	int			p, r, rv = 1;
 
 	for (;;) {
 		if (c->as_server)
@@ -377,37 +380,31 @@ assl_negotiate_nonblock(struct assl_context *c)
 		else
 			r = SSL_connect(c->as_ssl);
 
-		if (r == 1)
-			break;
-		else if (r == 2)
-			ERROR_OUT(ERR_SSL, done);
-		else if (r == -1)
-			serr = SSL_get_error(c->as_ssl, r);
-		else
-			ERROR_OUT(ERR_SSL, done); /* should not be reached */
-
-		/* sanity since we can only get here if we are non-block*/
-		if (c->as_nonblock == 0) {
-			assl_err_own("want read/write without non-block");
-			ERROR_OUT(ERR_OWN, done);
-		}
-
-		if (serr == SSL_ERROR_WANT_READ ||
-		    serr == SSL_ERROR_WANT_WRITE) {
-			if (assl_poll(c->as_sock, 10, POLLIN)) {
-				assl_err_own("expected POLLIN");
-				ERROR_OUT(ERR_OWN, done);
+		switch (SSL_get_error(c->as_ssl, r)) {
+		case SSL_ERROR_NONE:
+			rv = 0;
+			goto done;
+		case SSL_ERROR_WANT_READ:
+			if ((p = assl_poll(c->as_sock, 10, POLLIN))) {
+				if (p = ETIMEDOUT)
+					rv = -2;
+				ERROR_OUT(ERR_LIBC, done);
 			}
-			continue;
-		}
-
-		/* failure */
-		if (serr == SSL_ERROR_SYSCALL)
+			break;
+		case SSL_ERROR_SYSCALL:
+			rv = -1;
 			ERROR_OUT(ERR_LIBC, done);
-		else
-			ERROR_OUT(ERR_SSL, done);
+			break;
+		case SSL_ERROR_ZERO_RETURN:
+			/* connection hung up on the other side */
+			rv = -1;
+			assl_err_own("connection closed by peer");
+			ERROR_OUT(ERR_OWN, done);
+			break;
+		default:
+			errx(1, "FIXME negotiate default error: %d", SSL_get_error(c->as_ssl, r));
+		}
 	}
-	rv = 0;
 done:
 	return (rv);
 }
@@ -629,7 +626,7 @@ done:
 ssize_t
 assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 {
-	int			r, sz;
+	int			r, p, sz;
 	u_int8_t		*b;
 	ssize_t			tot = 0;
 
@@ -640,7 +637,7 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 		ERROR_OUT(ERR_OWN, done);
 	}
 
-	for (b = buf, sz = nbytes;;) {
+	for (b = buf, sz = nbytes; sz > 0;) {
 		if (rd)
 			r = SSL_read(c->as_ssl, b, sz);
 		else
@@ -651,18 +648,18 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 			tot += r;
 			b += r;
 			sz -= r;
-			if (sz == 0)
-				goto done;
 			break;
 		case SSL_ERROR_WANT_READ:
-			if (assl_poll(c->as_sock, 10, POLLIN)) {
-				tot = -2;
+			if ((p = assl_poll(c->as_sock, 10, POLLIN))) {
+				if (p = ETIMEDOUT)
+					tot = -2;
 				ERROR_OUT(ERR_LIBC, done);
 			}
 			break;
 		case SSL_ERROR_WANT_WRITE:
-			if (assl_poll(c->as_sock, 10, POLLOUT)) {
-				tot = -2;
+			if ((p = assl_poll(c->as_sock, 10, POLLOUT))) {
+				if (p = ETIMEDOUT)
+					tot = -2;
 				ERROR_OUT(ERR_LIBC, done);
 			}
 			break;
@@ -670,8 +667,14 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 			tot = -1;
 			ERROR_OUT(ERR_LIBC, done);
 			break;
+		case SSL_ERROR_ZERO_RETURN:
+			/* connection hung up on the other side */
+			tot = -1;
+			assl_err_own("connection closed by peer");
+			ERROR_OUT(ERR_OWN, done);
+			break;
 		default:
-			errx(1, "default error: %d", SSL_get_error(c->as_ssl, r));
+			errx(1, "FIXME read/write default error: %d", SSL_get_error(c->as_ssl, r));
 		}
 	}
 
