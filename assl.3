@@ -169,7 +169,7 @@ from the
 socket.
 Regardless of the underlying blocking/non-blocking mode of the socket the
 .Fa assl_read
-function can not return before the specified size has been completly read;
+function can not return before the specified size has been completely read;
 this is due to limitations in the underlying crypto code.
 Therefore care must be taken to prevent read stalls.
 The socket poll command has a 10 second timeout.
@@ -185,7 +185,7 @@ to the
 socket.
 Regardless of the underlying blocking/non-blocking mode of the socket the
 .Fa assl_write
-function can not return before the specified size has been completly written;
+function can not return before the specified size has been completely written;
 this is due to limitations in the underlying crypto code.
 The socket poll command has a 10 second timeout.
 The function returns -1 to indicate failure and -2 to indicate a timeout.
@@ -203,7 +203,7 @@ and exits.
 If the library is compiled with ASSL_NO_FANCY_ERRORS then it will not
 record the calling stack.
 The error handling code is not thread or re-entrant safe.
-It was written to accomodate finite state machines instead.
+It was written to accommodate finite state machines instead.
 .Sh EXAMPLES
 The following code fragment illustrates the client case:
 .Bd -literal -offset indent
@@ -281,3 +281,7 @@ It strives to reuse
 APIs and provide a much simpler and sane interface for programmers that are
 interested in writing applications that require the SSL/TLS protocol for
 secure communications.
+.Pp
+Once the API solidifies individual functions can be replaced with code that
+does not rely on
+.Xr openssl 1
