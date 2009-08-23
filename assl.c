@@ -631,7 +631,7 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 {
 	int			r, sz;
 	u_int8_t		*b;
-	ssize_t			tw = 0;
+	ssize_t			tot = 0;
 
 	assl_err_stack_unwind();
 
@@ -648,7 +648,7 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 
 		switch (SSL_get_error(c->as_ssl, r)) {
 		case SSL_ERROR_NONE:
-			tw += r;
+			tot += r;
 			b += r;
 			sz -= r;
 			if (sz == 0)
@@ -663,7 +663,7 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 				ERROR_OUT(ERR_LIBC, done);
 			break;
 		case SSL_ERROR_SYSCALL:
-			tw = -1;
+			tot = -1;
 			ERROR_OUT(ERR_LIBC, done);
 			break;
 		default:
@@ -672,7 +672,7 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 	}
 
 done:
-	return (tw);
+	return (tot);
 }
 
 ssize_t
