@@ -23,7 +23,6 @@ static const char *version = "$assl$";
  * XXX todo:
  * read/write blocking
  * read/write non-blocking
- * session tear down
  * LDAP integration for certs
  * create CA certificate
  * create machine certificates
@@ -340,13 +339,13 @@ unwind:
 }
 
 int
-assl_pollin(int sock, int seconds)
+assl_poll(int sock, int seconds, short event)
 {
 	struct pollfd		fds[1];
 	int			nfds, rv = 1;
 
 	fds[0].fd = sock;
-	fds[0].events = POLLIN;
+	fds[0].events = event;
 	nfds = poll(fds, 1, seconds * 1000);
 	if (nfds == 0) {
 		assl_err_own("poll timeout");
@@ -356,8 +355,9 @@ assl_pollin(int sock, int seconds)
 
 	if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
 		ERROR_OUT(ERR_LIBC, done);
-	if (!(fds[0].revents & POLLIN)) {
-		assl_err_own("poll didn't return POLLIN");
+	if (!(fds[0].revents & event)) {
+		assl_err_own("poll didn't return %s",
+		    event == POLLIN ? "POLLIN" : "POLLOUT");
 		ERROR_OUT(ERR_OWN, done);
 	}
 
@@ -394,7 +394,7 @@ assl_negotiate_nonblock(struct assl_context *c)
 
 		if (serr == SSL_ERROR_WANT_READ ||
 		    serr == SSL_ERROR_WANT_WRITE) {
-			if (assl_pollin(c->as_sock, 10)) {
+			if (assl_poll(c->as_sock, 10, POLLIN)) {
 				assl_err_own("expected POLLIN");
 				ERROR_OUT(ERR_OWN, done);
 			}
@@ -460,6 +460,7 @@ retry:
 		}
 
 		if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0) {
+			close(s);
 			/*
 			 * required for unit test
 			 * without this quick connections will eventually
@@ -468,7 +469,6 @@ retry:
 			if (errno == EADDRINUSE) {
 				if (retries > 5)
 					ERROR_OUT(ERR_LIBC, done);
-				close(s);
 				retries++;
 				goto retry;
 			}
@@ -626,11 +626,76 @@ done:
 	return (1);
 }
 
+ssize_t
+assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
+{
+	int			r, sz;
+	u_int8_t		*b;
+	ssize_t			tw = 0;
+
+	assl_err_stack_unwind();
+
+	if (c == NULL) {
+		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	for (b = buf, sz = nbytes;;) {
+		if (rd)
+			r = SSL_read(c->as_ssl, b, sz);
+		else
+			r = SSL_write(c->as_ssl, b, sz);
+
+		switch (SSL_get_error(c->as_ssl, r)) {
+		case SSL_ERROR_NONE:
+			tw += r;
+			b += r;
+			sz -= r;
+			if (sz == 0)
+				goto done;
+			break;
+		case SSL_ERROR_WANT_READ:
+			if (assl_poll(c->as_sock, 10, POLLIN))
+				ERROR_OUT(ERR_LIBC, done);
+			break;
+		case SSL_ERROR_WANT_WRITE:
+			if (assl_poll(c->as_sock, 10, POLLOUT))
+				ERROR_OUT(ERR_LIBC, done);
+			break;
+		case SSL_ERROR_SYSCALL:
+			tw = -1;
+			ERROR_OUT(ERR_LIBC, done);
+			break;
+		default:
+			errx(1, "default error: %d", SSL_get_error(c->as_ssl, r));
+		}
+	}
+
+done:
+	return (tw);
+}
+
+ssize_t
+assl_read(struct assl_context *c, void *buf, size_t nbytes)
+{
+	return (assl_read_write(c, buf, nbytes, 1));
+}
+
+ssize_t
+assl_write(struct assl_context *c, void *buf, size_t nbytes)
+{
+	return (assl_read_write(c, buf, nbytes, 0));
+}
+
 int
 assl_close(struct assl_context *c)
 {
 	assl_err_stack_unwind();
 
+	if (c == NULL) {
+		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, done);
+	}
 	if (c->as_ssl) {
 		SSL_shutdown(c->as_ssl);
 		close(c->as_sock);
@@ -648,6 +713,6 @@ assl_close(struct assl_context *c)
 	}
 
 	free(c);
-
+done:
 	return (0);
 }

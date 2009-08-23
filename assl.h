@@ -83,5 +83,7 @@ int			assl_connect(struct assl_context *, char *, char *,
 int			assl_serve(char *, char *, int, void (*)(int));
 int			assl_accept(struct assl_context *, int);
 void			assl_fatalx(char *);
+ssize_t			assl_read(struct assl_context *, void *, size_t);
+ssize_t			assl_write(struct assl_context *, void *, size_t);
 int			assl_close(struct assl_context *);
 #endif /* AGGLOMERATEDSSL_H */
