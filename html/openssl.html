@@ -1,0 +1,756 @@
+<html>
+  <head>
+    <title>Flingpoo!</title>
+  </head>
+  <body>
+    <h2><center>OpenSSL is written by monkeys</center></h2>
+    I know it sounds harsh but lets investigate the facts.
+    <p>
+    First lets get out of the way who is complaining.
+    Hi, I am Marco Peereboom and I write open source code for fun.
+    I have been involved in several projects and the google will tell you which ones.
+    I am by no stretch of the imagination a great programmer but I have been around and I have written a couple of things.
+    <p>
+    Recently I got involved in writing some code that requires secure communications and I figured that there was no better way to get cranking than to use a well known and widely used library.
+    Essentially my problem boils down to this:<br>
+    <strong>
+      <ol>
+        <li type="circle">Write an application that provides CA (Certificate Authority) services.</li>
+        <li type="circle">Store all certificates in an LDAP tree.</li>
+      </ol>
+    </strong>
+    <p>
+    The debate is not about the merit of this idea but this is where the journey started.
+    It sounded simple enough so off to the web looking for documentation and code snippets, this is obviously going to be a walk in the park since all these problems have been solved before.
+    <p>
+    After messing around with this code for about a month (8 days targeted) I decided to write this up for the tubes in the hope that I can save some souls.
+    I have come to the conclusion that OpenSSL is equivalent to monkeys throwing feces at the wall.
+    It is, bar none, the worst library I have ever worked with.
+    I can not believe that the internet is running on such a ridiculous complex and gratuitously stupid piece of code.
+    Since circa 1998 the whole world has been trusting their secure communications to this impenetrable morass that calls itself the "OpenSSL" project.
+    I bet that the doctors that work on that shitshow can not prescribe anything useful either!
+    <p>
+    <strong>Day 1:</strong>
+    <p>
+    Hmmm can't find a whole bunch of code at all.
+    What I do find doesn't help me with my CA problem at all.
+    Everything I do find is basically a whole bunch of HOWTOS written by people who don't seem to grasp the underlying problems.
+    They mean well but really hurt the community as a whole by providing recipes for disaster.
+    Alright no problem off to Barnes &amp; Nobles and lets see what we can find.
+    <p>
+    Crap! Nothing really.
+    I found 2 books and they were mostly about using the command line tool.
+    One had some code examples but nothing advanced at all.
+    Apparently people only seem to care about using openssl "the tool".
+    <p>
+    I had peeked at the code and it gave me vertigo so I stepped away from it.
+    Anyway at this point I was starting to suspect that this might not be as easy as I had hopped.
+    Time to go home anyway and drink a cold one.
+    <p>
+    <strong>Day 2:</strong>
+    <p>
+    Alright screw it! I'll look at the damn code; I mean all books and examples on the web use it.
+    At least it'll point me to what functions I need to call and I'll be able to find those in the fine documentation.
+    First I obviously need to figure out how to use openssl "the tool".
+    <p>
+    <small>8 hours later...</small>
+    <p>
+    Phew I got something that works after reading endless HOWTOS, specs and postings on the tubes.
+    The documentation was, how does one say that?
+    Really really bad!
+    Let me share with you my labor of love.
+    I created 3 scripts to illustrate my problem of having a CA that signs client and server certificates.
+    <ol>
+      <li>create_ca, this script creates the CA</li>
+      <li>create_server, this script creates a server certificate and keys</li>
+      <li>create_client, this script creates a client certificate and keys</li>
+    </ol>
+    <b>create_ca</b>
+<pre>
+#/bin/sh
+mkdir -p ca/private
+chmod 700 ca/private
+openssl req -x509 -days 3650 -newkey rsa:1024 -keyout ca/private/ca.key -out ca/ca.crt
+</pre>
+    <b>create_server</b>
+<pre>
+#/bin/sh
+mkdir -p server/private
+chmod 700 server/private
+openssl genrsa -out server/private/server.key 1024
+openssl req -new -key server/private/server.key -out server/server.csr
+</pre>
+    <b>create_client</b>
+<pre>
+#/bin/sh
+mkdir -p client/private
+chmod 700 client/private
+openssl genrsa -out client/private/client.key 1024
+openssl req -new -key client/private/client.key -out client/client.csr
+</pre>
+    enough for a day.
+    Time to go home.
+    <p>
+    <strong>Day 3:</strong>
+    Alright, that openssl "the tool" stuff out of the way lets dig into that code.
+    Hmmm, where is main?
+    How does it call the individual modules?
+    Random camel capitalization mixed with underscores wow!
+    Ugh MAIN macro, great.
+    <b>*WASH_Eyes_outWith_soap*</b>
+    <p>
+    Ok we are going to need some serious tags to be able to navigate this morass.
+    After a couple of hours of digging through the code I kind of get the hang of it (thanks vim!).
+    Now it is time to start walking this code backwards and see if I can generate a CA without having to use openssl "the tool".
+    A few more hours go by and the incomplete man pages, no man pages, poorly written man pages really start to wear on me.
+    No help from google, bing, yahoo etc.
+    The documentation is simply non-existent and what does exist is outdated and does not match reality.
+    Screw it, I am going home!
+    <p>
+    <strong>Day 4:</strong>
+    <p>
+    I start writing some code based on what I find in openssl "the tool".
+    Progress is painfully slow due to the embarrassingly bad style, indentation and don't get me started about impenetrable #ifdef goo.  Speaking of #ifdefs I saw several dangling ones that would eat an instruction; e.g.
+<pre>
+#ifdef (OMG)
+	if (moo) {
+		...
+	} else
+#endif /* OMG */
+		yeah();
+</pre>
+    This is actually the pretty version.
+    The one I ran into was over a couple hundred lines of code with indentation that makes a grown man cry.
+    Lets also get one other thing out of the way.
+    If you think
+<pre>
+	if (moo)
+	    {
+	    dome_something_dumb();
+	    }
+	    else
+	    {
+	    or_not();
+	    }
+</pre>
+    or
+<pre>
+	if (			moo)
+				{
+				blah();
+				}
+</pre>
+<pre>
+	if (bad)
+		goto err;
+	...
+	if (0) {
+err:
+		do_something_horrible();
+	}
+</pre>
+    is readable I suggest you visit an optometrist.
+    Possibly even a proctologist.
+    Lets look at a few real examples
+<pre>
+		if ((OBJ_obj2nid(obj) == NID_pkcs9_emailAddress) &&
+			(str->type != V_ASN1_IA5STRING))
+			{
+			BIO_printf(bio_err,"\nemailAddress type needs to be of type IA5STRING\n");
+			goto err;
+			}
+		if ((str->type != V_ASN1_BMPSTRING) && (str->type != V_ASN1_UTF8STRING))
+			{
+			j=ASN1_PRINTABLE_type(str->data,str->length);
+			if (	((j == V_ASN1_T61STRING) &&
+				 (str->type != V_ASN1_T61STRING)) ||
+				((j == V_ASN1_IA5STRING) &&
+				 (str->type == V_ASN1_PRINTABLESTRING)))
+				{
+				BIO_printf(bio_err,"\nThe string contains characters that are illegal for the ASN.1 type\n");
+				goto err;
+				}
+			}
+</pre>
+Here is an example of a function stack; vim to the rescue!
+<pre>
+	if (!SSL_CTX_use_certificate_file(ctx, "server/server.crt", SSL_FILETYPE_PEM))
+ctrl ]
+...
+	else if (type == SSL_FILETYPE_PEM)
+		{
+		j=ERR_R_PEM_LIB;
+		x=PEM_read_bio_X509(in,NULL,ctx->default_passwd_callback,ctx->default_passwd_callback_userdata);
+ctrl ]
+...
+#define	PEM_read_bio_X509(bp,x,cb,u) (X509 *)PEM_ASN1_read_bio( \
+	(char *(*)())d2i_X509,PEM_STRING_X509,bp,(char **)x,cb,u)
+ctrl ]
+...
+	if (!PEM_bytes_read_bio(&data, &len, NULL, name, bp, cb, u))
+		return NULL;
+ctrl ]
+...
+		if (!PEM_read_bio(bp,&nm,&header,&data,&len)) {
+ctrl ]
+...
+		i=BIO_gets(bp,buf,254);
+ctrl ]
+...
+	i=b->method->bgets(b,in,inl);
+</pre>
+    That spanned 5 files, 6 indirections and all that to open and fgets the contents of a file.
+    And we still are doing an indirect call.
+    All this work and jumping around when all I wanted is to have a function that can translate a PEM (NOT in a file!!!) cert into a X509 structure.
+    But between the million or so functions nothing handy like that exists; or so I suspect but since there are no docs I really have to guess.
+    I can't rob you guys from this gem either:
+<pre>
+#ifndef OPENSSL_NO_STDIO
+/*!
+ * Load CA certs from a file into a ::STACK. Note that it is somewhat misnamed;
+ * it doesn't really have anything to do with clients (except that a common use
+ * for a stack of CAs is to send it to the client). Actually, it doesn't have
+ * much to do with CAs, either, since it will load any old cert.
+ * \param file the file containing one or more certs.
+ * \return a ::STACK containing the certs.
+ */
+STACK_OF(X509_NAME) *SSL_load_client_CA_file(const char *file)
+	{
+	BIO *in;
+	X509 *x=NULL;
+	X509_NAME *xn=NULL;
+	STACK_OF(X509_NAME) *ret = NULL,*sk;
+
+	sk=sk_X509_NAME_new(xname_cmp);
+
+	in=BIO_new(BIO_s_file_internal());
+
+	if ((sk == NULL) || (in == NULL))
+		{
+		SSLerr(SSL_F_SSL_LOAD_CLIENT_CA_FILE,ERR_R_MALLOC_FAILURE);
+		goto err;
+		}
+	
+	if (!BIO_read_filename(in,file))
+		goto err;
+
+	for (;;)
+		{
+		if (PEM_read_bio_X509(in,&x,NULL,NULL) == NULL)
+			break;
+		if (ret == NULL)
+			{
+			ret = sk_X509_NAME_new_null();
+			if (ret == NULL)
+				{
+				SSLerr(SSL_F_SSL_LOAD_CLIENT_CA_FILE,ERR_R_MALLOC_FAILURE);
+				goto err;
+				}
+			}
+		if ((xn=X509_get_subject_name(x)) == NULL) goto err;
+		/* check for duplicates */
+		xn=X509_NAME_dup(xn);
+		if (xn == NULL) goto err;
+		if (sk_X509_NAME_find(sk,xn) >= 0)
+			X509_NAME_free(xn);
+		else
+			{
+			sk_X509_NAME_push(sk,xn);
+			sk_X509_NAME_push(ret,xn);
+			}
+		}
+
+	if (0)
+		{
+err:
+		if (ret != NULL) sk_X509_NAME_pop_free(ret,X509_NAME_free);
+		ret=NULL;
+		}
+	if (sk != NULL) sk_X509_NAME_free(sk);
+	if (in != NULL) BIO_free(in);
+	if (x != NULL) X509_free(x);
+	if (ret != NULL)
+		ERR_clear_error();
+	return(ret);
+	}
+#endif
+</pre>
+    Wow! that one does it all! unreadable, lots of indirection and no clear direction as to what the function is trying to achieve.
+    Got to love the if (0) construct!
+    I mean that obviously wins all the beauty, aesthetics &amp; NIH awards.
+    You have to be overjoyed to know that this type of code runs a lot of our "secure" internet.
+    <p>
+    Silly me to just want to have a function to read certs from LDAP or memory so that I can write the LDAP code myself.
+    Not much code got written, I need to go home and go into some sort of drunken stooper.
+    <p>
+    <strong>Day 5:</strong>
+    <p>
+    This is starting to piss me off!
+    Armed with a fresh headache I get with the coding part.
+    After a couple of hours of reading and rereading some openssl "the tool" code I came up with this:
+<pre>
+int
+create_ca(char *retstr, size_t retlen)
+{
+	int			rv = 1;
+	int			days = 365 * 10;
+	char			*password = NULL;
+	EVP_PKEY		pkey, *tmppkey = NULL;
+	BIGNUM			bn;
+	RSA			*rsa = NULL;
+	X509_REQ		*req = NULL;
+	X509_NAME		*subj;
+	X509			*x509 = NULL;
+	BIO			*out = NULL;
+
+	/* generate private key */
+	if ((rsa = RSA_new()) == NULL)
+		ERROR_OUT(ERR_SSL, done);
+	bzero(&bn, sizeof bn);
+	if (BN_set_word(&bn, 0x10001) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (RSA_generate_key_ex(rsa, 1024, &bn, NULL) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	bzero(&pkey, sizeof pkey);
+	if (EVP_PKEY_assign_RSA(&pkey, rsa) == 0)
+		ERROR_OUT(ERR_SSL, done);
+
+	/* setup req for certificate */
+	if ((req = X509_REQ_new()) == NULL)
+		ERROR_OUT(ERR_SSL, done);
+	if (X509_REQ_set_version(req, 0) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	subj = X509_REQ_get_subject_name(req);
+	if (validate_canew(subj, &password)) {
+		snprintf(last_error, sizeof last_error,
+		    "validate_canew failed");
+		ERROR_OUT(ERR_OWN, done);
+	}
+	/* set public key to req */
+	if (X509_REQ_set_pubkey(req, &pkey) == 0)
+		ERROR_OUT(ERR_SSL, done);
+
+	/* generate 509 cert */
+	if ((x509 = X509_new()) == NULL)
+		ERROR_OUT(ERR_SSL, done);
+	bzero(&bn, sizeof bn);
+	if (BN_pseudo_rand(&bn, 64 /* bits */, 0, 0) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (BN_to_ASN1_INTEGER(&bn, X509_get_serialNumber(x509)) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (X509_set_issuer_name(x509, X509_REQ_get_subject_name(req)) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (X509_gmtime_adj(X509_get_notBefore(x509), 0) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (days == 0) {
+		snprintf(last_error, sizeof last_error,
+		    "not enough days for certificate");
+		ERROR_OUT(ERR_OWN, done);
+	}
+	days *= 60 * 60 * 24;
+	if (X509_gmtime_adj(X509_get_notAfter(x509), days) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (X509_set_subject_name(x509, X509_REQ_get_subject_name(req)) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	if ((tmppkey = X509_REQ_get_pubkey(req)) == NULL)
+		ERROR_OUT(ERR_SSL, done);
+	if (X509_set_pubkey(x509, tmppkey) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (X509_sign(x509, &pkey, EVP_sha1()) == 0)
+		ERROR_OUT(ERR_SSL, done);
+
+	/* write private key */
+	out = BIO_new(BIO_s_file());
+	if (BIO_write_filename(out, CA_PKEY) <= 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (chmod(CA_PKEY, S_IRWXU))
+		ERROR_OUT(ERR_LIBC, done);
+	if (PEM_write_bio_PrivateKey(out, &pkey, EVP_des_ede3_cbc(), NULL, 0,
+	    NULL, password) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	BIO_free_all(out);
+
+	/* write cert */
+	out = BIO_new(BIO_s_file());
+	if (BIO_write_filename(out, CA_CERT) <= 0)
+		ERROR_OUT(ERR_SSL, done);
+	if (PEM_write_bio_X509(out, x509) == 0)
+		ERROR_OUT(ERR_SSL, done);
+	BIO_free_all(out);
+
+	rv = 0;
+done:
+	if (tmppkey)
+		EVP_PKEY_free(tmppkey);
+	if (x509)
+		X509_free(x509);
+	if (req)
+		X509_REQ_free(req);
+	if (rsa)
+		RSA_free(rsa);
+
+	return (rv);
+}
+</pre>
+    As you can see I create an awful mechanism to at least get some sort of usable fault stack to trace errors.
+    Here is the macro in its full horror:
+<pre>
+/* errors */
+#define ERR_LIBC	(0)
+#define ERR_SSL		(1)
+#define ERR_OWN		(2)
+
+#define ERROR_OUT(e, g)	do { push_error(__FILE__, __FUNCTION__, __LINE__, e); goto g; } while(0)
+</pre>
+    Dear $DEITY I beg your forgiveness for I have sinned.
+    <p>
+    Let me show the other bits to make this work just for completions sake and to hope I can help another lost soul that has to put up with this poo.
+    The functions that play with this garbage:
+<pre>
+char *
+geterror(int et)
+{
+	char			*es;
+
+	switch (et) {
+	case ERR_LIBC:
+		strlcpy(last_error, strerror(errno), sizeof last_error);
+		break;
+	case ERR_SSL:
+		es = (char *)ERR_lib_error_string(ERR_get_error());
+		if (es)
+			strlcpy(last_error, es, sizeof last_error);
+		else
+			strlcpy(last_error, "unknown SSL error",
+			    sizeof last_error);
+		break;
+	default:
+		strlcpy(last_error, "unknown error", sizeof last_error);
+		/* FALLTHROUGH */
+	case ERR_OWN:
+		break;
+	}
+
+	return (last_error);
+}
+
+void
+push_error(char *file, char *func, int line, int et)
+{
+	struct error	*ce;
+
+	if ((ce = calloc(1, sizeof *ce)) == NULL)
+		fatal("push_error ce");
+	if ((ce->file = strdup(file)) == NULL)
+		fatal("push_error ce->file");
+	if ((ce->func = strdup(func)) == NULL)
+		fatal("push_error ce->func");
+	if ((ce->errstr = strdup(geterror(et))) == NULL)
+		fatal("push_error ce->errstr");
+	ce->line = line;
+
+	SLIST_INSERT_HEAD(&ces, ce, dlink);
+}
+
+</pre>
+	Here are the remaining utility functions to make it all "work":
+<pre>
+int
+cert_find_put(char *entry, X509_NAME *subj, ssize_t min, ssize_t max)
+{
+	struct valnode		*v;
+	int			rv = 1;
+
+	v = find_valtree(entry);
+	if (v && v->length > 0) {
+		if (min != -1 && v->length < min) {
+			snprintf(last_error, sizeof last_error,
+			    "%s minimum constraint not met %lu < %lu",
+			    entry, v->length, min);
+			ERROR_OUT(ERR_OWN, done);
+		}
+		if (max != -1 && v->length > max) {
+			snprintf(last_error, sizeof last_error,
+			    "%s maximum constraint not met %lu > %lu",
+			    entry, v->length, max);
+			ERROR_OUT(ERR_OWN, done);
+		}
+		if (X509_NAME_add_entry_by_txt(subj, entry, MBSTRING_ASC,
+		    v->value, -1, -1, 0) == 0)
+			ERROR_OUT(ERR_SSL, done);
+	} else {
+		log_debug("cert_find_put: %s not found", entry);
+		goto done;
+	}
+
+	rv = 0;
+done:
+	return (rv);
+}
+
+int
+validate_canew(X509_NAME *subj, char **pwd)
+{
+	struct valnode		*password, *password2;
+	int			rv = 1;
+
+	password = find_valtree("password");
+	password2 = find_valtree("password2");
+
+	if (password && password2) {
+		if (strcmp(password->value, password2->value) ||
+		    password->length == 0) {
+			snprintf(last_error, sizeof last_error,
+			    "invalid password");
+			ERROR_OUT(ERR_OWN, done);
+		}
+		*pwd = password->value;
+	}
+	if (password == NULL && password2 == NULL) {
+		snprintf(last_error, sizeof last_error,
+		    "password can't be NULL");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	if (cert_find_put("C", subj, 2, 2)) {
+		snprintf(last_error, sizeof last_error,
+		    "invalid country");
+		ERROR_OUT(ERR_OWN, done);
+	}
+	cert_find_put("ST", subj, -1, -1);
+	cert_find_put("L", subj, -1, -1);
+	cert_find_put("O", subj, -1, -1);
+	cert_find_put("OU", subj, -1, -1);
+	cert_find_put("CN", subj, -1, -1);
+	cert_find_put("emailAddress", subj, -1, -1);
+
+	rv = 0;
+done:
+	return (rv);
+}
+</pre>
+    Jubilation!
+    We have a CA OMG!!!oneONE!!!111~
+    Time to go home!<br>
+    At home I sit in the shower and cry a little, WAIT, is that blood???
+    <p>
+    <strong>Day 6:</strong>
+    <p>
+    I'll get to writing stuff into LDAP later.
+    I need to work on something else for a while.
+    So next up, a client/server app that negotiates SSL/TLS.
+    First I try various examples on the net.
+    <p>
+    <b>Big bag of FAIL</b>
+    <p>
+    Well, then we'll look at the man pages, I mean they totally come with an example!
+    <p>
+    <b>Second big bag of FAIL</b>
+    <p>
+    Farting around with crap I found on the net + example + a lot of time.
+    <p>
+    <b>Third big bag of FAIL</b>
+    <p>
+    Enough, I am going home.
+    <p>
+    <strong>Day 7:</strong>
+    <p>
+    Alright, time to go back into my by now favorite piece of code!
+    openssl "the tool" has s_server and s_client and if you push the buttons it sort of seems to work.
+    These are the magic commands I came up with:
+<pre>
+openssl s_server -CAfile ca/ca.crt -cert server/server.crt -key server/private/server.key -Verify 1
+openssl s_client -CAfile ca/ca.crt -cert client/client.crt -key client/private/client.key
+</pre>
+    That connects over SSL/TLS according to it and it seemed ok in tcpdump as well.
+    So lets start coding!
+    I'll present you here with my test code, again I am hoping to do other folks a favor and hope that a few murders can be averted.
+    First up the server:
+<pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;err.h&gt;
+
+#include &lt;sys/types.h&gt;
+#include &lt;sys/socket.h&gt;
+
+#include &lt;netinet/in.h&gt;
+
+#include "openssl/bio.h"
+#include "openssl/ssl.h"
+#include "openssl/err.h"
+
+void
+fatalx(char *s)
+{
+	ERR_print_errors_fp(stderr);
+	errx(1, s);
+}
+
+int
+main(int argc, char *argv[])
+{
+	SSL_CTX			*ctx;
+	BIO			*sbio;
+	SSL			*ssl;
+	int			sock, s, r, val = -1;
+	struct sockaddr_in	sin;
+
+	SSL_load_error_strings();
+	OpenSSL_add_ssl_algorithms();
+
+	ctx = SSL_CTX_new(SSLv23_server_method());
+	if (ctx == NULL)
+		fatalx("ctx");
+
+	if (!SSL_CTX_load_verify_locations(ctx, "ca/ca.crt", NULL))
+		fatalx("verify");
+	SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file("ca/ca.crt"));
+
+	if (!SSL_CTX_use_certificate_file(ctx, "server/server.crt", SSL_FILETYPE_PEM))
+		fatalx("cert");
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "server/private/server.key", SSL_FILETYPE_PEM))
+		fatalx("key");
+	if (!SSL_CTX_check_private_key(ctx))
+		fatalx("cert/key");
+
+	SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER | SSL_VERIFY_FAIL_IF_NO_PEER_CERT, NULL);
+	SSL_CTX_set_verify_depth(ctx, 1);
+
+	/* setup socket */
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+		err(1, "socket");
+
+	bzero(&sin, sizeof sin);
+	sin.sin_addr.s_addr = INADDR_ANY;
+	sin.sin_family = AF_INET;
+	sin.sin_port = htons(4433);
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &val, sizeof val);
+
+	if (bind(sock, (struct sockaddr *)&sin, sizeof sin) == -1)
+		err(1, "bind");
+	listen(sock, 0);
+
+	for (;;) {
+		if ((s = accept(sock, 0, 0)) == -1)
+			err(1, "accept");
+
+		sbio = BIO_new_socket(s, BIO_NOCLOSE);
+		ssl = SSL_new(ctx);
+		SSL_set_bio(ssl, sbio, sbio);
+
+		if ((r = SSL_accept(ssl)) == -1)
+			fatalx("SSL_accept");
+
+		printf("handle it!\n");
+	}
+
+	return (0);
+}
+</pre>
+    and the client:
+<pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;err.h&gt;
+
+#include &lt;sys/types.h&gt;
+#include &lt;sys/socket.h&gt;
+
+#include &lt;netinet/in.h&gt;
+#include &lt;netdb.h&gt;
+
+#include "openssl/bio.h"
+#include "openssl/ssl.h"
+#include "openssl/err.h"
+
+void
+fatalx(char *s)
+{
+	ERR_print_errors_fp(stderr);
+	errx(1, s);
+}
+
+int
+main(int argc, char *argv[])
+{
+	SSL_CTX			*ctx;
+	BIO			*sbio;
+	SSL			*ssl;
+	struct sockaddr_in	addr;
+	struct hostent		*hp;
+	int			sock;
+
+
+	SSL_load_error_strings();
+	OpenSSL_add_ssl_algorithms();
+
+	ctx = SSL_CTX_new(SSLv23_client_method());
+	if (ctx == NULL)
+		fatalx("ctx");
+
+	if (!SSL_CTX_load_verify_locations(ctx, "ca/ca.crt", NULL))
+		fatalx("verify");
+
+	if (!SSL_CTX_use_certificate_file(ctx, "client/client.crt", SSL_FILETYPE_PEM))
+		fatalx("cert");
+	if (!SSL_CTX_use_PrivateKey_file(ctx, "client/private/client.key", SSL_FILETYPE_PEM))
+		fatalx("key");
+	if (!SSL_CTX_check_private_key(ctx))
+		fatalx("cert/key");
+
+	SSL_CTX_set_mode(ctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
+	SSL_CTX_set_verify_depth(ctx, 1);
+
+	/* setup connection */
+	if ((hp = gethostbyname("localhost")) == NULL)
+		err(1, "gethostbyname");
+
+	bzero(&addr, sizeof addr);
+	addr.sin_addr = *(struct in_addr *)hp->h_addr_list[0];
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(4433);
+
+	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+		err(1, "socket");
+	if (connect(sock, (struct sockaddr *)&addr, sizeof addr) == -1)
+		err(1, "connect");
+
+	/* go do ssl magic */
+	ssl = SSL_new(ctx);
+	sbio = BIO_new_socket(sock, BIO_NOCLOSE);
+	SSL_set_bio(ssl, sbio, sbio);
+
+	if (SSL_connect(ssl) <= 0)
+		fatalx("SSL_connect");
+
+	if (SSL_get_verify_result(ssl) != X509_V_OK)
+		fatalx("cert");
+
+	return (0);
+}
+</pre>
+    Not my best work but it works and someone might be helped by this.
+    Going home!
+    <p>
+    <strong>Day 8:</strong>
+    <p>
+    Looking some more on how to make those damned files work within LDAP.
+    Between meetings and other lame things I gave up and wrote this rant instead.
+    I'll continue to update this as I make more progress.
+    I shall overcome the excrement flinging ape that is OpenSSL.
+    Even though it says 8 days this has been smeared out over a month so far.
+    Good times.
+  <p>
+  <p>
+  <small>
+    The opinions of the author expressed herein do not necessarily state or reflect those of anyone else.<br>
+    Opinion and code &copy; 2009 Marco Peereboom.<br>
+    Code snippets from the OpenSSL project are &copy; 1998-2009 The OpenSSL Project.
+    <p>
+    $assl$
+  </small>
+  </body>
+</html>
