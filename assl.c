@@ -30,7 +30,6 @@ static const char *version = "$assl$";
  * sign machine certificates
  * keep stats on read/write performance and connection overhead
  * come up with a scheme to deal with errors, < 0 for ssl and  > 0 libc
- * add poll with 0 time for api to test for blocking conditions
  * add reconnect code
  * write proper regress tests
  */
