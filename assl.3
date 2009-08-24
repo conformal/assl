@@ -39,6 +39,8 @@
 .Ft ssize_t
 .Fn assl_write "struct assl_context *ctx, void *buf, size_t nbytes"
 .Ft int
+.Ft int
+.Fn assl_poll "struct assl_context *ctx, int mseconds, short event"
 .Fn assl_close "struct assl_context *ctx"
 .Ft void
 .Fn assl_fatalx "char *errstr"
@@ -167,13 +169,15 @@ into
 from the
 .Fa ctx
 socket.
-Regardless of the underlying blocking/non-blocking mode of the socket the
-.Fa assl_read
-function can not return before the specified size has been completely read;
-this is due to limitations in the underlying crypto code.
-Therefore care must be taken to prevent read stalls.
-The socket poll command has a 10 second timeout.
-The function returns -1 to indicate failure and -2 to indicate a timeout.
+In blocking mode the function will not return until
+.Fa nbytes
+have been read or an error condition occurred.
+In non-blocking mode the function will return -1 and errno = EAGAIN
+to indicate that there was no data ready to read.  All other errors
+simply return
+.Fa nbytes
+= -1.
+Upon success the function returns the number of bytes read.
 .Pp
 .Fn assl_write
 will write
@@ -183,12 +187,35 @@ from
 to the
 .Fa ctx
 socket.
-Regardless of the underlying blocking/non-blocking mode of the socket the
-.Fa assl_write
-function can not return before the specified size has been completely written;
-this is due to limitations in the underlying crypto code.
-The socket poll command has a 10 second timeout.
-The function returns -1 to indicate failure and -2 to indicate a timeout.
+In blocking mode the function will not return until
+.Fa nbytes
+have been written or an error condition occurred.
+In non-blocking mode the function will return -1 and errno = EAGAIN
+to indicate that data could not be written immediately.  All other errors
+simply return
+.Fa nbytes
+= -1.
+Upon success the function returns the number of bytes written.
+.Pp
+.Fn assl_poll
+polls the socket in
+.Fa ctx
+for up to
+.Fa mseconds
+mili-seconds
+for
+.Fa event
+to occur.
+A
+.Fa mseconds
+timeout of 0 will return immediately and INFTIM will block indefinitely.
+.Fn assl_poll
+returns 0 to indicate a timeout condition, -1 for error conditions and 1
+for success.
+The return value of 1 really is the number of file descriptors that are
+ready and this mimics the
+.Xr poll 2
+semantics.
 .Pp
 .Fn assl_close
 function terminates all connections and unwinds all resources, including
@@ -224,7 +251,7 @@ main(int argc, char *argv[])
 	    "client/private/client.key"))
 		assl_fatalx("assl_load_certs");
 
-	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK))
+	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_BLOCK))
 		assl_fatalx("assl_connect");
 
 	return (0);
@@ -261,7 +288,7 @@ main(int argc, char *argv[])
 {
 	assl_initialize();
 
-	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK, serve_callback);
+	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_BLOCK, serve_callback);
 	
 	return (0);
 }

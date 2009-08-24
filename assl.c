@@ -23,6 +23,7 @@ static const char *version = "$assl$";
  * XXX todo:
  * fgets/fputs blocking
  * fgets/fputs non-blocking
+ * XDR read/write
  * LDAP integration for certs
  * create CA certificate
  * create machine certificates
@@ -241,6 +242,7 @@ done:
 void
 assl_setup_ssl(struct assl_context *c)
 {
+	int			x;
 	assl_err_stack_unwind();
 
 	if (c == NULL) {
@@ -252,6 +254,7 @@ assl_setup_ssl(struct assl_context *c)
 	SSL_CTX_set_verify(c->as_ctx, c->as_verify_mode, NULL);
 	SSL_CTX_set_verify_depth(c->as_ctx, c->as_verify_depth);
 done:
+	x = x; /* shut gcc up */
 }
 
 struct assl_context *
@@ -341,16 +344,23 @@ unwind:
 }
 
 int
-assl_poll(int sock, int seconds, short event)
+assl_poll(struct assl_context *c, int mseconds, short event)
 {
 	struct pollfd		fds[1];
-	int			nfds, rv = 1;
+	int			nfds, rv = -1;
 
-	fds[0].fd = sock;
+	assl_err_stack_unwind();
+
+	if (c == NULL) {
+		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	fds[0].fd = c->as_sock;
 	fds[0].events = event;
-	nfds = poll(fds, 1, seconds * 1000);
+	nfds = poll(fds, 1, mseconds);
 	if (nfds == 0) {
-		rv = ETIMEDOUT;
+		rv = 0;
 		assl_err_own("poll timeout");
 		ERROR_OUT(ERR_OWN, done);
 	} else if (nfds == -1)
@@ -364,7 +374,7 @@ assl_poll(int sock, int seconds, short event)
 		ERROR_OUT(ERR_OWN, done);
 	}
 
-	rv = 0;
+	rv = 1;
 done:
 	return (rv);
 }
@@ -372,7 +382,14 @@ done:
 int
 assl_negotiate_nonblock(struct assl_context *c)
 {
-	int			p, r, rv = 1;
+	int			r, rv = 1;
+
+	assl_err_stack_unwind();
+
+	if (c == NULL) {
+		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, done);
+	}
 
 	for (;;) {
 		if (c->as_server)
@@ -385,11 +402,8 @@ assl_negotiate_nonblock(struct assl_context *c)
 			rv = 0;
 			goto done;
 		case SSL_ERROR_WANT_READ:
-			if ((p = assl_poll(c->as_sock, 10, POLLIN))) {
-				if (p = ETIMEDOUT)
-					rv = -2;
+			if (assl_poll(c, 10 * 1000, POLLIN) <= 0)
 				ERROR_OUT(ERR_LIBC, done);
-			}
 			break;
 		case SSL_ERROR_SYSCALL:
 			rv = -1;
@@ -402,7 +416,8 @@ assl_negotiate_nonblock(struct assl_context *c)
 			ERROR_OUT(ERR_OWN, done);
 			break;
 		default:
-			errx(1, "FIXME negotiate default error: %d", SSL_get_error(c->as_ssl, r));
+			rv = -1;
+			ERROR_OUT(ERR_SSL, done);
 		}
 	}
 done:
@@ -626,7 +641,7 @@ done:
 ssize_t
 assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 {
-	int			r, p, sz;
+	int			r, sz;
 	u_int8_t		*b;
 	ssize_t			tot = 0;
 
@@ -648,20 +663,26 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 			tot += r;
 			b += r;
 			sz -= r;
+			if (c->as_nonblock) {
+				errno = EAGAIN;
+				goto done;
+			}
 			break;
 		case SSL_ERROR_WANT_READ:
-			if ((p = assl_poll(c->as_sock, 10, POLLIN))) {
-				if (p = ETIMEDOUT)
-					tot = -2;
-				ERROR_OUT(ERR_LIBC, done);
+			if (c->as_nonblock) {
+				tot = -1;
+				errno = EAGAIN;
+				goto done;
 			}
+			errx(1, "assl_read_write read assert"); /* XXX delete */
 			break;
 		case SSL_ERROR_WANT_WRITE:
-			if ((p = assl_poll(c->as_sock, 10, POLLOUT))) {
-				if (p = ETIMEDOUT)
-					tot = -2;
-				ERROR_OUT(ERR_LIBC, done);
+			if (c->as_nonblock) {
+				tot = -1;
+				errno = EAGAIN;
+				goto done;
 			}
+			errx(1, "assl_read_write write assert"); /* XXX delete */
 			break;
 		case SSL_ERROR_SYSCALL:
 			tot = -1;
@@ -674,7 +695,8 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 			ERROR_OUT(ERR_OWN, done);
 			break;
 		default:
-			errx(1, "FIXME read/write default error: %d", SSL_get_error(c->as_ssl, r));
+			tot = -1;
+			ERROR_OUT(ERR_SSL, done);
 		}
 	}
 

@@ -40,6 +40,7 @@
 
 #define ASSL_DEFAULT_PORT	"4433"
 #define ASSL_F_NONBLOCK		(1<<0)
+#define ASSL_F_BLOCK		(0)
 
 enum assl_method {
 	ASSL_M_ALL,
@@ -86,4 +87,5 @@ void			assl_fatalx(char *);
 ssize_t			assl_read(struct assl_context *, void *, size_t);
 ssize_t			assl_write(struct assl_context *, void *, size_t);
 int			assl_close(struct assl_context *);
+int			assl_poll(struct assl_context *, int, short);
 #endif /* AGGLOMERATEDSSL_H */
