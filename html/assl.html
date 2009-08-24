@@ -1,0 +1,69 @@
+<html>
+  <head>
+    <title>Agglomerated SSL</title>
+  </head>
+  <body bgcolor="#000000" text="#ffffff">
+    <h2><center>Agglomerated SSL</center></h2>
+    Agglomerated SSL was written in order to hide the awful
+    <a href="http://www.openssl.org">OpenSSL</a> API.
+    It strives to reuse the OpenSSL APIs and provide a much simpler and sane interface for programmers that are interested in writing applications that require the SSL/TLS protocol for secure communications.
+    <p>
+    The reason for this project is described in my
+    <a href="openssl.html">rant</a>.
+    <p>
+    Please read the
+    <a href="man.html">man page</a>
+    for a more detailed explanation.
+    <p>
+    <h3>installation and use</h3>
+    On
+    <a href="http://www.openbsd.org">OpenBSD</a>
+    go into the assl directory and type:
+<pre>
+make obj
+make depend
+make
+make install
+</pre>
+    This will compile and install libassl.* in /usr/lib.
+    <p>
+    To test the library go into the examples directory and run the following sequence of commands:
+<pre>
+make obj
+make depend
+make
+</pre>
+    To run the examples the server go into the server directory and type:
+<pre>
+blocking/obj/bserver
+</pre>
+    for the blocking server example, or
+<pre>
+nonblocking/obj/nbserver
+</pre>
+    for the nonblocking example.
+    <p>
+    The client is similar; go into the client directory and run:
+<pre>
+blocking/obj/bclient
+</pre>
+    for the blocking client example, or
+<pre>
+nonblocking/obj/nbclient
+</pre>
+    for the nonblocking example.
+    <p>
+    <h3>Get ASSL</h3>
+    You can download the source via anoncvs at: CVSROOT=anoncvs@anoncvs.freedaemon.com:/assl
+    <p>
+    To subscribe to CVS changes send an email to
+    <a href="mailto:majordomo@freedaemon.com">majordomo@freedaemon.com</a>
+    and in the email body say: subscribe assl-changes.
+    <p>
+    <small>
+      Copyright &copy;2009 Marco Peereboom &lt;marco@peereboom.us&gt;
+      <p>
+      $assl$
+    </small>
+  </body>
+</html>
