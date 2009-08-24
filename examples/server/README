@@ -1,6 +1,5 @@
 Make sure CA has been created first!
-
-=============================================================================
+Then create the server cert like:
 $ sh create_server
 Generating RSA private key, 1024 bit long modulus
 ................++++++
@@ -25,11 +24,17 @@ Please enter the following 'extra' attributes
 to be sent with your certificate request
 A challenge password []:
 An optional company name []:
-
 =============================================================================
 
+Sign the cert:
 $ sh sign_server
 Signature ok
 subject=/C=US/ST=Texas/L=Round Rock/O=assl/OU=server/emailAddress=marco@peereboom.us
 Getting CA Private Key
 Enter pass phrase for ../ca/private/ca.key:
+=============================================================================
+
+Run the server code fron this directory like:
+LD_LIBRARY_PATH=../../../obj/ blocking/obj/bserver
+LD_LIBRARY_PATH=../../../obj/ nonblocking/obj/nbserver
+for blocking and non-blocking versions respectively.

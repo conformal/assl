@@ -1,8 +1,6 @@
 Make sure CA has been created first
-
-=============================================================================
-
-$ sh create_client                                                                                                                         
+Then create the client cert like:
+$ sh create_client
 Generating RSA private key, 1024 bit long modulus
 .++++++
 .++++++
@@ -26,11 +24,17 @@ Please enter the following 'extra' attributes
 to be sent with your certificate request
 A challenge password []:
 An optional company name []:
-
 =============================================================================
 
-$ sh sign_client                                                                                                                           
+Sign the cert:
+$ sh sign_client
 Signature ok
 subject=/C=US/ST=Texas/L=Round Rock/O=assl/OU=client/emailAddress=marco@peereboom.us
 Getting CA Private Key
 Enter pass phrase for ca/private/ca.key:
+=============================================================================
+
+Run the client code fron this directory like:
+LD_LIBRARY_PATH=../../../obj/ blocking/obj/bclient
+LD_LIBRARY_PATH=../../../obj/ nonblocking/obj/nbclient
+for blocking and non-blocking versions respectively.

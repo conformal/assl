@@ -1,4 +1,5 @@
-$ sh create_ca                                                                                                                             
+Create a CA by running the create_ca command like:
+$ sh create_ca
 Generating a 1024 bit RSA private key
 ...........................++++++
 ................................++++++
@@ -20,3 +21,5 @@ Organization Name (eg, company) []:assl
 Organizational Unit Name (eg, section) []:Certificate Authority
 Common Name (eg, fully qualified host name) []:
 Email Address []:marco@peereboom.us
+
+Then go to client and server directory and follow those READMEs.
