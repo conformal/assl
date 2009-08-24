@@ -2,6 +2,6 @@
 
 .include <bsd.own.mk>
 
-SUBDIR= blocking nonblocking
+SUBDIR= client server
 
 .include <bsd.subdir.mk>

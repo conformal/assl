@@ -1,13 +1,7 @@
 # $assl$
 
-PROG=server
-NOMAN=
+.include <bsd.own.mk>
 
-SRCS= server.c
-COPT+= -O2
-DEBUG+= -ggdb3 
-CFLAGS+= -Wall -Werror
-CFLAGS+= -I/usr/local/include -I ../../../
-LDFLAGS+= -L/usr/local/lib -L ../../../obj -lssl -lcrypto -lassl
+SUBDIR= blocking nonblocking
 
-.include <bsd.prog.mk>
+.include <bsd.subdir.mk>

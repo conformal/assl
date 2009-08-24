@@ -17,23 +17,43 @@
 
 #include "assl.h"
 
-int
-main(int argc, char *argv[])
+void			serve_callback(int);
+
+void
+serve_callback(int s)
 {
 	struct assl_context	*c;
+	char			buf[65536 * 10];
+	ssize_t			rd;
 
-	assl_initialize();
-
-	c = assl_alloc_context(ASSL_M_TLSV1_CLIENT);
+	c = assl_alloc_context(ASSL_M_TLSV1_SERVER);
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
-	if (assl_load_file_certs(c, "../ca/ca.crt", "client/client.crt",
-	    "client/private/client.key"))
-		assl_fatalx("assl_load_certs");
+	if (assl_load_file_certs(c, "../ca/ca.crt", "server/server.crt",
+	    "server/private/server.key"))
+		assl_fatalx("assl_load_file_certs");
 
-	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK))
-		assl_fatalx("assl_connect");
+	if (assl_accept(c, s))
+		assl_fatalx("assl_accept");
 
+	rd = assl_read(c, buf, sizeof buf);
+	if (rd == -1)
+		assl_fatalx("assl_read");
+
+	if (assl_close(c)) {
+		c = NULL;
+		assl_fatalx("assl_disconnect");
+	}
+}
+
+int
+main(int argc, char *argv[])
+{
+	assl_initialize();
+
+	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_BLOCK, serve_callback);
+	
 	return (0);
 }
+
