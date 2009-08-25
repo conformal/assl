@@ -1,7 +1,7 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
-<title>assl(3)</title>
+<title>assl.3.html</title>
 <meta name="Generator" content="Vim/7.2">
 <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
 </head>
@@ -9,7 +9,7 @@
 <font color="#ff40ff">ASSL(3)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; OpenBSD Programmer's Manual&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ASSL(3)</font><br>
 <br>
 <font color="#ffff00">NAME</font><br>
-&nbsp;&nbsp;&nbsp;&nbsp; assl - Agglomerated SSL<br>
+&nbsp;&nbsp;&nbsp;&nbsp; assl - agglomerated SSL<br>
 <br>
 <font color="#ffff00">SYNOPSIS</font><br>
 <font color="#ff40ff">&nbsp;&nbsp;&nbsp;&nbsp; #include </font><font color="#ff6060">&lt;assl.h&gt;</font><br>
@@ -21,13 +21,16 @@
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_alloc_context</font>(<font color="#00ff00">enum</font>&nbsp;assl_method method);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font><br>
-&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_load_file_certs</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">char</font>&nbsp;*ca, <font color="#00ff00">char</font>&nbsp;*cert, <font color="#00ff00">char</font>&nbsp;*key);<br>
+&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_load_file_certs</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">char</font>&nbsp;*ca, <font color="#00ff00">char</font>&nbsp;*cert,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">char</font>&nbsp;*key);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font><br>
-&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_connect</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">char</font>&nbsp;*host, <font color="#00ff00">char</font>&nbsp;*port, <font color="#00ff00">int</font>&nbsp;flags);<br>
+&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_connect</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">char</font>&nbsp;*host, <font color="#00ff00">char</font>&nbsp;*port,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font>&nbsp;flags);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font><br>
-&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_serve</font>(<font color="#00ff00">char</font>&nbsp;*host, <font color="#00ff00">char</font>&nbsp;*port, <font color="#00ff00">int</font>&nbsp;flags, <font color="#00ff00">void</font>&nbsp;(*callback)(<font color="#00ff00">int</font>&nbsp;sock));<br>
+&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_serve</font>(<font color="#00ff00">char</font>&nbsp;*host, <font color="#00ff00">char</font>&nbsp;*port, <font color="#00ff00">int</font>&nbsp;flags,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">void</font>&nbsp;(*callback)(<font color="#00ff00">int</font>&nbsp;sock));<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font><br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_accept</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">int</font>&nbsp;sock);<br>
@@ -41,6 +44,7 @@
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font><br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_poll</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">int</font>&nbsp;mseconds, <font color="#00ff00">short</font>&nbsp;event);<br>
 <br>
+&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font><br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_close</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">void</font><br>
@@ -51,9 +55,10 @@
 &nbsp;&nbsp;&nbsp;&nbsp; be called before any other function is called.<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; assl_alloc_context() allocates an assl context.&nbsp;&nbsp;A context contains all<br>
-&nbsp;&nbsp;&nbsp;&nbsp; SSL/TLS connection specfic details.&nbsp;&nbsp;The method parameter indicates what<br>
+&nbsp;&nbsp;&nbsp;&nbsp; SSL/TLS connection specific details.&nbsp;&nbsp;The method parameter indicates what<br>
 &nbsp;&nbsp;&nbsp;&nbsp; SSL/TLS type and version to use for the context.&nbsp;&nbsp;Possible method values<br>
 &nbsp;&nbsp;&nbsp;&nbsp; are:<br>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_SSLV2&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; SSL V2 client or server connection.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_SSLV2_CLIENT&nbsp;&nbsp;SSL V2 client connection.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_SSLV2_SERVER&nbsp;&nbsp;SSL V2 server connection.<br>
@@ -63,40 +68,42 @@
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_TLSV1&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; TLS V1 client or server connection.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_TLSV1_CLIENT&nbsp;&nbsp;TLS V1 client connection.<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_TLSV1_SERVER&nbsp;&nbsp;TLS V1 server connection.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_ALL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; any version of a client or server connection.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_ALL_CLIENT&nbsp;&nbsp;&nbsp;&nbsp;any version of a client connection.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_ALL_SERVER&nbsp;&nbsp;&nbsp;&nbsp;any version of a server connection.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_ALL&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Any version of a client or server connection.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_ALL_CLIENT&nbsp;&nbsp;&nbsp;&nbsp;Any version of a client connection.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_M_ALL_SERVER&nbsp;&nbsp;&nbsp;&nbsp;Any version of a server connection.<br>
+<br>
 &nbsp;&nbsp;&nbsp;&nbsp; The function will return NULL to indicate failure.<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp; assl_load_file_certs() loads all required keys &amp; certificates to authen-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; ticate a client or server.&nbsp;&nbsp;cert &amp; key contain the certificate and key<br>
-&nbsp;&nbsp;&nbsp;&nbsp; required to authenticate the calling machine to the remote machine.&nbsp;&nbsp;ca<br>
-&nbsp;&nbsp;&nbsp;&nbsp; contains the Certificate Authority certificate.&nbsp;&nbsp;All files must be pro-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; vided in PEM format.&nbsp;&nbsp;The cert is validated against the key Providing a<br>
-&nbsp;&nbsp;&nbsp;&nbsp; CA is required.&nbsp;&nbsp;The function returns a non-zero value to indicate fail-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; ure.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; assl_load_file_certs() loads all required keys and certificates to au-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; thenticate a client or server.&nbsp;&nbsp;cert and key contain the certificate and<br>
+&nbsp;&nbsp;&nbsp;&nbsp; key required to authenticate the calling machine to the remote machine.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; ca contains the Certificate Authority certificate.&nbsp;&nbsp;All files must be<br>
+&nbsp;&nbsp;&nbsp;&nbsp; provided in PEM format.&nbsp;&nbsp;The cert is validated against the key.&nbsp;&nbsp;Provid-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; ing a CA is required.&nbsp;&nbsp;The function returns a non-zero value to indicate<br>
+&nbsp;&nbsp;&nbsp;&nbsp; failure.<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp; assl_connect() tries to establish a SSL/TLS connection to host port.&nbsp;&nbsp;The<br>
-&nbsp;&nbsp;&nbsp;&nbsp; function returns a non-zero value to indicate failure.&nbsp;&nbsp;More precisely, 1<br>
-&nbsp;&nbsp;&nbsp;&nbsp; for libc failures and -1 for <font color="#ff40ff">openssl(1)</font>&nbsp;failures.&nbsp;&nbsp;The caller is respon-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; sible for calling assl_close() to unwind the context.&nbsp;&nbsp;If flags is set to<br>
-&nbsp;&nbsp;&nbsp;&nbsp; ASSL_F_NONBLOCK then the socket will be setup as non-blocking.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; assl_connect() tries to establish an SSL/TLS connection to a host and<br>
+&nbsp;&nbsp;&nbsp;&nbsp; port.&nbsp;&nbsp;The function returns a non-zero value to indicate failure.&nbsp;&nbsp;More<br>
+&nbsp;&nbsp;&nbsp;&nbsp; precisely, 1 for libc failures and -1 for <font color="#ff40ff">openssl(1)</font>&nbsp;failures.&nbsp;&nbsp;The<br>
+&nbsp;&nbsp;&nbsp;&nbsp; caller is responsible for calling assl_close() to unwind the context.&nbsp;&nbsp;If<br>
+&nbsp;&nbsp;&nbsp;&nbsp; flags is set to ASSL_F_NONBLOCK then the socket will be set up as non-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; blocking.<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; assl_serve() is a blocking function that sets up a listening socket that<br>
-&nbsp;&nbsp;&nbsp;&nbsp; waits for incoming connections on host port Once an incoming connection<br>
-&nbsp;&nbsp;&nbsp;&nbsp; is detected it will call callback with the appropriate socket.&nbsp;&nbsp;It is the<br>
-&nbsp;&nbsp;&nbsp;&nbsp; responsibility of the callback function to either fork and setup a con-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; text.&nbsp;&nbsp;Both host and port can be NULL.&nbsp;&nbsp;In the host case the server will<br>
-&nbsp;&nbsp;&nbsp;&nbsp; listen on all possible IP addresses and in the port case the server will<br>
-&nbsp;&nbsp;&nbsp;&nbsp; listen on port 4433.&nbsp;&nbsp;This function can only return failure and this con-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; dition&nbsp;&nbsp;shall be considered fatal.&nbsp;&nbsp;If flags is set to ASSL_F_NONBLOCK<br>
-&nbsp;&nbsp;&nbsp;&nbsp; then the socket will be setup as non-blocking.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; waits for incoming connections on host and port.&nbsp;&nbsp;Once an incoming con-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; nection is detected it will call callback with the appropriate socket.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; It is the responsibility of the callback function to either fork and set<br>
+&nbsp;&nbsp;&nbsp;&nbsp; up a context.&nbsp;&nbsp;Both host and port can be NULL.&nbsp;&nbsp;In the host case the<br>
+&nbsp;&nbsp;&nbsp;&nbsp; server will listen on all possible IP addresses and in the port case the<br>
+&nbsp;&nbsp;&nbsp;&nbsp; server will listen on port 4433.&nbsp;&nbsp;This function can only return failure<br>
+&nbsp;&nbsp;&nbsp;&nbsp; and this condition is considered fatal.&nbsp;&nbsp;If flags is set to ASSL_F_NON-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; BLOCK then the socket will be set up as non-blocking.<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; assl_accept() is the equivalent of the <font color="#ff40ff">accept(2)</font>&nbsp;function with the added<br>
 &nbsp;&nbsp;&nbsp;&nbsp; SSL/TLS handshake and certificate validation functionality.&nbsp;&nbsp;This func-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; tion should be called from the callback to assl_serve() function after a<br>
-&nbsp;&nbsp;&nbsp;&nbsp; context has been allocated in said function.&nbsp;&nbsp;The function returns a non-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; zero value to indicate failure.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; tion should be called from the callback to assl_serve() after a context<br>
+&nbsp;&nbsp;&nbsp;&nbsp; has been allocated in said function.&nbsp;&nbsp;The function returns a non-zero<br>
+&nbsp;&nbsp;&nbsp;&nbsp; value to indicate failure.<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; assl_read() will read nbytes into buf from the ctx socket.&nbsp;&nbsp;In blocking<br>
 &nbsp;&nbsp;&nbsp;&nbsp; mode the function will not return until nbytes have been read or an error<br>
@@ -112,12 +119,12 @@
 &nbsp;&nbsp;&nbsp;&nbsp; ately.&nbsp;&nbsp;All other errors simply return nbytes = -1.&nbsp;&nbsp;Upon success the<br>
 &nbsp;&nbsp;&nbsp;&nbsp; function returns the number of bytes written.<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp; assl_poll() polls the socket in ctx for up to mseconds mili-seconds for<br>
-&nbsp;&nbsp;&nbsp;&nbsp; event to occur.&nbsp;&nbsp;A mseconds timeout of 0 will return immediately and INF-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; TIM will block indefinitely.&nbsp;&nbsp;assl_poll() returns 0 to indicate a timeout<br>
-&nbsp;&nbsp;&nbsp;&nbsp; condition, -1 for error conditions and 1 for success.&nbsp;&nbsp;The return value<br>
-&nbsp;&nbsp;&nbsp;&nbsp; of 1 really is the number of file descriptors that are ready and this<br>
-&nbsp;&nbsp;&nbsp;&nbsp; mimics the <font color="#ff40ff">poll(2)</font>&nbsp;semantics.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; assl_poll() polls the socket in ctx for up to mseconds milliseconds for<br>
+&nbsp;&nbsp;&nbsp;&nbsp; event to occur.&nbsp;&nbsp;An mseconds timeout of 0 will return immediately and IN-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; FTIM will block indefinitely.&nbsp;&nbsp;assl_poll() returns 0 to indicate a time-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; out condition, -1 for error conditions and 1 for success.&nbsp;&nbsp;The return<br>
+&nbsp;&nbsp;&nbsp;&nbsp; value of 1 really is the number of file descriptors that are ready and<br>
+&nbsp;&nbsp;&nbsp;&nbsp; this mimics the <font color="#ff40ff">poll(2)</font>&nbsp;semantics.<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; assl_close() function terminates all connections and unwinds all re-<br>
 &nbsp;&nbsp;&nbsp;&nbsp; sources, including context memory.&nbsp;&nbsp;Do not use the context pointer after<br>
@@ -200,9 +207,9 @@ DON'T SEE ALSO<br>
 &nbsp;&nbsp;&nbsp;&nbsp; writing applications that require the SSL/TLS protocol for secure commu-<br>
 &nbsp;&nbsp;&nbsp;&nbsp; nications.<br>
 <br>
-&nbsp;&nbsp;&nbsp;&nbsp; Once the API solidifies individual functions can be replaced with code<br>
+&nbsp;&nbsp;&nbsp;&nbsp; Once the API solidifies, individual functions can be replaced with code<br>
 &nbsp;&nbsp;&nbsp;&nbsp; that does not rely on <font color="#ff40ff">openssl(1)</font><br>
 <br>
-OpenBSD 4.6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; August 24, 2009&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;3<br>
+OpenBSD 4.6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; August 25, 2009&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4<br>
 </font></body>
 </html>
