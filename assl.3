@@ -19,7 +19,7 @@
 .Os
 .Sh NAME
 .Nm assl
-.Nd Agglomerated SSL
+.Nd agglomerated SSL
 .Sh SYNOPSIS
 .Fd #include <assl.h>
 .Ft void
@@ -27,19 +27,20 @@
 .Ft struct assl_context	*
 .Fn assl_alloc_context "enum assl_method method"
 .Ft int
-.Fn assl_load_file_certs "struct assl_context *ctx, char *ca, char *cert, char *key"
+.Fn assl_load_file_certs "struct assl_context *ctx" "char *ca" "char *cert" "char *key"
 .Ft int
-.Fn assl_connect "struct assl_context *ctx, char *host, char *port, int flags"
+.Fn assl_connect "struct assl_context *ctx" "char *host" "char *port" "int flags"
 .Ft int
-.Fn assl_serve "char *host, char *port, int flags, void (*callback)(int sock)"
+.Fn assl_serve "char *host" "char *port" "int flags" "void (*callback)(int sock)"
 .Ft int
-.Fn assl_accept "struct assl_context *ctx, int sock"
+.Fn assl_accept "struct assl_context *ctx" "int sock"
 .Ft ssize_t
-.Fn assl_read "struct assl_context *ctx, void *buf, size_t nbytes"
+.Fn assl_read "struct assl_context *ctx" "void *buf" "size_t nbytes"
 .Ft ssize_t
-.Fn assl_write "struct assl_context *ctx, void *buf, size_t nbytes"
+.Fn assl_write "struct assl_context *ctx" "void *buf" "size_t nbytes"
 .Ft int
-.Fn assl_poll "struct assl_context *ctx, int mseconds, short event"
+.Fn assl_poll "struct assl_context *ctx" "int mseconds" "short event"
+.Ft int
 .Fn assl_close "struct assl_context *ctx"
 .Ft void
 .Fn assl_fatalx "char *errstr"
@@ -52,13 +53,14 @@ This function must be called before any other function is called.
 allocates an
 .Nm
 context.
-A context contains all SSL/TLS connection specfic details.
+A context contains all SSL/TLS connection specific details.
 The
 .Fa method
 parameter indicates what SSL/TLS type and version to use for the context.
 Possible
 .Fa method
 values are:
+.Pp
 .Bl -tag -width "ASSL_M_TLSV1_SERVER" -offset indent -compact
 .It Cm ASSL_M_SSLV2
 SSL V2 client or server connection.
@@ -78,19 +80,20 @@ TLS V1 client or server connection.
 TLS V1 client connection.
 .It Cm ASSL_M_TLSV1_SERVER
 TLS V1 server connection.
-.It ASSL_M_ALL
-any version of a client or server connection.
-.It ASSL_M_ALL_CLIENT
-any version of a client connection.
-.It ASSL_M_ALL_SERVER
-any version of a server connection.
+.It Cm ASSL_M_ALL
+Any version of a client or server connection.
+.It Cm ASSL_M_ALL_CLIENT
+Any version of a client connection.
+.It Cm ASSL_M_ALL_SERVER
+Any version of a server connection.
 .El
+.Pp
 The function will return NULL to indicate failure.
 .Pp
 .Fn assl_load_file_certs
-loads all required keys & certificates to authenticate a client or server.
+loads all required keys and certificates to authenticate a client or server.
 .Fa cert
-&
+and
 .Fa key
 contain the certificate and key required to authenticate the
 calling machine to the remote machine.
@@ -100,18 +103,18 @@ All files must be provided in PEM format.
 The
 .Fa cert
 is validated against the
-.Fa key
-.
+.Fa key .
 Providing a CA is required.
 The function returns a non-zero value to indicate failure.
 .Pp
 .Fn assl_connect
-tries to establish a SSL/TLS connection to
+tries to establish an SSL/TLS connection to a
 .Fa host
-.Fa port.
+and
+.Fa port .
 The
 function returns a non-zero value to indicate failure.
-More precisely, 1 for libc failures and -1 for
+More precisely, 1 for libc failures and \-1 for
 .Xr openssl 1
 failures.
 The caller is responsible for calling
@@ -119,18 +122,18 @@ The caller is responsible for calling
 to unwind the context.
 If
 .Fa flags
-is set to ASSL_F_NONBLOCK then the socket will be setup as non-blocking.
+is set to ASSL_F_NONBLOCK then the socket will be set up as non-blocking.
 .Pp
 .Fn assl_serve
 is a blocking function that sets up a listening socket that waits for
 incoming connections on
 .Fa host
-.Fa port
-.
+and
+.Fa port .
 Once an incoming connection is detected it will call
 .Fa callback
 with the appropriate socket.
-It is the responsibility of the callback function to either fork and setup
+It is the responsibility of the callback function to either fork and set up
 a context.
 Both
 .Fa host
@@ -142,11 +145,11 @@ In the
 case the server will listen on all possible IP addresses and in the
 .Fa port
 case the server will listen on port 4433.
-This function can only return failure and this condition  shall be
+This function can only return failure and this condition is
 considered fatal.
 If
 .Fa flags
-is set to ASSL_F_NONBLOCK then the socket will be setup as non-blocking.
+is set to ASSL_F_NONBLOCK then the socket will be set up as non-blocking.
 .Pp
 .Fn assl_accept
 is the equivalent of the
@@ -157,7 +160,7 @@ This function should be called from the
 .Fa callback
 to
 .Fn assl_serve
-function after a context has been allocated in said function.
+after a context has been allocated in said function.
 The function returns a non-zero value to indicate failure.
 .Pp
 .Fn assl_read
@@ -171,11 +174,11 @@ socket.
 In blocking mode the function will not return until
 .Fa nbytes
 have been read or an error condition occurred.
-In non-blocking mode the function will return -1 and errno = EAGAIN
-to indicate that there was no data ready to read.  All other errors
-simply return
+In non-blocking mode the function will return \-1 and errno = EAGAIN
+to indicate that there was no data ready to read.
+All other errors simply return
 .Fa nbytes
-= -1.
+= \-1.
 Upon success the function returns the number of bytes read.
 .Pp
 .Fn assl_write
@@ -189,11 +192,11 @@ socket.
 In blocking mode the function will not return until
 .Fa nbytes
 have been written or an error condition occurred.
-In non-blocking mode the function will return -1 and errno = EAGAIN
-to indicate that data could not be written immediately.  All other errors
-simply return
+In non-blocking mode the function will return \-1 and errno = EAGAIN
+to indicate that data could not be written immediately.
+All other errors simply return
 .Fa nbytes
-= -1.
+= \-1.
 Upon success the function returns the number of bytes written.
 .Pp
 .Fn assl_poll
@@ -201,15 +204,14 @@ polls the socket in
 .Fa ctx
 for up to
 .Fa mseconds
-mili-seconds
-for
+milliseconds for
 .Fa event
 to occur.
-A
+An
 .Fa mseconds
 timeout of 0 will return immediately and INFTIM will block indefinitely.
 .Fn assl_poll
-returns 0 to indicate a timeout condition, -1 for error conditions and 1
+returns 0 to indicate a timeout condition, \-1 for error conditions and 1
 for success.
 The return value of 1 really is the number of file descriptors that are
 ready and this mimics the
@@ -288,11 +290,10 @@ main(int argc, char *argv[])
 	assl_initialize();
 
 	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_BLOCK, serve_callback);
-	
+
 	return (0);
 }
 .Ed
-.Pp
 .Sh DON'T SEE ALSO
 .Xr openssl 1
 .Sh HISTORY
@@ -308,6 +309,6 @@ APIs and provide a much simpler and sane interface for programmers that are
 interested in writing applications that require the SSL/TLS protocol for
 secure communications.
 .Pp
-Once the API solidifies individual functions can be replaced with code that
+Once the API solidifies, individual functions can be replaced with code that
 does not rely on
 .Xr openssl 1
