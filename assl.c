@@ -17,7 +17,8 @@
 
 #include "assl.h"
 
-static const char *version = "$assl$";
+static const char *cvstag = "$assl$";
+static const char *version = "Release: "ASSL_VERSION;
 
 /*
  * XXX todo:
@@ -193,7 +194,9 @@ done:
 void
 assl_initialize(void)
 {
-	version = version; /* shut gcc up */
+	/* shut gcc up */
+	cvstag = cvstag;
+	version = version;
 
 	SSL_load_error_strings();
 	OpenSSL_add_ssl_algorithms();
