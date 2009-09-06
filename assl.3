@@ -147,9 +147,21 @@ case the server will listen on all possible IP addresses and in the
 case the server will listen on port 4433.
 This function can only return failure and this condition is
 considered fatal.
-If
+The
 .Fa flags
-is set to ASSL_F_NONBLOCK then the socket will be set up as non-blocking.
+parameter is a bitwise field and can be set to:
+.Bl -tag -width "ASSL_F_CLOSE_SOCKET" -offset indent -compact
+.It Cm ASSL_F_NONBLOCK
+Set the socket to non-block.
+.It Cm ASSL_F_CLOSE_SOCKET
+Close the socket upon return from the callback.
+This is to facilitate forking applications.
+.El
+To make
+.Fn assl_serve
+exit set the global variable
+.Fa assl_stop_serving
+to true and interrupt the underlying poll function.
 .Pp
 .Fn assl_accept
 is the equivalent of the

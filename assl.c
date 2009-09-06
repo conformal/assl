@@ -69,6 +69,9 @@ SLIST_HEAD(assl_error_stack, assl_error);
 char			assl_last_error[1024];
 struct assl_error_stack	aes;
 
+/* set to stop assl_serve */
+volatile sig_atomic_t	assl_stop_serving;
+
 char *
 assl_geterror(int et)
 {
@@ -613,9 +616,9 @@ assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int))
 	}
 	freeaddrinfo(res);
 
-	for (;;) {
+	for (;assl_stop_serving == 0;) {
 		nfds = poll(fds, i, INFTIM);
-		if (nfds == -1)
+		if (nfds == -1 && errno != EINTR)
 			ERROR_OUT(ERR_LIBC, done);
 		for (x = 0, c = 0; x < i && c < nfds; x++) {
 			if (fds[x].revents & (POLLERR | POLLHUP | POLLNVAL))
@@ -629,6 +632,8 @@ assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int))
 
 			/* hand off to caller */
 			cb(s);
+			if (flags & ASSL_F_CLOSE_SOCKET)
+				close(s);
 		}
 	}
 

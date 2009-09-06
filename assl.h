@@ -40,6 +40,7 @@
 
 #define ASSL_DEFAULT_PORT	"4433"
 #define ASSL_F_NONBLOCK		(1<<0)
+#define ASSL_F_CLOSE_SOCKET	(1<<1)
 #define ASSL_F_BLOCK		(0)
 
 enum assl_method {
