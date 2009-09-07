@@ -96,8 +96,14 @@
 &nbsp;&nbsp;&nbsp;&nbsp; up a context.&nbsp;&nbsp;Both host and port can be NULL.&nbsp;&nbsp;In the host case the<br>
 &nbsp;&nbsp;&nbsp;&nbsp; server will listen on all possible IP addresses and in the port case the<br>
 &nbsp;&nbsp;&nbsp;&nbsp; server will listen on port 4433.&nbsp;&nbsp;This function can only return failure<br>
-&nbsp;&nbsp;&nbsp;&nbsp; and this condition is considered fatal.&nbsp;&nbsp;If flags is set to ASSL_F_NON-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; BLOCK then the socket will be set up as non-blocking.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; and this condition is considered fatal.&nbsp;&nbsp;The flags parameter is a bitwise<br>
+&nbsp;&nbsp;&nbsp;&nbsp; field and can be set to:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_F_NONBLOCK&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Set the socket to non-block.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ASSL_F_CLOSE_SOCKET&nbsp;&nbsp;Close the socket upon return from the call-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;back.&nbsp;&nbsp;This is to facilitate forking applica-<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tions.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; To make assl_serve() exit set the global variable assl_stop_serving to<br>
+&nbsp;&nbsp;&nbsp;&nbsp; true and interrupt the underlying poll function.<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; assl_accept() is the equivalent of the <font color="#ff40ff">accept(2)</font>&nbsp;function with the added<br>
 &nbsp;&nbsp;&nbsp;&nbsp; SSL/TLS handshake and certificate validation functionality.&nbsp;&nbsp;This func-<br>
@@ -210,6 +216,6 @@ DON'T SEE ALSO<br>
 &nbsp;&nbsp;&nbsp;&nbsp; Once the API solidifies, individual functions can be replaced with code<br>
 &nbsp;&nbsp;&nbsp;&nbsp; that does not rely on <font color="#ff40ff">openssl(1)</font><br>
 <br>
-OpenBSD 4.6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; August 25, 2009&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4<br>
+OpenBSD 4.6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;September 6, 2009&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4<br>
 </font></body>
 </html>
