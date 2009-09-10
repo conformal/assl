@@ -25,7 +25,7 @@
 .Ft void
 .Fn assl_initialize "void"
 .Ft struct assl_context	*
-.Fn assl_alloc_context "enum assl_method method"
+.Fn assl_alloc_context "enum assl_method method" "int flags"
 .Ft int
 .Fn assl_load_file_certs "struct assl_context *ctx" "char *ca" "char *cert" "char *key"
 .Ft int
@@ -60,7 +60,6 @@ parameter indicates what SSL/TLS type and version to use for the context.
 Possible
 .Fa method
 values are:
-.Pp
 .Bl -tag -width "ASSL_M_TLSV1_SERVER" -offset indent -compact
 .It Cm ASSL_M_SSLV2
 SSL V2 client or server connection.
@@ -87,6 +86,19 @@ Any version of a client connection.
 .It Cm ASSL_M_ALL_SERVER
 Any version of a server connection.
 .El
+.Pp
+If
+.Fa flags
+is set to ASSL_F_CHILD then
+.Fn assl_fatalx
+will halt execution using
+.Xr _exit 2
+instead of
+.Xr exit 3
+per
+.Xr fork 2
+requirement.
+This flag shall be set for all forked contexts.
 .Pp
 The function will return NULL to indicate failure.
 .Pp
@@ -145,8 +157,6 @@ In the
 case the server will listen on all possible IP addresses and in the
 .Fa port
 case the server will listen on port 4433.
-This function can only return failure and this condition is
-considered fatal.
 The
 .Fa flags
 parameter is a bitwise field and can be set to:
@@ -161,7 +171,9 @@ To make
 .Fn assl_serve
 exit set the global variable
 .Fa assl_stop_serving
-to true and interrupt the underlying poll function.
+to true and interrupt the underlying
+.Xr poll 2
+function.
 .Pp
 .Fn assl_accept
 is the equivalent of the
@@ -260,11 +272,12 @@ main(int argc, char *argv[])
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
-	if (assl_load_file_certs(c, "../ca/ca.crt", "client/client.crt",
-	    "client/private/client.key"))
+	if (assl_load_file_certs(c, "../ca/ca.crt",
+	    "client/client.crt", "client/private/client.key"))
 		assl_fatalx("assl_load_certs");
 
-	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_BLOCK))
+	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT,
+	    ASSL_F_BLOCK))
 		assl_fatalx("assl_connect");
 
 	return (0);
@@ -286,8 +299,8 @@ serve_callback(int s)
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
-	if (assl_load_file_certs(c, "../ca/ca.crt", "server/server.crt",
-	    "server/private/server.key"))
+	if (assl_load_file_certs(c, "../ca/ca.crt",
+	    "server/server.crt", "server/private/server.key"))
 		assl_fatalx("assl_load_file_certs");
 
 	if (assl_accept(c, s))
@@ -301,7 +314,8 @@ main(int argc, char *argv[])
 {
 	assl_initialize();
 
-	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_BLOCK, serve_callback);
+	assl_serve(NULL, ASSL_DEFAULT_PORT,
+	    ASSL_F_BLOCK, serve_callback);
 
 	return (0);
 }

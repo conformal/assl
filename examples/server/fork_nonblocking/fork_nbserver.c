@@ -18,6 +18,51 @@
 
 void			serve_callback(int);
 
+pid_t			child;
+
+void
+sighdlr(int sig)
+{
+	pid_t			pid;
+	extern volatile sig_atomic_t	assl_stop_serving;
+
+	switch (sig) {
+	case SIGINT:
+	case SIGTERM:
+	case SIGHUP:
+		assl_stop_serving = 1;
+		fprintf(stderr, "stoppping in %d child %d\n", getpid(), child);
+		if (child)
+			_exit(0);
+		else
+			exit(0);
+		break;
+	case SIGCHLD:
+		/* sig safe */
+		while ((pid = waitpid(WAIT_ANY, NULL, WNOHANG)) != -1) {
+			if (pid == 0)
+				abort();
+			fprintf(stderr, "reaping: %d\n", pid);
+		}
+		break;
+	}
+}
+
+void
+installsignal(int sig, char *name)
+{
+	struct sigaction	sa;
+	char			msg[80];
+
+	sa.sa_handler = sighdlr;
+	sigemptyset(&sa.sa_mask);
+	sa.sa_flags = 0;
+	if (sigaction(sig, &sa, NULL) == -1) {
+		snprintf(msg, sizeof msg, "could not install %s handler", name);
+		err(1, msg);
+	}
+}
+
 void
 serve_callback(int s)
 {
@@ -25,7 +70,22 @@ serve_callback(int s)
 	char			buf[65536 * 10], *b;
 	ssize_t			rd, tot;
 
-	c = assl_alloc_context(ASSL_M_ALL, 0);
+	switch (fork()) {
+	case 0:
+		signal(SIGCHLD, SIG_DFL);
+		child = getpid();
+		fprintf(stderr, "child: %d parent: %d\n", getpid(), getppid());
+		break;
+	case -1:
+		err(1, "fork");
+		/* NOTREACHED */
+	default:
+		fprintf(stderr, "parent: %d parent's parent: %d\n",
+		    getpid(), getppid());
+		return;
+	}
+
+	c = assl_alloc_context(ASSL_M_ALL, ASSL_F_CHILD);
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
@@ -54,14 +114,23 @@ done:
 		c = NULL;
 		assl_fatalx("assl_disconnect");
 	}
+
+	_exit(0);
 }
 
 int
 main(int argc, char *argv[])
 {
+	/* signaling */
+	installsignal(SIGTERM, "TERM");
+	installsignal(SIGINT, "INT");
+	installsignal(SIGHUP, "HUP");
+	installsignal(SIGCHLD, "CHLD");
+
 	assl_initialize();
 
-	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK, serve_callback);
+	assl_serve(NULL, ASSL_DEFAULT_PORT,
+	    ASSL_F_NONBLOCK | ASSL_F_CLOSE_SOCKET, serve_callback);
 	
 	return (0);
 }

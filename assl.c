@@ -73,6 +73,9 @@ struct assl_error_stack	aes;
 /* set to stop assl_serve */
 volatile sig_atomic_t	assl_stop_serving;
 
+/* set to indicate this is a child process */
+pid_t			assl_child;
+
 char *
 assl_geterror(int et)
 {
@@ -164,6 +167,8 @@ assl_fatalx(char *errstr)
 		    ce->errstr);
 	}
 
+	if (assl_child)
+		_exit(1);
 	exit(1);
 }
 #endif /* ASSL_NO_FANCY_ERRORS */
@@ -218,6 +223,7 @@ assl_load_file_certs(struct assl_context *c, char *ca, char *cert, char *key)
 	}
 	ctx = c->as_ctx;
 
+	/* XXX CA might not be required for clients */
 	if (ca == NULL || cert == NULL || key == NULL) {
 		if (ca == NULL)
 			assl_err_own("no ca");
@@ -263,13 +269,16 @@ done:
 }
 
 struct assl_context *
-assl_alloc_context(enum assl_method m)
+assl_alloc_context(enum assl_method m, int flags)
 {
 	struct assl_context	*c = NULL;
 	SSL_METHOD		*meth;
 	int			server = 0;
 
 	assl_err_stack_unwind();
+
+	if (flags & ASSL_F_CHILD)
+		assl_child = getpid();
 
 	switch (m) {
 	case ASSL_M_ALL:
@@ -504,7 +513,7 @@ retry:
 
 		/* go do ssl magic */
 		c->as_ssl = SSL_new(c->as_ctx);
-		c->as_sbio = BIO_new_socket(c->as_sock, BIO_NOCLOSE);
+		c->as_sbio = BIO_new_socket(c->as_sock, BIO_CLOSE);
 		SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 
 		if (assl_negotiate_nonblock(c)) {
@@ -518,6 +527,8 @@ retry:
 		/* all done */
 		break;
 	}
+
+	c->as_ssl_session = SSL_get_session(c->as_ssl);
 
 	rv = 0;
 done:
@@ -549,13 +560,15 @@ assl_accept(struct assl_context *c, int s)
 	assl_setup_ssl(c);
 
 	c->as_ssl = SSL_new(c->as_ctx);
-	c->as_sbio = BIO_new_socket(c->as_sock, BIO_NOCLOSE);
+	c->as_sbio = BIO_new_socket(c->as_sock, BIO_CLOSE);
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 
 	if (assl_negotiate_nonblock(c)) {
 		assl_err_own("SSL/TLS accept failed");
 		ERROR_OUT(ERR_OWN, done);
 	}
+
+	c->as_ssl_session = SSL_get_session(c->as_ssl);
 
 	rv = 0;
 done:
@@ -734,10 +747,8 @@ assl_close(struct assl_context *c)
 	}
 	if (c->as_ssl) {
 		SSL_shutdown(c->as_ssl);
-		close(c->as_sock);
 		SSL_free(c->as_ssl);
 		c->as_ssl = NULL;
-		c->as_sock = -1;
 	}
 	if (c->as_sock != -1) {
 		close(c->as_sock);

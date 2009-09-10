@@ -35,6 +35,6 @@ Enter pass phrase for ca/private/ca.key:
 =============================================================================
 
 Run the client code fron this directory like:
-LD_LIBRARY_PATH=../../../obj/ blocking/obj/bclient
-LD_LIBRARY_PATH=../../../obj/ nonblocking/obj/nbclient
+LD_LIBRARY_PATH=../../obj/ blocking/obj/bclient
+LD_LIBRARY_PATH=../../obj/ nonblocking/obj/nbclient
 for blocking and non-blocking versions respectively.

@@ -2,12 +2,12 @@
 
 #.PATH:		${.CURDIR}/..
 
-WANTLINT=
-LIB=	assl
-SRCS=	assl.c
+#WANTLINT=
+LIB= assl
+SRCS= assl.c
 DEBUG+= -ggdb3 
 CFLAGS+= -Wall
-MAN=	assl.3
+MAN= assl.3
 HDRS= assl.h
 
 includes:

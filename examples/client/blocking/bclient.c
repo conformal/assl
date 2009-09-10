@@ -26,7 +26,7 @@ main(int argc, char *argv[])
 
 	assl_initialize();
 
-	c = assl_alloc_context(ASSL_M_TLSV1_CLIENT);
+	c = assl_alloc_context(ASSL_M_TLSV1_CLIENT, 0);
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 

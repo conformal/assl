@@ -35,6 +35,7 @@ Enter pass phrase for ../ca/private/ca.key:
 =============================================================================
 
 Run the server code fron this directory like:
-LD_LIBRARY_PATH=../../../obj/ blocking/obj/bserver
-LD_LIBRARY_PATH=../../../obj/ nonblocking/obj/nbserver
+LD_LIBRARY_PATH=../../obj/ blocking/obj/bserver
+LD_LIBRARY_PATH=../../obj/ nonblocking/obj/nbserver
+LD_LIBRARY_PATH=../../obj/ fork_nonblocking/obj/fork_nbserver
 for blocking and non-blocking versions respectively.

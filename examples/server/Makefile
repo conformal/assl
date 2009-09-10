@@ -2,6 +2,6 @@
 
 .include <bsd.own.mk>
 
-SUBDIR= blocking nonblocking
+SUBDIR= blocking nonblocking fork_nonblocking
 
 .include <bsd.subdir.mk>
