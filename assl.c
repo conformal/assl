@@ -254,6 +254,7 @@ void
 assl_setup_ssl(struct assl_context *c)
 {
 	int			x;
+
 	assl_err_stack_unwind();
 
 	if (c == NULL) {
@@ -358,7 +359,7 @@ unwind:
 }
 
 int
-assl_poll(struct assl_context *c, int mseconds, short event)
+assl_poll(struct assl_context *c, int mseconds, short event, short *revents)
 {
 	struct pollfd		fds[1];
 	int			nfds, rv = -1;
@@ -382,13 +383,10 @@ assl_poll(struct assl_context *c, int mseconds, short event)
 
 	if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
 		ERROR_OUT(ERR_LIBC, done);
-	if (!(fds[0].revents & event)) {
-		assl_err_own("poll didn't return %s",
-		    event == POLLIN ? "POLLIN" : "POLLOUT");
-		ERROR_OUT(ERR_OWN, done);
-	}
 
 	rv = 1;
+	if (revents)
+		*revents = fds[0].revents;
 done:
 	return (rv);
 }
@@ -416,7 +414,7 @@ assl_negotiate_nonblock(struct assl_context *c)
 			rv = 0;
 			goto done;
 		case SSL_ERROR_WANT_READ:
-			if (assl_poll(c, 10 * 1000, POLLIN) <= 0)
+			if (assl_poll(c, 10 * 1000, POLLIN, NULL) <= 0)
 				ERROR_OUT(ERR_LIBC, done);
 			break;
 		case SSL_ERROR_SYSCALL:

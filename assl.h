@@ -40,7 +40,7 @@
 #include "openssl/ssl.h"
 #include "openssl/err.h"
 
-#define ASSL_VERSION		"0.4"
+#define ASSL_VERSION		"0.5"
 #define ASSL_DEFAULT_PORT	"4433"
 #define ASSL_F_NONBLOCK		(1<<0)
 #define ASSL_F_CLOSE_SOCKET	(1<<1)
@@ -93,5 +93,5 @@ void			assl_fatalx(char *);
 ssize_t			assl_read(struct assl_context *, void *, size_t);
 ssize_t			assl_write(struct assl_context *, void *, size_t);
 int			assl_close(struct assl_context *);
-int			assl_poll(struct assl_context *, int, short);
+int			assl_poll(struct assl_context *, int, short, short *);
 #endif /* AGGLOMERATEDSSL_H */

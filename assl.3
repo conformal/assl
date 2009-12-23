@@ -39,7 +39,7 @@
 .Ft ssize_t
 .Fn assl_write "struct assl_context *ctx" "void *buf" "size_t nbytes"
 .Ft int
-.Fn assl_poll "struct assl_context *ctx" "int mseconds" "short event"
+.Fn assl_poll "struct assl_context *ctx" "int mseconds" "short event" "short *revents"
 .Ft int
 .Fn assl_close "struct assl_context *ctx"
 .Ft void
@@ -234,6 +234,13 @@ to occur.
 An
 .Fa mseconds
 timeout of 0 will return immediately and INFTIM will block indefinitely.
+If
+.Fa revents
+is not NULL it returns the
+.Fa revents
+field from the pollfd structure as returned by the
+.Xr poll 2
+command.
 .Fn assl_poll
 returns 0 to indicate a timeout condition, \-1 for error conditions and 1
 for success.
