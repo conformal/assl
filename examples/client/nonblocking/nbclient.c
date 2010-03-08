@@ -45,7 +45,7 @@ main(int argc, char *argv[])
 			if (wr == -1) {
 				if (errno == EAGAIN) {
 					printf("polling\n");
-					if (assl_poll(c, 10 * 1000, POLLOUT) <= 0)
+					if (assl_poll(c, 10 * 1000, POLLOUT, NULL) <= 0)
 						assl_fatalx("assl_poll");
 					continue;
 				}

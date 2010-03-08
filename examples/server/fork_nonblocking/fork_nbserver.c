@@ -100,7 +100,7 @@ serve_callback(int s)
 		rd = assl_read(c, b, tot);
 		if (rd == -1) {
 			if (errno == EAGAIN) {
-				if (assl_poll(c, 10 * 1000, POLLIN) <= 0)
+				if (assl_poll(c, 10 * 1000, POLLIN, NULL) <= 0)
 					assl_fatalx("assl_poll");
 				continue;
 			}
