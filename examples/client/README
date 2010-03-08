@@ -34,7 +34,14 @@ Getting CA Private Key
 Enter pass phrase for ca/private/ca.key:
 =============================================================================
 
-Run the client code fron this directory like:
+Run the client code from this directory like:
+
+-- openbsd --
 LD_LIBRARY_PATH=../../obj/ blocking/obj/bclient
 LD_LIBRARY_PATH=../../obj/ nonblocking/obj/nbclient
+
+-- linux --
+LD_LIBRARY_PATH=../../ blocking/bclient
+LD_LIBRARY_PATH=../../ nonblocking/nbclient
+
 for blocking and non-blocking versions respectively.
