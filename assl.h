@@ -28,7 +28,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <sys/queue.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -94,4 +93,13 @@ ssize_t			assl_read(struct assl_context *, void *, size_t);
 ssize_t			assl_write(struct assl_context *, void *, size_t);
 int			assl_close(struct assl_context *);
 int			assl_poll(struct assl_context *, int, short, short *);
+
+#ifdef __linux__
+#include "linux/queue.h"
+#define INFTIM		(-1)
+size_t			strlcpy(char *, const char *, size_t);
+#else
+#include <sys/queue.h>
+#endif
+
 #endif /* AGGLOMERATEDSSL_H */
