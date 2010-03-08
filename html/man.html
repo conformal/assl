@@ -42,7 +42,8 @@
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_write</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">void</font>&nbsp;*buf, <font color="#00ff00">size_t</font>&nbsp;nbytes);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font><br>
-&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_poll</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">int</font>&nbsp;mseconds, <font color="#00ff00">short</font>&nbsp;event);<br>
+&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_poll</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx, <font color="#00ff00">int</font>&nbsp;mseconds, <font color="#00ff00">short</font>&nbsp;event,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">short</font>&nbsp;*revents);<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ff00">int</font><br>
 &nbsp;&nbsp;&nbsp;&nbsp; <font color="#00ffff">assl_close</font>(<font color="#00ff00">struct</font>&nbsp;assl_context *ctx);<br>
@@ -129,10 +130,12 @@
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; assl_poll() polls the socket in ctx for up to mseconds milliseconds for<br>
 &nbsp;&nbsp;&nbsp;&nbsp; event to occur.&nbsp;&nbsp;An mseconds timeout of 0 will return immediately and IN-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; FTIM will block indefinitely.&nbsp;&nbsp;assl_poll() returns 0 to indicate a time-<br>
-&nbsp;&nbsp;&nbsp;&nbsp; out condition, -1 for error conditions and 1 for success.&nbsp;&nbsp;The return<br>
-&nbsp;&nbsp;&nbsp;&nbsp; value of 1 really is the number of file descriptors that are ready and<br>
-&nbsp;&nbsp;&nbsp;&nbsp; this mimics the <font color="#ff40ff">poll(2)</font>&nbsp;semantics.<br>
+&nbsp;&nbsp;&nbsp;&nbsp; FTIM will block indefinitely.&nbsp;&nbsp;If revents is not NULL it returns the<br>
+&nbsp;&nbsp;&nbsp;&nbsp; revents field from the pollfd structure as returned by the <font color="#ff40ff">poll(2)</font>&nbsp;com-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; mand.&nbsp;&nbsp;assl_poll() returns 0 to indicate a timeout condition, -1 for er-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; ror conditions and 1 for success.&nbsp;&nbsp;The return value of 1 really is the<br>
+&nbsp;&nbsp;&nbsp;&nbsp; number of file descriptors that are ready and this mimics the <font color="#ff40ff">poll(2)</font>&nbsp;se-<br>
+&nbsp;&nbsp;&nbsp;&nbsp; mantics.<br>
 <br>
 &nbsp;&nbsp;&nbsp;&nbsp; assl_close() function terminates all connections and unwinds all re-<br>
 &nbsp;&nbsp;&nbsp;&nbsp; sources, including context memory.&nbsp;&nbsp;Do not use the context pointer after<br>
@@ -220,6 +223,6 @@ DON'T SEE ALSO<br>
 &nbsp;&nbsp;&nbsp;&nbsp; Once the API solidifies, individual functions can be replaced with code<br>
 &nbsp;&nbsp;&nbsp;&nbsp; that does not rely on <font color="#ff40ff">openssl(1)</font><br>
 <br>
-OpenBSD 4.6&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;September 6, 2009&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4<br>
+OpenBSD 4.7&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;December 23, 2009&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 4<br>
 </font></body>
 </html>
