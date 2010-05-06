@@ -41,10 +41,15 @@
 
 #define ASSL_VERSION		"0.6"
 #define ASSL_DEFAULT_PORT	"4433"
+
 #define ASSL_F_NONBLOCK		(1<<0)
 #define ASSL_F_CLOSE_SOCKET	(1<<1)
 #define ASSL_F_CHILD		(1<<2)
+#define ASSL_F_DONT_VERIFY	(1<<3)
 #define ASSL_F_BLOCK		(0)
+
+#define ASSL_GF_IGNORE_SELF_SIGNED	(1<<0)
+#define ASSL_GF_IGNORE_EXPIRED		(1<<1)
 
 enum assl_method {
 	ASSL_M_ALL,
@@ -82,6 +87,7 @@ struct assl_context {
 
 void			assl_initialize(void);
 struct assl_context	*assl_alloc_context(enum assl_method, int);
+void			assl_set_cert_flags(int);
 int			assl_load_file_certs(struct assl_context *, char *,
 			    char *, char *);
 int			assl_connect(struct assl_context *, char *, char *,

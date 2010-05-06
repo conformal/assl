@@ -31,9 +31,10 @@ static const char *version = "Release: "ASSL_VERSION;
  * sign machine certificates
  * keep stats on read/write performance and connection overhead
  * come up with a scheme to deal with errors, < 0 for ssl and  > 0 libc
- * add reconnect code
  * write proper regress tests
  */
+
+#define ASSL_VERIFY_DEPTH	(1)
 
 /* error handling */
 #define ASSL_NO_FANCY_ERRORS
@@ -75,6 +76,10 @@ volatile sig_atomic_t	assl_stop_serving;
 
 /* set to indicate this is a child process */
 pid_t			assl_child;
+
+/* XXX these have to be global because openssl is retarded */
+int			assl_ignore_self_signed_cert;
+int			assl_ignore_expired_cert;
 
 char *
 assl_geterror(int et)
@@ -209,6 +214,47 @@ assl_initialize(void)
 	assl_err_stack_unwind();
 }
 
+void
+assl_set_cert_flags(int flags)
+{
+	if (flags & ASSL_GF_IGNORE_EXPIRED)
+		assl_ignore_expired_cert = 1;
+	if (flags & ASSL_GF_IGNORE_SELF_SIGNED)
+		assl_ignore_self_signed_cert = 1;
+}
+
+int
+assl_verify_callback(int rv, X509_STORE_CTX *ctx)
+{
+	/* openssl is retarded that it doesn't pass in a void * for params */
+
+	rv = 0; /* fail */
+
+	/* override expired and self signed certs */
+	switch (ctx->error)
+	{
+		case X509_V_OK:
+			rv = 1;
+			break;
+		case X509_V_ERR_CERT_HAS_EXPIRED:
+			if (assl_ignore_expired_cert) {
+				rv = 1;
+				ctx->error = X509_V_OK;
+				fprintf(stderr, "ignoring expired\n");
+			}
+			break;
+		case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+			if (assl_ignore_self_signed_cert) {
+				rv = 1;
+				ctx->error = X509_V_OK;
+				fprintf(stderr, "ignoring self signed\n");
+			}
+			break;
+	}
+
+	return (rv);
+}
+
 int
 assl_load_file_certs(struct assl_context *c, char *ca, char *cert, char *key)
 {
@@ -223,50 +269,38 @@ assl_load_file_certs(struct assl_context *c, char *ca, char *cert, char *key)
 	}
 	ctx = c->as_ctx;
 
-	/* XXX CA might not be required for clients */
-	if (ca == NULL || cert == NULL || key == NULL) {
-		if (ca == NULL)
-			assl_err_own("no ca");
-		else if (cert == NULL)
-			assl_err_own("no cert");
-		else if (key == NULL)
-			assl_err_own("no key");
-		ERROR_OUT(ERR_OWN, done);
+	if (c->as_server) {
+		/* server requires all the goodies */
+		if (ca == NULL || cert == NULL || key == NULL) {
+			if (ca == NULL)
+				assl_err_own("no ca");
+			else if (cert == NULL)
+				assl_err_own("no cert");
+			else if (key == NULL)
+				assl_err_own("no key");
+			ERROR_OUT(ERR_OWN, done);
+		}
 	}
 
-	if (!SSL_CTX_load_verify_locations(ctx, ca, NULL))
+	if (ca && !SSL_CTX_load_verify_locations(ctx, ca, NULL))
 		ERROR_OUT(ERR_SSL, done);
-	if (!SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM))
+	if (cert && !SSL_CTX_use_certificate_file(ctx, cert, SSL_FILETYPE_PEM))
 		ERROR_OUT(ERR_SSL, done);
-	if (!SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM))
+	if (key && !SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM))
 		ERROR_OUT(ERR_SSL, done);
-	if (!SSL_CTX_check_private_key(ctx))
+	if (key && !SSL_CTX_check_private_key(ctx))
 		ERROR_OUT(ERR_SSL, done);
 	if (c->as_server)
 		SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file(ca));
 
+	/* use callback to ignore some errors such as expired cert */
+	SSL_CTX_set_verify(c->as_ctx, c->as_verify_mode, assl_verify_callback);
+	SSL_CTX_set_mode(c->as_ctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify_depth(c->as_ctx, c->as_verify_depth);
+
 	rv = 0;
 done:
 	return (rv);
-}
-
-void
-assl_setup_ssl(struct assl_context *c)
-{
-	int			x;
-
-	assl_err_stack_unwind();
-
-	if (c == NULL) {
-		assl_err_own("no context");
-		ERROR_OUT(ERR_OWN, done);
-	}
-
-	SSL_CTX_set_mode(c->as_ctx, SSL_MODE_AUTO_RETRY);
-	SSL_CTX_set_verify(c->as_ctx, c->as_verify_mode, NULL);
-	SSL_CTX_set_verify_depth(c->as_ctx, c->as_verify_depth);
-done:
-	x = x; /* shut gcc up */
 }
 
 struct assl_context *
@@ -345,10 +379,15 @@ assl_alloc_context(enum assl_method m, int flags)
 
 	/*
 	 * Assume we want to verify client and server certificates
-	 * client ignores SSL_VERIFY_FAIL_IF_NO_PEER_CER so just set it
+	 * client ignores SSL_VERIFY_FAIL_IF_NO_PEER_CERT so just set it
 	 */
-	c->as_verify_mode = SSL_VERIFY_FAIL_IF_NO_PEER_CERT | SSL_VERIFY_PEER;
-	c->as_verify_depth = 1;
+	if (flags & ASSL_F_DONT_VERIFY)
+		c->as_verify_mode = SSL_VERIFY_NONE;
+	else
+		c->as_verify_mode = SSL_VERIFY_FAIL_IF_NO_PEER_CERT |
+		    SSL_VERIFY_PEER;
+
+	c->as_verify_depth = ASSL_VERIFY_DEPTH;
 
 	return (c);
 unwind:
@@ -458,9 +497,6 @@ assl_connect(struct assl_context *c, char *host, char *port, int flags)
 		ERROR_OUT(ERR_OWN, done);
 	}
 
-	/* prepare ssl connection parameters */
-	assl_setup_ssl(c);
-
 	bzero(&hints, sizeof(struct addrinfo));
 	hints.ai_flags = AI_CANONNAME;
 	hints.ai_family = AF_UNSPEC;
@@ -513,6 +549,7 @@ retry:
 		c->as_ssl = SSL_new(c->as_ctx);
 		c->as_sbio = BIO_new_socket(c->as_sock, BIO_CLOSE);
 		SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
+		SSL_set_connect_state(c->as_ssl);
 
 		if (assl_negotiate_nonblock(c)) {
 			assl_err_own("SSL/TLS connect failed");
@@ -554,12 +591,10 @@ assl_accept(struct assl_context *c, int s)
 		ERROR_OUT(ERR_LIBC, done);
 	c->as_nonblock = r & O_NONBLOCK ? 1 : 0;
 
-	/* prepare ssl connection parameters */
-	assl_setup_ssl(c);
-
 	c->as_ssl = SSL_new(c->as_ctx);
 	c->as_sbio = BIO_new_socket(c->as_sock, BIO_CLOSE);
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
+	SSL_set_accept_state(c->as_ssl);
 
 	if (assl_negotiate_nonblock(c)) {
 		assl_err_own("SSL/TLS accept failed");

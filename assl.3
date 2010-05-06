@@ -26,6 +26,8 @@
 .Fn assl_initialize "void"
 .Ft struct assl_context	*
 .Fn assl_alloc_context "enum assl_method method" "int flags"
+.Ft void
+.Fn assl_set_cert_flags "int flags"
 .Ft int
 .Fn assl_load_file_certs "struct assl_context *ctx" "char *ca" "char *cert" "char *key"
 .Ft int
@@ -100,7 +102,25 @@ per
 requirement.
 This flag shall be set for all forked contexts.
 .Pp
+If
+.Fa flags
+is set to ASSL_F_DONT_VERIFY then the library will not perform peer certificate
+verification.
+This is to accommodate clients that don't wish to use certificates.
+Using this flag will result in less secure code and should therefore be used
+with caution.
+.Pp
 The function will return NULL to indicate failure.
+.Pp
+.Fn assl_set_cert_flags
+sets global flags for certificate verification.
+If ASSL_GF_IGNORE_SELF_SIGNED is set than the library will ignore self signed
+certificates.
+If ASSL_GF_IGNORE_EXPIRED is set than the library will ignore expired
+certificates.
+This function should be only called once, right after assl_initialize.
+Note that due to OpenSSL limitations these flags can not be set per
+assl_context.
 .Pp
 .Fn assl_load_file_certs
 loads all required keys and certificates to authenticate a client or server.
