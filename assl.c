@@ -450,7 +450,7 @@ done:
 int
 assl_negotiate_nonblock(struct assl_context *c)
 {
-	int			r, rv = 1;
+	int			r, rv = 1, p;
 
 	assl_err_stack_unwind();
 
@@ -470,8 +470,12 @@ assl_negotiate_nonblock(struct assl_context *c)
 			rv = 0;
 			goto done;
 		case SSL_ERROR_WANT_READ:
-			if (assl_poll(c, 10 * 1000, POLLIN, NULL) <= 0)
+			p = assl_poll(c, 10 * 1000, POLLIN, NULL);
+			if (p == -1) {
+				if (errno == EINTR)
+					continue;
 				ERROR_OUT(ERR_LIBC, done);
+			}
 			break;
 		case SSL_ERROR_SYSCALL:
 			rv = -1;
@@ -626,7 +630,8 @@ done:
 }
 
 int
-assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int))
+assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int),
+    void (*intr_cb)(void))
 {
 	struct addrinfo		hints, *res, *ai;
 	int			s = -1, on = 1, i, nfds, x, c;
@@ -684,8 +689,14 @@ assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int))
 
 	for (;assl_stop_serving == 0;) {
 		nfds = poll(fds, i, INFTIM);
-		if (nfds == -1 && errno != EINTR)
-			ERROR_OUT(ERR_LIBC, done);
+		if (nfds == -1) {
+			if (errno != EINTR)
+				ERROR_OUT(ERR_LIBC, done);
+			if (intr_cb)
+				intr_cb();
+			continue;
+		}
+
 		for (x = 0, c = 0; x < i && c < nfds; x++) {
 			if (fds[x].revents & (POLLERR | POLLHUP | POLLNVAL))
 				ERROR_OUT(ERR_LIBC, done);
