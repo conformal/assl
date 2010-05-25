@@ -227,7 +227,9 @@ int
 assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 {
 	/* openssl is retarded that it doesn't pass in a void * for params */
-
+	/*
+	fprintf(stderr, "assl_verify_callback: ctx->error %d\n", ctx->error);
+	*/
 	rv = 0; /* fail */
 
 	/* override expired and self signed certs */
@@ -240,17 +242,32 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 			if (assl_ignore_expired_cert) {
 				rv = 1;
 				ctx->error = X509_V_OK;
+				/*
 				fprintf(stderr, "ignoring expired\n");
+				*/
 			}
 			break;
 		case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
 			if (assl_ignore_self_signed_cert) {
 				rv = 1;
 				ctx->error = X509_V_OK;
+				/*
 				fprintf(stderr, "ignoring self signed\n");
+				*/
 			}
 			break;
+		case X509_V_ERR_CERT_UNTRUSTED:
+		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
+			rv = 1;
+			ctx->error = X509_V_OK;
+			fprintf(stderr, "ignoring %d\n", ctx->error);
+			break;
 	}
+
+	/*
+	fprintf(stderr, "assl_verify_callback: %s  rv %d error %d\n",
+	   rv == 0 ? "failed" : "success", rv, ctx->error);
+	*/
 
 	return (rv);
 }
@@ -711,6 +728,12 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 		else
 			r = SSL_write(c->as_ssl, b, sz);
 
+		if (r == 0) {
+			/* dirty hang up on the other side */
+			tot = 0;
+			goto done;
+		}
+
 		switch (SSL_get_error(c->as_ssl, r)) {
 		case SSL_ERROR_NONE:
 			tot += r;
@@ -738,15 +761,14 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 			errx(1, "assl_read_write write assert"); /* XXX delete */
 			break;
 		case SSL_ERROR_SYSCALL:
+			/* reuse errno */
 			tot = -1;
 			ERROR_OUT(ERR_LIBC, done);
 			break;
 		case SSL_ERROR_ZERO_RETURN:
-			/* connection hung up on the other side */
-			tot = -1;
-			assl_err_own("connection closed by peer");
-			ERROR_OUT(ERR_OWN, done);
-			break;
+			/* clean hang up on the other side */
+			tot = 0;
+			goto done;
 		default:
 			tot = -1;
 			ERROR_OUT(ERR_SSL, done);
