@@ -24,7 +24,7 @@
 .Fd #include <assl.h>
 .Ft void
 .Fn assl_initialize "void"
-.Ft struct assl_context	*
+.Ft struct assl_context *
 .Fn assl_alloc_context "enum assl_method method" "int flags"
 .Ft void
 .Fn assl_set_cert_flags "int flags"
@@ -33,7 +33,7 @@
 .Ft int
 .Fn assl_connect "struct assl_context *ctx" "char *host" "char *port" "int flags"
 .Ft int
-.Fn assl_serve "char *host" "char *port" "int flags" "void (*callback)(int sock)"
+.Fn assl_serve "char *host" "char *port" "int flags" "void (*callback)(int sock)" "void (*intr_cb)(void)"
 .Ft int
 .Fn assl_accept "struct assl_context *ctx" "int sock"
 .Ft ssize_t
@@ -194,6 +194,9 @@ exit set the global variable
 to true and interrupt the underlying
 .Xr poll 2
 function.
+If
+.Fa intr_cb
+is non-NULL it will be called when the underlying functions are interrupted with EINTR.
 .Pp
 .Fn assl_accept
 is the equivalent of the
