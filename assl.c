@@ -110,7 +110,7 @@ assl_geterror(int et)
 }
 
 void
-assl_push_error(char *file, char *func, int line, int et)
+assl_push_error(const char *file, const char *func, int line, int et)
 {
 	struct assl_error	*ce;
 
@@ -260,7 +260,9 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
 			rv = 1;
 			ctx->error = X509_V_OK;
+			/*
 			fprintf(stderr, "ignoring %d\n", ctx->error);
+			*/
 			break;
 	}
 

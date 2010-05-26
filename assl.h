@@ -92,7 +92,8 @@ int			assl_load_file_certs(struct assl_context *, char *,
 			    char *, char *);
 int			assl_connect(struct assl_context *, char *, char *,
 			    int);
-int			assl_serve(char *, char *, int, void (*)(int));
+int			assl_serve(char *, char *, int, void (*)(int),
+			    void (*)(void));
 int			assl_accept(struct assl_context *, int);
 void			assl_fatalx(char *);
 ssize_t			assl_read(struct assl_context *, void *, size_t);

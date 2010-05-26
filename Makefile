@@ -6,7 +6,7 @@
 LIB= assl
 SRCS= assl.c
 DEBUG+= -ggdb3 
-CFLAGS+= -Wall
+CFLAGS+= -fdiagnostics-show-option -Wall -Werror
 MAN= assl.3
 HDRS= assl.h
 
