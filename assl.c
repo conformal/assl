@@ -831,3 +831,87 @@ assl_close(struct assl_context *c)
 done:
 	return (0);
 }
+
+ssize_t
+assl_read_write_timeout(struct assl_context *c, void *buf, size_t nbytes,
+    unsigned to, int rw)
+{
+	int			rv = -1, timeout, pr, retval;
+	ssize_t			tot, bufsz;
+	struct timeval		start, end, elapsed;
+	void			*b;
+
+	if (c == NULL) {
+		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, done);
+	}
+	if (c->as_nonblock != 1) {
+		assl_err_own("must be in non-blocking mode");
+		ERROR_OUT(ERR_OWN, done);
+	}
+	if (to < 2) {
+		assl_err_own("invalid timeout");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	if (gettimeofday(&start, NULL) == -1) {
+		assl_err_own("start gettimeofday failed");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+        for (tot = nbytes, bufsz = 0, b = buf; tot > 0; ) {
+		if (gettimeofday(&end, NULL)) {
+			assl_err_own("end gettimeofday failed");
+			ERROR_OUT(ERR_OWN, done);
+		}
+		timersub(&end, &start, &elapsed);
+		timeout = to - elapsed.tv_sec;
+		if (elapsed.tv_sec > to || timeout <= 0) {
+			assl_err_own("timeout");
+			ERROR_OUT(ERR_OWN, done);
+		}
+
+		if ((pr = assl_poll(c, timeout * 1000, POLLIN, NULL)) == -1) {
+			if (errno == EINTR)
+				continue; /* signal */
+			assl_err_own("assl_poll");
+			ERROR_OUT(ERR_OWN, done);
+		}
+		if (pr == 0)
+			continue; /* poll timeout */
+
+		if (rw == 1)
+			retval = assl_read(c, b, tot);
+		else
+			retval = assl_write(c, b, tot);
+
+		if (retval == 0)
+			break;
+		if (retval == -1) {
+			if (errno == EAGAIN || errno == EINTR)
+				continue; /* signal or nothing to read/write */
+			assl_err_own("assl_read/assl_write");
+			ERROR_OUT(ERR_OWN, done);
+		}
+
+		tot -= retval;
+		b += retval;
+		bufsz += retval;
+	}
+
+	rv = bufsz;
+done:
+	return (rv);
+}
+
+ssize_t
+assl_read_timeout(struct assl_context *c, void *buf, size_t n, unsigned to)
+{
+	return (assl_read_write_timeout(c, buf, n, to, 1));
+}
+
+ssize_t
+assl_write_timeout(struct assl_context *c, void *buf, size_t n, unsigned to)
+{
+	return (assl_read_write_timeout(c, buf, n, to, 0));
+}

@@ -100,6 +100,10 @@ ssize_t			assl_read(struct assl_context *, void *, size_t);
 ssize_t			assl_write(struct assl_context *, void *, size_t);
 int			assl_close(struct assl_context *);
 int			assl_poll(struct assl_context *, int, short, short *);
+ssize_t			assl_read_timeout(struct assl_context *, void *, size_t,
+			    unsigned);
+ssize_t			assl_write_timeout(struct assl_context *, void *,
+			    size_t, unsigned);
 
 #ifdef __linux__
 #include "linux/queue.h"
