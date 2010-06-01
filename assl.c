@@ -836,7 +836,7 @@ ssize_t
 assl_read_write_timeout(struct assl_context *c, void *buf, size_t nbytes,
     unsigned to, int rw)
 {
-	int			rv = -1, timeout, pr, retval;
+	int			rv = -1, timeout, pr, retval, pd;
 	ssize_t			tot, bufsz;
 	struct timeval		start, end, elapsed;
 	void			*b;
@@ -859,7 +859,8 @@ assl_read_write_timeout(struct assl_context *c, void *buf, size_t nbytes,
 		ERROR_OUT(ERR_OWN, done);
 	}
 
-        for (tot = nbytes, bufsz = 0, b = buf; tot > 0; ) {
+	pd = rw == 1 ? POLLIN : POLLOUT;
+	for (tot = nbytes, bufsz = 0, b = buf; tot > 0; ) {
 		if (gettimeofday(&end, NULL)) {
 			assl_err_own("end gettimeofday failed");
 			ERROR_OUT(ERR_OWN, done);
@@ -871,7 +872,7 @@ assl_read_write_timeout(struct assl_context *c, void *buf, size_t nbytes,
 			ERROR_OUT(ERR_OWN, done);
 		}
 
-		if ((pr = assl_poll(c, timeout * 1000, POLLIN, NULL)) == -1) {
+		if ((pr = assl_poll(c, timeout * 1000, pd, NULL)) == -1) {
 			if (errno == EINTR)
 				continue; /* signal */
 			assl_err_own("assl_poll");
