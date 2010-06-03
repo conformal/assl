@@ -6,7 +6,12 @@
 LIB= assl
 SRCS= assl.c
 DEBUG+= -ggdb3 
+.if defined(${COMPILER_VERSION})  &&  ${COMPILER_VERSION:L} == "gcc4"
+
 CFLAGS+= -fdiagnostics-show-option -Wall -Werror
+.else
+CFLAGS+= -Wall -Werror
+.endif
 MAN= assl.3
 HDRS= assl.h
 
