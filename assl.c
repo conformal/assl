@@ -200,7 +200,6 @@ done:
 	return (rv);
 }
 
-/* tiny ssl functions */
 void
 assl_initialize(void)
 {
@@ -214,6 +213,7 @@ assl_initialize(void)
 	assl_err_stack_unwind();
 }
 
+/* XXX this function has got to go, can't have globals like this */
 void
 assl_set_cert_flags(int flags)
 {
