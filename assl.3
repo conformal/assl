@@ -40,6 +40,10 @@
 .Fn assl_read "struct assl_context *ctx" "void *buf" "size_t nbytes"
 .Ft ssize_t
 .Fn assl_write "struct assl_context *ctx" "void *buf" "size_t nbytes"
+.Ft ssize_t	
+.Fn assl_gets "struct assl_context *ctx" "char *buf" "int size"
+.Ft ssize_t
+.Fn assl_puts "struct assl_context *ctx" "char *buf" "int send_nul"
 .Ft int
 .Fn assl_poll "struct assl_context *ctx" "int mseconds" "short event" "short *revents"
 .Ft int
@@ -224,9 +228,9 @@ have been read or an error condition occurred.
 In non-blocking mode the function will return \-1 and errno = EAGAIN
 to indicate that there was no data ready to read.
 All other errors simply return
-.Fa nbytes
-= \-1.
+\-1.
 Upon success the function returns the number of bytes read.
+If the connection has been terminated the function will return 0.
 .Pp
 .Fn assl_write
 will write
@@ -242,9 +246,39 @@ have been written or an error condition occurred.
 In non-blocking mode the function will return \-1 and errno = EAGAIN
 to indicate that data could not be written immediately.
 All other errors simply return
-.Fa nbytes
-= \-1.
+\-1.
 Upon success the function returns the number of bytes written.
+If the connection has been terminated the function will return 0.
+.Pp
+.Fn assl_gets
+reads at most
+.Fa size
+\- 1 from the given context.
+Reading stops when a newline character is found.
+In non-blocking mode the function will return \-1 and errno = EAGAIN
+to indicate that data could not be read immediately.
+All other errors simply return
+\-1.
+Upon success the function returns the number of bytes read.
+If the connection has been terminated the function will return 0.
+.Pp
+.Fn assl_puts
+writes the
+.Fa NUL
+terminated string pointed at in
+.Fa buf
+to the context.
+If the
+.Fa send_nul
+flag is set then the
+.Fa NUL
+character is written to the context as well.
+In non-blocking mode the function will return \-1 and errno = EAGAIN
+to indicate that data could not be written immediately.
+All other errors simply return
+\-1.
+Upon success the function returns the number of bytes written.
+If the connection has been terminated the function will return 0.
 .Pp
 .Fn assl_poll
 polls the socket in
