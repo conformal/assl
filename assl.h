@@ -104,6 +104,8 @@ ssize_t			assl_read_timeout(struct assl_context *, void *, size_t,
 			    unsigned);
 ssize_t			assl_write_timeout(struct assl_context *, void *,
 			    size_t, unsigned);
+ssize_t			assl_gets(struct assl_context *, char *, int);
+ssize_t			assl_puts(struct assl_context *, char *, int);
 
 #ifdef __linux__
 #include "linux/queue.h"

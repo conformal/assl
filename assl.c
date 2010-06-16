@@ -22,8 +22,6 @@ static const char *version = "Release: "ASSL_VERSION;
 
 /*
  * XXX todo:
- * fgets/fputs blocking
- * fgets/fputs non-blocking
  * XDR read/write
  * LDAP integration for certs
  * create CA certificate
@@ -915,4 +913,92 @@ ssize_t
 assl_write_timeout(struct assl_context *c, void *buf, size_t n, unsigned to)
 {
 	return (assl_read_write_timeout(c, buf, n, to, 0));
+}
+
+ssize_t	
+assl_gets(struct assl_context *c, char *s, int size)
+{
+	int			r, quit;
+	ssize_t			tot = 0;
+
+	/*
+	 * this is a low speed interface to facilitate \r\n type protocols
+	 *
+	 * XXX it might be an idea to buffer the input instead of doing a read
+	 * with length = 1
+	 */
+
+	if (c == NULL) {
+		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, bad);
+	}
+	if (s == NULL) {
+		assl_err_own("invalid buffer");
+		ERROR_OUT(ERR_OWN, bad);
+	}
+
+	for (quit = 0; size > 1 && quit == 0;) {
+		r = assl_read(c, s, 1);
+		if (r == 0)
+			return (0);
+		if (r == -1) {
+			if (errno == EAGAIN || errno == EINTR)
+				if (tot)
+					return (tot);
+			ERROR_OUT(ERR_LIBC, bad); /* XXX probably LIBC */
+		}
+
+		*(s + 1) = '\0';
+		if (*s == '\n')
+			quit = 1;
+
+		s += r;
+		size -= r;
+		tot += r;
+
+	}
+
+	/* return bytes read - NUL */
+	return (tot);
+bad:
+	return (-1);
+}
+
+ssize_t
+assl_puts(struct assl_context *c, char *s, int send_nul)
+{
+	ssize_t			tot = 0;
+	size_t			len;
+
+	if (c == NULL) {
+		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, bad);
+	}
+	if (s == NULL) {
+		assl_err_own("invalid buffer");
+		ERROR_OUT(ERR_OWN, bad);
+	}
+
+	len = strlen(s);
+	if (len == 0 || (len == 1 && send_nul == 0)) {
+		errno = EINVAL;
+		assl_err_own("invalid length");
+		ERROR_OUT(ERR_OWN, bad);
+	}
+	if (send_nul)
+		len += 1;
+
+	tot = assl_write(c, s, len);
+	if (tot == 0)
+		return (0);
+	if (tot == -1) {
+		if (errno == EAGAIN || errno == EINTR)
+			if (tot)
+				return (tot);
+		ERROR_OUT(ERR_LIBC, bad); /* XXX probably LIBC */
+	}
+
+	return (tot);
+bad:
+	return (-1);
 }
