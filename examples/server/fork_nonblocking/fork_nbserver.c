@@ -18,49 +18,60 @@
 
 void			serve_callback(int);
 
-pid_t			child;
+pid_t				child;
+extern volatile sig_atomic_t	assl_stop_serving;
 
 void
 sighdlr(int sig)
 {
+	int			saved_errno, status;
 	pid_t			pid;
-	extern volatile sig_atomic_t	assl_stop_serving;
+
+	saved_errno = errno;
 
 	switch (sig) {
 	case SIGINT:
 	case SIGTERM:
 	case SIGHUP:
 		assl_stop_serving = 1;
+		/*
 		fprintf(stderr, "stoppping in %d child %d\n", getpid(), child);
+		*/
 		if (child)
 			_exit(0);
 		else
 			exit(0);
 		break;
 	case SIGCHLD:
-		/* sig safe */
-		while ((pid = waitpid(WAIT_ANY, NULL, WNOHANG)) != -1) {
-			if (pid == 0)
-				abort();
-			fprintf(stderr, "reaping: %d\n", pid);
+		while ((pid = waitpid(WAIT_ANY, &status, WNOHANG)) != 0) {
+			if (pid == -1) {
+				if (errno == EINTR)
+					continue;
+				if (errno != ECHILD) {
+					/*
+					fprintf(stderrr, "sigchild: waitpid:");
+					*/
+				}
+				break;
+			}
+
+			if (WIFEXITED(status)) {
+				if (WEXITSTATUS(status) != 0) {
+					/*
+					fprintf(stderr, "sigchild: child exit "
+					    "status: %d", WEXITSTATUS(status));
+					*/
+				}
+			} else {
+				/*
+				fprintf(stderr, "sigchild: child is terminated abnormally");
+				*/
+			}
 		}
 		break;
 	}
-}
 
-void
-installsignal(int sig, char *name)
-{
-	struct sigaction	sa;
-	char			msg[80];
-
-	sa.sa_handler = sighdlr;
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = 0;
-	if (sigaction(sig, &sa, NULL) == -1) {
-		snprintf(msg, sizeof msg, "could not install %s handler", name);
-		err(1, msg);
-	}
+	errno = saved_errno;
 }
 
 void
@@ -121,16 +132,26 @@ done:
 int
 main(int argc, char *argv[])
 {
-	/* signaling */
-	installsignal(SIGTERM, "TERM");
-	installsignal(SIGINT, "INT");
-	installsignal(SIGHUP, "HUP");
-	installsignal(SIGCHLD, "CHLD");
+	struct sigaction	sact;
 
 	assl_initialize();
 
+	/* signaling */
+        bzero(&sact, sizeof(sact));
+	sigemptyset(&sact.sa_mask);
+	sact.sa_flags = 0;
+	sact.sa_handler = sighdlr;
+	sigaction(SIGINT, &sact, NULL);
+	sigaction(SIGQUIT, &sact, NULL);
+	sigaction(SIGTERM, &sact, NULL);
+	sigaction(SIGHUP, &sact, NULL);
+
+	sact.sa_handler = sighdlr;
+	sact.sa_flags = SA_NOCLDSTOP;
+	sigaction(SIGCHLD, &sact, NULL);
+
 	assl_serve(NULL, ASSL_DEFAULT_PORT,
-	    ASSL_F_NONBLOCK | ASSL_F_CLOSE_SOCKET, serve_callback);
+	    ASSL_F_NONBLOCK | ASSL_F_CLOSE_SOCKET, serve_callback, NULL);
 	
 	return (0);
 }
