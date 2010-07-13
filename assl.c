@@ -577,6 +577,9 @@ retry:
 			ERROR_OUT(ERR_OWN, done);
 		}
 
+		if (c->as_verify_mode == SSL_VERIFY_NONE)
+			break;
+
 		if (SSL_get_verify_result(c->as_ssl) != X509_V_OK)
 			ERROR_OUT(ERR_SSL, done);
 
