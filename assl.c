@@ -164,7 +164,7 @@ assl_fatalx(char *errstr)
 		    "\tfunct:\t%s\n"
 		    "\tline:\t%d\n"
 		    "\terror:\t%s\n\n",
-	    	    ce->file,
+		    ce->file,
 		    ce->func,
 		    ce->line,
 		    ce->errstr);
@@ -427,6 +427,7 @@ assl_poll(struct assl_context *c, int mseconds, short event, short *revents)
 		ERROR_OUT(ERR_OWN, done);
 	}
 
+	errno = 0;
 	fds[0].fd = c->as_sock;
 	fds[0].events = event;
 	nfds = poll(fds, 1, mseconds);
@@ -434,10 +435,7 @@ assl_poll(struct assl_context *c, int mseconds, short event, short *revents)
 		rv = 0;
 		assl_err_own("poll timeout");
 		ERROR_OUT(ERR_OWN, done);
-	} else if (nfds == -1)
-		ERROR_OUT(ERR_LIBC, done);
-
-	if (fds[0].revents & (POLLERR | POLLHUP | POLLNVAL))
+	} else if (nfds == -1 || (fds[0].revents & (POLLERR|POLLHUP|POLLNVAL)))
 		ERROR_OUT(ERR_LIBC, done);
 
 	rv = 1;
@@ -918,7 +916,7 @@ assl_write_timeout(struct assl_context *c, void *buf, size_t n, unsigned to)
 	return (assl_read_write_timeout(c, buf, n, to, 0));
 }
 
-ssize_t	
+ssize_t
 assl_gets(struct assl_context *c, char *s, int size)
 {
 	int			r, quit;
