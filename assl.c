@@ -132,11 +132,11 @@ assl_err_stack_unwind(void)
 
 	for (ce = SLIST_FIRST(&aes); ce != SLIST_END(&aes); ce = next) {
 		next = SLIST_NEXT(ce, link);
+		SLIST_REMOVE(&aes, ce, assl_error, link);
 		free(ce->file);
 		free(ce->func);
 		free(ce->errstr);
 		free(ce);
-		SLIST_REMOVE(&aes, ce, assl_error, link);
 	}
 	SLIST_INIT(&aes);
 }
