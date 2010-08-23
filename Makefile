@@ -35,8 +35,9 @@ HDRS= assl.h
 includes:
 	@cd ${.CURDIR}; for i in ${HDRS}; do \
 	cmp -s $$i ${PREFIX}/include/$$i || \
-	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i \
-	${PREFIX}/include; done
+	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${PREFIX}/include; \
+	echo ${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${PREFIX}/include; \
+	done
 
 .include <bsd.own.mk>
 .include <bsd.lib.mk>
