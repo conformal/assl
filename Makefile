@@ -1,18 +1,21 @@
 # $assl$
 
-#.PATH:		${.CURDIR}/..
+PREFIX?=/usr/local
+BINDIR=${PREFIX}/bin
+LIBDIR=${PREFIX}/lib
 
 #WANTLINT=
 LIB= assl
 SRCS= assl.c
-DEBUG+= -ggdb3 
 .if defined(${COMPILER_VERSION})  &&  ${COMPILER_VERSION:L} == "gcc4"
-
 CFLAGS+= -fdiagnostics-show-option -Wall -Werror
 .else
 CFLAGS+= -Wall -Werror
 .endif
+CFLAGS+= -ggdb3 
+
 MAN= assl.3
+MANDIR= ${PREFIX}/man/cat
 MLINKS+=assl.3 assl_initialize.3
 MLINKS+=assl.3 assl_alloc_context.3
 MLINKS+=assl.3 assl_set_cert_flags.3
@@ -31,9 +34,9 @@ HDRS= assl.h
 
 includes:
 	@cd ${.CURDIR}; for i in ${HDRS}; do \
-	cmp -s $$i ${DESTDIR}/usr/include/$$i || \
+	cmp -s $$i ${PREFIX}/include/$$i || \
 	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i \
-	${DESTDIR}/usr/include; done
+	${PREFIX}/include; done
 
 .include <bsd.own.mk>
 .include <bsd.lib.mk>
