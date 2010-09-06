@@ -53,7 +53,7 @@ main(int argc, char *argv[])
 	assl_initialize();
 
 	assl_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_BLOCK, serve_callback, NULL);
-	
+
 	return (0);
 }
 

@@ -17,25 +17,36 @@
 
 #include "assl.h"
 
+#define USE_MEM_CERTS
+
 int
 main(int argc, char *argv[])
 {
 	struct assl_context	*c;
-	int 			i;
+	int			i;
 	char			buf[65536 * 10], *b;
 	ssize_t			wr, tot;
 
 	assl_initialize();
 
+#ifdef USE_MEM_CERTS
+	if (assl_load_file_certs_to_mem("../ca/ca.crt", "client/client.crt",
+	    "client/private/client.key"))
+		assl_fatalx("assl_load_file_certs");
+#endif
 	for (i = 0;;i++) {
 		c = assl_alloc_context(ASSL_M_TLSV1_CLIENT, 0);
 		if (c == NULL)
 			assl_fatalx("assl_alloc_context");
 
+#ifdef USE_MEM_CERTS
+		if (assl_use_mem_certs(c))
+			assl_fatalx("assl_use_mem_certs");
+#else
 		if (assl_load_file_certs(c, "../ca/ca.crt", "client/client.crt",
 		    "client/private/client.key"))
 			assl_fatalx("assl_load_certs");
-
+#endif
 		if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK))
 			assl_fatalx("assl_connect");
 

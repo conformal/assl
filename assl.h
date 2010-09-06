@@ -27,9 +27,11 @@
 #include <signal.h>
 #include <string.h>
 #include <unistd.h>
+#include <unistd.h>
 
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <sys/wait.h>
 
 #include <netinet/in.h>
@@ -39,7 +41,7 @@
 #include "openssl/ssl.h"
 #include "openssl/err.h"
 
-#define ASSL_VERSION		"0.8"
+#define ASSL_VERSION		"0.9"
 #define ASSL_DEFAULT_PORT	"4433"
 
 #define ASSL_F_NONBLOCK		(1<<0)
@@ -75,12 +77,17 @@ struct assl_context {
 	int			as_sock;
 	BIO			*as_sbio;
 
+	/* memory certificates */
+	void			*as_mem_ca;
+	off_t			as_mem_ca_len;
+	void			*as_mem_cert;
+	off_t			as_mem_cert_len;
+	void			*as_mem_key;
+	off_t			as_mem_key_len;
+
 	/* openssl */
 	SSL_METHOD		*as_method;
 	SSL_CTX			*as_ctx;
-	X509			*as_ca;
-	X509			*as_cert;
-	EVP_PKEY		*as_key;
 	int			as_verify_mode;
 	int			as_verify_depth;
 };
@@ -106,6 +113,9 @@ ssize_t			assl_write_timeout(struct assl_context *, void *,
 			    size_t, unsigned);
 ssize_t			assl_gets(struct assl_context *, char *, int);
 ssize_t			assl_puts(struct assl_context *, char *, int);
+
+int			assl_load_file_certs_to_mem(char *, char *, char *);
+int			assl_use_mem_certs(struct assl_context *);
 
 #ifdef __linux__
 #include "linux/queue.h"

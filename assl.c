@@ -16,6 +16,7 @@
  */
 
 #include "assl.h"
+#include "ssl_privsep.h"
 
 static const char *cvstag = "$assl$";
 static const char *version = "Release: "ASSL_VERSION;
@@ -78,6 +79,14 @@ pid_t			assl_child;
 /* XXX these have to be global because openssl is retarded */
 int			assl_ignore_self_signed_cert;
 int			assl_ignore_expired_cert;
+
+/* pre-loaded certificates */
+void			*assl_mem_ca;
+off_t			assl_mem_ca_len;
+void			*assl_mem_cert;
+off_t			assl_mem_cert_len;
+void			*assl_mem_key;
+off_t			assl_mem_key_len;
 
 char *
 assl_geterror(int et)
@@ -269,6 +278,146 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 	   rv == 0 ? "failed" : "success", rv, ctx->error);
 	*/
 
+	return (rv);
+}
+
+void
+assl_destroy_mem_certs(void)
+{
+	if (assl_mem_ca) {
+		free(assl_mem_ca);
+		assl_mem_ca = NULL;
+		assl_mem_ca_len = 0;
+	}
+	if (assl_mem_cert) {
+		free(assl_mem_cert);
+		assl_mem_cert = NULL;
+		assl_mem_cert_len = 0;
+	}
+	if (assl_mem_key) {
+		free(assl_mem_key);
+		assl_mem_key = NULL;
+		assl_mem_key_len = 0;
+	}
+}
+
+int
+assl_load(char *filename, void **buf, off_t *len)
+{
+	int			f = -1, rv = 1;
+	struct stat		sb;
+
+	assl_err_stack_unwind();
+
+	if (filename == NULL || buf == NULL || len == NULL) {
+		assl_err_own("no context, buffer or len");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	if ((f = open(filename, O_RDONLY)) == -1)
+		ERROR_OUT(ERR_LIBC, done);
+	if (fstat(f, &sb))
+		ERROR_OUT(ERR_LIBC, done);
+
+	if (*buf) {
+		free(*buf);
+		*buf = NULL;
+	}
+
+	*buf = malloc(sb.st_size + 1);
+	if (*buf == NULL)
+		ERROR_OUT(ERR_LIBC, done);
+
+	if (read(f, *buf, sb.st_size) != sb.st_size)
+		ERROR_OUT(ERR_LIBC, done);
+
+	*len = sb.st_size + 1;
+
+	rv = 0;
+done:
+	if (f != -1)
+		close(f);
+
+	return (rv);
+}
+
+int
+assl_load_file_certs_to_mem(char *ca, char *cert, char *key)
+{
+	int			rv = 1;
+
+	assl_err_stack_unwind();
+
+	if (ca && assl_load(ca, &assl_mem_ca, &assl_mem_ca_len)) {
+		assl_err_own("assl_load ca failed");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	if (cert && assl_load(cert, &assl_mem_cert, &assl_mem_cert_len)) {
+		assl_err_own("assl_load cert failed");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	if (key && assl_load(key, &assl_mem_key, &assl_mem_key_len)) {
+		assl_err_own("assl_load key failed");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	rv = 0;
+done:
+	if (rv)
+		assl_destroy_mem_certs();
+	return (rv);
+}
+
+int
+assl_use_mem_certs(struct assl_context *c)
+{
+	int			rv = 1;
+
+	assl_err_stack_unwind();
+
+	if (c == NULL) {
+		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	if (c->as_server) {
+		/* server requires all the goodies */
+		if (assl_mem_ca == NULL || assl_mem_cert == NULL ||
+		    assl_mem_key == NULL) {
+			if (assl_mem_ca == NULL)
+				assl_err_own("no ca");
+			else if (assl_mem_cert == NULL)
+				assl_err_own("no cert");
+			else if (assl_mem_key == NULL)
+				assl_err_own("no key");
+			ERROR_OUT(ERR_OWN, done);
+		}
+	}
+
+	c->as_mem_ca = assl_mem_ca;
+	c->as_mem_ca_len = assl_mem_ca_len;
+	c->as_mem_cert = assl_mem_cert;
+	c->as_mem_cert_len = assl_mem_cert_len;
+	c->as_mem_key = assl_mem_key;
+	c->as_mem_key_len = assl_mem_key_len;
+
+	/* use certs */
+	if (!ssl_ctx_load_verify_memory(c->as_ctx, c->as_mem_ca,
+	    c->as_mem_ca_len))
+		ERROR_OUT(ERR_SSL, done);
+	if (!ssl_ctx_use_certificate_chain(c->as_ctx, c->as_mem_cert,
+	   c->as_mem_cert_len))
+		ERROR_OUT(ERR_SSL, done);
+	if (!ssl_ctx_use_private_key(c->as_ctx, c->as_mem_key,
+	    c->as_mem_key_len))
+		ERROR_OUT(ERR_SSL, done);
+	if (!SSL_CTX_check_private_key(c->as_ctx))
+		ERROR_OUT(ERR_SSL, done);
+
+	rv = 0;
+done:
 	return (rv);
 }
 
