@@ -116,6 +116,7 @@ ssize_t			assl_puts(struct assl_context *, char *, int);
 
 int			assl_load_file_certs_to_mem(char *, char *, char *);
 int			assl_use_mem_certs(struct assl_context *);
+void			assl_destroy_mem_certs(void);
 
 #ifdef __linux__
 #include "linux/queue.h"
