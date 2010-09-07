@@ -285,16 +285,19 @@ void
 assl_destroy_mem_certs(void)
 {
 	if (assl_mem_ca) {
+		bzero(assl_mem_ca, assl_mem_ca_len);
 		free(assl_mem_ca);
 		assl_mem_ca = NULL;
 		assl_mem_ca_len = 0;
 	}
 	if (assl_mem_cert) {
+		bzero(assl_mem_cert, assl_mem_cert_len);
 		free(assl_mem_cert);
 		assl_mem_cert = NULL;
 		assl_mem_cert_len = 0;
 	}
 	if (assl_mem_key) {
+		bzero(assl_mem_key, assl_mem_key_len);
 		free(assl_mem_key);
 		assl_mem_key = NULL;
 		assl_mem_key_len = 0;
