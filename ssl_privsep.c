@@ -79,9 +79,6 @@
 
 #include "ssl_privsep.h"
 
-int	 ssl_ctx_use_private_key(SSL_CTX *, char *, off_t);
-int	 ssl_ctx_use_certificate_chain(SSL_CTX *, char *, off_t);
-int	 ssl_ctx_load_verify_memory(SSL_CTX *, char *, off_t);
 int	 ssl_by_mem_ctrl(X509_LOOKUP *, int, const char *, long, char **);
 
 X509_LOOKUP_METHOD x509_mem_lookup = {
