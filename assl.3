@@ -31,6 +31,10 @@
 .Ft int
 .Fn assl_load_file_certs "struct assl_context *ctx" "char *ca" "char *cert" "char *key"
 .Ft int
+.Fn assl_load_file_certs_to_mem "char *ca" "char *cert" "char *key"
+.Ft int
+.Fn assl_use_mem_certs "struct assl_context *c"
+.Ft int
 .Fn assl_connect "struct assl_context *ctx" "char *host" "char *port" "int flags"
 .Ft int
 .Fn assl_serve "char *host" "char *port" "int flags" "void (*callback)(int sock)" "void (*intr_cb)(void)"
@@ -46,6 +50,8 @@
 .Fn assl_puts "struct assl_context *ctx" "char *buf" "int send_nul"
 .Ft int
 .Fn assl_poll "struct assl_context *ctx" "int mseconds" "short event" "short *revents"
+.Ft void
+.Fn assl_destroy_mem_certs "void"
 .Ft int
 .Fn assl_close "struct assl_context *ctx"
 .Ft void
@@ -140,8 +146,26 @@ The
 .Fa cert
 is validated against the
 .Fa key .
-Providing a CA is required.
 The function returns a non-zero value to indicate failure.
+.Pp
+.Fn assl_load_file_certs_to_mem
+preloads all required keys and certificates to authenticate a client or server
+to memory for use at a later time.
+This functionality is provided to enable programs that require privilege
+dropping.
+Examples of its use can be found in the examples directory.
+.Fa cert
+and
+.Fa key
+contain the certificate and key required to authenticate the
+calling machine to the remote machine.
+.Fa ca
+contains the Certificate Authority certificate.
+All files must be provided in PEM format.
+The function returns a non-zero value to indicate failure.
+.Pp
+.Fn assl_use_mem_certs
+assign in memory certificates to provided context.
 .Pp
 .Fn assl_connect
 tries to establish an SSL/TLS connection to a
@@ -305,6 +329,9 @@ The return value of 1 really is the number of file descriptors that are
 ready and this mimics the
 .Xr poll 2
 semantics.
+.Pp
+.Fn assl_destroy_mem_certs
+clears and frees in memory certificates.
 .Pp
 .Fn assl_close
 function terminates all connections and unwinds all resources, including
