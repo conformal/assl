@@ -12,7 +12,8 @@ CFLAGS+= -fdiagnostics-show-option -Wall -Werror
 .else
 CFLAGS+= -Wall -Werror
 .endif
-CFLAGS+= -ggdb3 
+CFLAGS+= -ggdb3
+CPPFLAGS+=-I${.CURDIR}
 
 MAN= assl.3
 MANDIR= ${PREFIX}/man/cat
@@ -32,7 +33,7 @@ MLINKS+=assl.3 assl_close.3
 MLINKS+=assl.3 assl_fatalx.3
 HDRS= assl.h
 
-includes:
+afterinstall:
 	@cd ${.CURDIR}; for i in ${HDRS}; do \
 	cmp -s $$i ${PREFIX}/include/$$i || \
 	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${PREFIX}/include; \
