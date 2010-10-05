@@ -86,7 +86,7 @@ struct assl_context {
 	off_t			as_mem_key_len;
 
 	/* openssl */
-	SSL_METHOD		*as_method;
+	const SSL_METHOD	*as_method;
 	SSL_CTX			*as_ctx;
 	int			as_verify_mode;
 	int			as_verify_depth;

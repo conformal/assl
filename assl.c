@@ -476,7 +476,7 @@ struct assl_context *
 assl_alloc_context(enum assl_method m, int flags)
 {
 	struct assl_context	*c = NULL;
-	SSL_METHOD		*meth;
+	const SSL_METHOD	*meth;
 	int			server = 0;
 
 	assl_err_stack_unwind();
