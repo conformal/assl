@@ -1,6 +1,6 @@
 # $assl$
 
-PREFIX?=/usr/local
+PREFIX?=${DESTDIR}/usr/local
 BINDIR=${PREFIX}/bin
 LIBDIR=${PREFIX}/lib
 
