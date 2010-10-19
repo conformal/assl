@@ -41,7 +41,7 @@
 #include "openssl/ssl.h"
 #include "openssl/err.h"
 
-#define ASSL_VERSION		"0.9"
+#define ASSL_VERSION		"0.9.2"
 #define ASSL_DEFAULT_PORT	"4433"
 
 #define ASSL_F_NONBLOCK		(1<<0)
