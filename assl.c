@@ -137,11 +137,11 @@ assl_push_error(const char *file, const char *func, int line, int et)
 void
 assl_err_stack_unwind(void)
 {
-	struct assl_error	*ce, *next;
+	struct assl_error	*ce;
 
-	for (ce = SLIST_FIRST(&aes); ce != SLIST_END(&aes); ce = next) {
-		next = SLIST_NEXT(ce, link);
-		SLIST_REMOVE(&aes, ce, assl_error, link);
+	while(!SLIST_EMPTY(&aes)) {
+		ce = SLIST_FIRST(&aes);
+		SLIST_REMOVE_HEAD(&aes, link);
 		free(ce->file);
 		free(ce->func);
 		free(ce->errstr);
