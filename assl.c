@@ -472,11 +472,17 @@ done:
 	return (rv);
 }
 
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+#define SSL_METHOD_CONST const
+#else
+#define SSL_METHOD_CONST 
+#endif
+
 struct assl_context *
 assl_alloc_context(enum assl_method m, int flags)
 {
 	struct assl_context	*c = NULL;
-	const SSL_METHOD	*meth;
+	SSL_METHOD_CONST SSL_METHOD	*meth;
 	int			server = 0;
 
 	assl_err_stack_unwind();
