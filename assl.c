@@ -214,7 +214,13 @@ assl_initialize(void)
 	cvstag = cvstag;
 	version = version;
 
+	SSL_library_init();
 	SSL_load_error_strings();
+
+	/* Init hardware crypto engines. */
+	ENGINE_load_builtin_engines();
+	ENGINE_register_all_complete();
+
 	OpenSSL_add_ssl_algorithms();
 
 	assl_err_stack_unwind();
@@ -551,6 +557,13 @@ assl_alloc_context(enum assl_method m, int flags)
 	c->as_ctx = SSL_CTX_new(meth);
 	if (c->as_ctx == NULL)
 		ERROR_OUT(ERR_SSL, unwind);
+
+	/* allow all buggy implementations to play */
+	SSL_CTX_set_options(c->as_ctx, SSL_OP_ALL);
+
+	if (server)
+		SSL_CTX_set_options(c->as_ctx,
+		    SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
 
 	/*
 	 * Assume we want to verify client and server certificates
