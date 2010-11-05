@@ -4,10 +4,8 @@ PREFIX?=/usr/local
 BINDIR=${DESTDIR}${PREFIX}/bin
 LIBDIR=${DESTDIR}${PREFIX}/lib
 
-VPATH=..
-
 .include <${.CURDIR}/../shlib_version>
-VPATH=${.CURDIR}/..
+.PATH: ${.CURDIR}/..
 SHLIB_MAJOR=${major}
 
 #WANTLINT=
