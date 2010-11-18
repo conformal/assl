@@ -895,7 +895,7 @@ ssize_t
 assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 {
 	int			r, sz;
-	u_int8_t		*b;
+	uint8_t			*b;
 	ssize_t			tot = 0;
 
 	assl_err_stack_unwind();
