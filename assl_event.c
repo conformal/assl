@@ -97,8 +97,6 @@ assl_event_serve(char *listen_ip, char *listen_port, int flags,
 	}
 	freeaddrinfo(res);
 
-	printf("all bound, nfd %d\n", nfd);
-
 	if (nfd == -1 || nfd == 0)
 		goto done;
 
