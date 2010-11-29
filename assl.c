@@ -35,14 +35,11 @@ static const char *version = "Release: "ASSL_VERSION;
 
 #define ASSL_VERIFY_DEPTH	(1)
 
+#include "assl_internal.h"
+
 /* error handling */
-#define ASSL_NO_FANCY_ERRORS
 
 #ifndef ASSL_NO_FANCY_ERRORS
-#define ERROR_OUT(e, g) do { goto g; } while (0)
-#define assl_err_stack_unwind() do { } while (0)
-#define assl_err_own(s, ...) do { } while (0)
-
 void
 assl_fatalx(char *errstr)
 {
@@ -50,20 +47,6 @@ assl_fatalx(char *errstr)
 	exit(1);
 }
 #else
-#define ERR_LIBC	(0)
-#define ERR_SSL		(1)
-#define ERR_OWN		(2)
-
-#define ERROR_OUT(e, g)	do { assl_push_error(__FILE__, __FUNCTION__, __LINE__, e); goto g; } while(0)
-
-struct assl_error {
-	SLIST_ENTRY(assl_error)	link;
-
-	char			*file;
-	char			*func;
-	int			line;
-	char			*errstr;
-};
 SLIST_HEAD(assl_error_stack, assl_error);
 
 /* XXX NOT concurrency safe! */

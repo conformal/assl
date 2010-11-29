@@ -6,7 +6,7 @@ LIBDIR=${DESTDIR}${PREFIX}/lib
 
 #WANTLINT=
 LIB= assl
-SRCS= assl.c ssl_privsep.c
+SRCS= assl.c assl_event.c ssl_privsep.c
 .if defined(${COMPILER_VERSION})  &&  ${COMPILER_VERSION:L} == "gcc4"
 CFLAGS+= -fdiagnostics-show-option -Wall -Werror
 .else

@@ -91,7 +91,14 @@ struct assl_context {
 	SSL_CTX			*as_ctx;
 	int			as_verify_mode;
 	int			as_verify_depth;
+
+	/* event */
+	struct event		*as_ev_rd;
+	struct event		*as_ev_wr;
 };
+
+/* contents of this structure are private */
+struct assl_serve_ctx;
 
 void			assl_initialize(void);
 struct assl_context	*assl_alloc_context(enum assl_method, int);
@@ -102,7 +109,13 @@ int			assl_connect(struct assl_context *, char *, char *,
 			    int);
 int			assl_serve(char *, char *, int, void (*)(int),
 			    void (*)(void));
+struct assl_serve_ctx	*assl_event_serve(char *, char *, int flags,
+			    void (*)(int, short, void *), void *);
 int			assl_accept(struct assl_context *, int);
+int			assl_event_accept(struct assl_context *, int,
+			    void (*)(int, short, void *),
+			    void (*)(int, short, void *),
+			    void *);
 void			assl_fatalx(char *);
 ssize_t			assl_read(struct assl_context *, void *, size_t);
 ssize_t			assl_write(struct assl_context *, void *, size_t);
