@@ -125,7 +125,7 @@ done:
 }
 
 void
-assl_event_close(struct assl_serve_ctx *ctx)
+assl_event_stop(struct assl_serve_ctx *ctx)
 {
 	if (ctx->fd[0] != -1)
 		event_del(ctx->ev[0]);
