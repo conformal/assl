@@ -79,7 +79,7 @@ serve_rd_worker(int fd, short event, void *arg)
 	}
 
 	if (wctx->tot == 0 || close == 1) {
-		assl_close(wctx->c);
+		assl_event_close(wctx->c);
 		free(wctx);
 	}
 }

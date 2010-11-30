@@ -107,6 +107,10 @@ int			assl_load_file_certs(struct assl_context *, char *,
 			    char *, char *);
 int			assl_connect(struct assl_context *, char *, char *,
 			    int);
+int			assl_event_connect (struct assl_context *c, char *host,
+			    char *port, int flags,
+			    void (*rd_cb)(int, short, void *),
+			    void (*wr_cb)(int, short, void *), void *arg);
 int			assl_serve(char *, char *, int, void (*)(int),
 			    void (*)(void));
 struct assl_serve_ctx	*assl_event_serve(char *, char *, int flags,
@@ -121,6 +125,7 @@ void			assl_fatalx(char *);
 ssize_t			assl_read(struct assl_context *, void *, size_t);
 ssize_t			assl_write(struct assl_context *, void *, size_t);
 int			assl_close(struct assl_context *);
+int			assl_event_close(struct assl_context *);
 int			assl_poll(struct assl_context *, int, short, short *);
 ssize_t			assl_read_timeout(struct assl_context *, void *, size_t,
 			    unsigned);
@@ -132,6 +137,8 @@ ssize_t			assl_puts(struct assl_context *, char *, int);
 int			assl_load_file_certs_to_mem(char *, char *, char *);
 int			assl_use_mem_certs(struct assl_context *);
 void			assl_destroy_mem_certs(void);
+void			assl_event_enable_write(struct assl_context *ctx);
+void			assl_event_disable_write(struct assl_context *ctx);
 
 #ifdef __linux__
 #include "linux/queue.h"

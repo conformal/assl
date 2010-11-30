@@ -171,6 +171,46 @@ assl_event_disable_write(struct assl_context *ctx)
 	event_del(ctx->as_ev_wr);
 }
 
+int
+assl_event_connect (struct assl_context *c, char *host, char *port, int flags,
+    void (*rd_cb)(int, short, void *), void (*wr_cb)(int, short, void *),
+    void *arg)
+{
+	int rv;
+	rv = assl_connect(c, host, port, flags);
+
+	c->as_ev_rd = 
+	c->as_ev_wr =
+
+	c->as_ev_rd = calloc(1, sizeof(*c->as_ev_rd));
+	c->as_ev_wr = calloc(1, sizeof(*c->as_ev_wr));
+	if (c->as_ev_rd == NULL || c->as_ev_wr == NULL)
+		goto fail;
+
+	event_set(c->as_ev_rd, c->as_sock, EV_READ|EV_PERSIST, rd_cb, arg);
+	event_set(c->as_ev_wr, c->as_sock, EV_WRITE|EV_PERSIST, wr_cb, arg);
+	event_add(c->as_ev_rd, NULL);
+
+	return rv;
+fail:
+	/* in case the first alloc succeeded, will be NULL otherwise */
+	free(c->as_ev_rd);
+
+	assl_close(c);
+
+	return 1;
+}
+
+int
+assl_event_close(struct assl_context *c)
+{
+	event_del(c->as_ev_rd);
+	event_del(c->as_ev_wr);
+	free(c->as_ev_rd);
+	free(c->as_ev_wr);
+	return assl_close(c);
+}
+
 /*
  * These functions are provided so that libevent linkage is not necessary
  * for shared libraries
