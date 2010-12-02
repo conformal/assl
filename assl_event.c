@@ -179,9 +179,6 @@ assl_event_connect (struct assl_context *c, char *host, char *port, int flags,
 	int rv;
 	rv = assl_connect(c, host, port, flags);
 
-	c->as_ev_rd = 
-	c->as_ev_wr =
-
 	c->as_ev_rd = calloc(1, sizeof(*c->as_ev_rd));
 	c->as_ev_wr = calloc(1, sizeof(*c->as_ev_wr));
 	if (c->as_ev_rd == NULL || c->as_ev_wr == NULL)
