@@ -169,7 +169,7 @@ sighdlr(int sig)
 	case SIGTERM:
 	case SIGHUP:
 		if (assl_lctx)
-		    assl_event_stop(assl_lctx);
+		    assl_event_serve_stop(assl_lctx);
 		/*
 		fprintf(stderr, "stoppping in %d child %d\n", getpid(), child);
 		*/

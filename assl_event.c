@@ -27,6 +27,12 @@ struct assl_serve_ctx {
 	int		fd[2];
 };
 
+/* 
+ * assl_event_cb
+ * 
+ * Internal function used to service listen socket before invoking
+ * user's callback.
+ */
 void
 assl_event_cb(int fd, short event, void *arg)
 {
@@ -124,8 +130,11 @@ done:
 	return (ctx);
 }
 
+/* 
+ * close the listening socket 
+ */
 void
-assl_event_stop(struct assl_serve_ctx *ctx)
+assl_event_serve_stop(struct assl_serve_ctx *ctx)
 {
 	if (ctx->fd[0] != -1)
 		event_del(ctx->ev[0]);

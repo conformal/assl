@@ -115,7 +115,7 @@ int			assl_serve(char *, char *, int, void (*)(int),
 			    void (*)(void));
 struct assl_serve_ctx	*assl_event_serve(char *, char *, int flags,
 			    void (*)(int, short, void *), void *);
-void			assl_event_stop(struct assl_serve_ctx *);
+void			assl_event_serve_stop(struct assl_serve_ctx *);
 int			assl_accept(struct assl_context *, int);
 int			assl_event_accept(struct assl_context *, int,
 			    void (*)(int, short, void *),

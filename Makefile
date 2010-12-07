@@ -31,6 +31,13 @@ MLINKS+=assl.3 assl_puts.3
 MLINKS+=assl.3 assl_poll.3
 MLINKS+=assl.3 assl_close.3
 MLINKS+=assl.3 assl_fatalx.3
+MLINKS+=assl.3 assl_event_serve.3
+MLINKS+=assl.3 assl_event_serve_stop.3
+MLINKS+=assl.3 assl_event_accept.3
+MLINKS+=assl.3 assl_event_enable_write.3
+MLINKS+=assl.3 assl_event_disable_write.3
+MLINKS+=assl.3 assl_event_connect.3
+MLINKS+=assl.3 assl_event_close.3
 HDRS= assl.h
 
 afterinstall:

@@ -37,13 +37,18 @@
 .Ft int
 .Fn assl_connect "struct assl_context *ctx" "char *host" "char *port" "int flags"
 .Ft int
+.Fn assl_event_connect "struct assl_context *ctx" "char *host" "char *port" "int flags" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
+.Ft int
 .Fn assl_serve "char *host" "char *port" "int flags" "void (*callback)(int sock)" "void (*intr_cb)(void)"
 .Ft struct assl_serve_ctx *
 .Fn assl_event_serve "char *host" "char *port" "int flags" "void (*cb_fn)(int, short, void *)" "void *cb_arg"
+.Ft void
+.Fn assl_event_serve_stop "struct assl_serve_ctx *ctx"
+
 .Ft int
 .Fn assl_accept "struct assl_context *ctx" "int sock"
 .Ft int
-.Fn assl_event_accept "struct assl_context *ctx" "int s" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *arg"
+.Fn assl_event_accept "struct assl_context *ctx" "int s" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
 .Ft ssize_t
 .Fn assl_read "struct assl_context *ctx" "void *buf" "size_t nbytes"
 .Ft ssize_t
@@ -62,6 +67,8 @@
 .Fn assl_destroy_mem_certs "void"
 .Ft int
 .Fn assl_close "struct assl_context *ctx"
+.Ft int
+.Fn assl_event_close "struct assl_context *ctx"
 .Ft void
 .Fn assl_fatalx "char *errstr"
 .Sh DESCRIPTION
@@ -191,6 +198,16 @@ If
 .Fa flags
 is set to ASSL_F_NONBLOCK then the socket will be set up as non-blocking.
 .Pp
+The 
+.Fn assl_event_connect
+is like
+.Fn assl_connect ,
+however it sets up libevent read and write callback functions
+.Fa rd_cb
+and
+.Fa wr_cb .
+.Fa cb_arg will be passed the the callback function when it is invoked.
+.Pp
 .Fn assl_serve
 is a blocking function that sets up a listening socket that waits for
 incoming connections on
@@ -245,18 +262,16 @@ prior to calling
 .Fa flags
 has the same meaning as in
 .Fn assl_serve .
-To make
-.Fn assl_event_serve
-stop listening on the socket, call
-.Fn assl_event_stop
-with the server context returned from
-.Fn assl_event_serve .
 .Fa cb_fn
 will be called with the file descriptor and 
 .Fa cb_arg
 when the listening socket is contacted the code then can
 fork or perform required configuration and accept the connection
 using
+.Fn assl_event_serve .
+.Pp
+.Fn assl_event_serve_stop
+will close the listen socket established by
 .Fn assl_event_serve .
 .Pp
 .Fn assl_accept
@@ -391,6 +406,16 @@ clears and frees in memory certificates.
 .Pp
 .Fn assl_close
 function terminates all connections and unwinds all resources, including
+context memory.
+Do not use the context pointer after calling this function.
+It is recommended to set the context pointer to NULL after this call.
+.Pp
+.Fn assl_event_close
+function terminates
+.Fn assl_event_accept
+and 
+.Fn assl_event_connect
+connections and unwinds all resources, including
 context memory.
 Do not use the context pointer after calling this function.
 It is recommended to set the context pointer to NULL after this call.
