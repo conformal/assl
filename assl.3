@@ -135,6 +135,18 @@ This is to accommodate clients that don't wish to use certificates.
 Using this flag will result in less secure code and should therefore be used
 with caution.
 .Pp
+If
+.Fa flags
+is set to ASSL_F_DONT_ENCRYPT then the library will not encrypt network
+traffic.
+Combining ASSL_F_DONT_VERIFY with ASSL_F_DONT_ENCRYPT creates an anonymous
+connection just like libc would.
+The only difference being that the SSL handshake is always performed.
+This obviously defeats all encryption and authentication and should only be
+used on a "secure" network.
+The reason this support exists is to facilitate a single library to perform all
+network traffic.
+.Pp
 The function will return NULL to indicate failure.
 .Pp
 .Fn assl_set_cert_flags

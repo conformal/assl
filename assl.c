@@ -464,15 +464,15 @@ done:
 #if OPENSSL_VERSION_NUMBER >= 0x10000000L
 #define SSL_METHOD_CONST const
 #else
-#define SSL_METHOD_CONST 
+#define SSL_METHOD_CONST
 #endif
 
 struct assl_context *
 assl_alloc_context(enum assl_method m, int flags)
 {
 	struct assl_context	*c = NULL;
-	SSL_METHOD_CONST SSL_METHOD	*meth;
 	int			server = 0;
+	SSL_METHOD_CONST SSL_METHOD	*meth;
 
 	assl_err_stack_unwind();
 
@@ -551,12 +551,19 @@ assl_alloc_context(enum assl_method m, int flags)
 	/*
 	 * Assume we want to verify client and server certificates
 	 * client ignores SSL_VERIFY_FAIL_IF_NO_PEER_CERT so just set it
+	 *
+	 * This needs to be set for anonymous connections
 	 */
 	if (flags & ASSL_F_DONT_VERIFY)
 		c->as_verify_mode = SSL_VERIFY_NONE;
 	else
 		c->as_verify_mode = SSL_VERIFY_FAIL_IF_NO_PEER_CERT |
 		    SSL_VERIFY_PEER;
+
+	/* do not encrypt transport */
+	if (flags & ASSL_F_DONT_ENCRYPT)
+		if (!SSL_CTX_set_cipher_list(c->as_ctx, "NULL-SHA"))
+			ERROR_OUT(ERR_SSL, unwind);
 
 	c->as_verify_depth = ASSL_VERIFY_DEPTH;
 
@@ -641,6 +648,10 @@ assl_negotiate_nonblock(struct assl_context *c)
 			break;
 		default:
 			rv = -1;
+			/* XXX we want this additional information */
+			/*
+			ERR_print_errors_fp(stderr);
+			*/
 			ERROR_OUT(ERR_SSL, done);
 		}
 	}

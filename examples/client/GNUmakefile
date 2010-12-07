@@ -1,6 +1,6 @@
 # $assl$
 
-SUBDIRS= blocking nonblocking
+SUBDIRS= blocking nonblocking nullcrypt
 
 all: $(SUBDIRS)
 

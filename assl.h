@@ -49,6 +49,7 @@
 #define ASSL_F_CLOSE_SOCKET	(1<<1)
 #define ASSL_F_CHILD		(1<<2)
 #define ASSL_F_DONT_VERIFY	(1<<3)
+#define ASSL_F_DONT_ENCRYPT	(1<<4)
 #define ASSL_F_BLOCK		(0)
 
 #define ASSL_GF_IGNORE_SELF_SIGNED	(1<<0)
