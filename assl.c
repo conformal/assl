@@ -46,6 +46,12 @@ assl_fatalx(char *errstr)
 	fprintf(stderr, "%s\n", errstr);
 	exit(1);
 }
+
+void
+assl_warnx(char *errstr)
+{
+	fprintf(stderr, "%s\n", errstr);
+}
 #else
 SLIST_HEAD(assl_error_stack, assl_error);
 
@@ -165,6 +171,27 @@ assl_fatalx(char *errstr)
 	if (assl_child)
 		_exit(1);
 	exit(1);
+}
+
+void
+assl_warnx(char *errstr)
+{
+	struct assl_error	*ce;
+
+	fprintf(stderr, "%s\n\n", errstr);
+	fprintf(stderr, "ASSL Warning\n");
+
+	SLIST_FOREACH(ce, &aes, link) {
+		fprintf(stderr,
+		    "\tfile:\t%s\n"
+		    "\tfunct:\t%s\n"
+		    "\tline:\t%d\n"
+		    "\terror:\t%s\n\n",
+		    ce->file,
+		    ce->func,
+		    ce->line,
+		    ce->errstr);
+	}
 }
 #endif /* ASSL_NO_FANCY_ERRORS */
 
