@@ -70,7 +70,9 @@
 .Ft int
 .Fn assl_event_close "struct assl_context *ctx"
 .Ft void
-.Fn assl_fatalx "char *errstr"
+.Fn assl_fatalx "const char *errstr"
+.Ft void
+.Fn assl_warnx "const char *errstr"
 .Sh DESCRIPTION
 .Fn assl_initialize
 prepares the library for first use.
@@ -440,6 +442,11 @@ If the library is compiled with ASSL_NO_FANCY_ERRORS then it will not
 record the calling stack.
 The error handling code is not thread or re-entrant safe.
 It was written to accommodate finite state machines instead.
+.Pp
+.Fn assl_warnx
+prints
+.Fa errstr
+and returns.
 .Sh EXAMPLES
 The following code fragment illustrates the client case:
 .Bd -literal -offset indent

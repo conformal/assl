@@ -1,5 +1,5 @@
-int assl_set_nonblock(int fd);
-void assl_fatalx(char *errstr);
+int assl_set_nonblock(int);
+void assl_fatalx(const char *);
 
 /* error handling */
 #define ASSL_NO_FANCY_ERRORS

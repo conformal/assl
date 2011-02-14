@@ -41,14 +41,14 @@ static const char *version = "Release: "ASSL_VERSION;
 
 #ifndef ASSL_NO_FANCY_ERRORS
 void
-assl_fatalx(char *errstr)
+assl_fatalx(const char *errstr)
 {
 	fprintf(stderr, "%s\n", errstr);
 	exit(1);
 }
 
 void
-assl_warnx(char *errstr)
+assl_warnx(const char *errstr)
 {
 	fprintf(stderr, "%s\n", errstr);
 }
@@ -149,7 +149,7 @@ assl_err_own(char *s, ...)
 	va_end(ap);
 }
 void
-assl_fatalx(char *errstr)
+assl_fatalx(const char *errstr)
 {
 	struct assl_error	*ce;
 
@@ -174,7 +174,7 @@ assl_fatalx(char *errstr)
 }
 
 void
-assl_warnx(char *errstr)
+assl_warnx(const char *errstr)
 {
 	struct assl_error	*ce;
 
