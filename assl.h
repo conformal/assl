@@ -106,10 +106,10 @@ struct assl_context	*assl_alloc_context(enum assl_method, int);
 void			assl_set_cert_flags(int);
 int			assl_load_file_certs(struct assl_context *, char *,
 			    char *, char *);
-int			assl_connect(struct assl_context *, char *, char *,
-			    int);
-int			assl_event_connect (struct assl_context *, char *,
-			    char *, int,
+int			assl_connect(struct assl_context *, const char *,
+				const char *, int);
+int			assl_event_connect(struct assl_context *, const char *,
+			    const char *, int,
 			    void (*rd_cb)(int, short, void *),
 			    void (*wr_cb)(int, short, void *), void *);
 int			assl_serve(char *, char *, int, void (*)(int),

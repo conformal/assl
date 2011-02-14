@@ -687,7 +687,8 @@ done:
 }
 
 int
-assl_connect(struct assl_context *c, char *host, char *port, int flags)
+assl_connect(struct assl_context *c, const char *host, const char *port,
+		int flags)
 {
 	struct addrinfo		hints, *res = NULL, *ai;
 	int			p, s = -1, on = 1, rv = 1, retries;

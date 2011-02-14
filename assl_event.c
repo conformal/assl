@@ -181,9 +181,9 @@ assl_event_disable_write(struct assl_context *ctx)
 }
 
 int
-assl_event_connect (struct assl_context *c, char *host, char *port, int flags,
-    void (*rd_cb)(int, short, void *), void (*wr_cb)(int, short, void *),
-    void *arg)
+assl_event_connect(struct assl_context *c, const char *host, const char *port,
+		int flags, void (*rd_cb)(int, short, void *),
+    		void (*wr_cb)(int, short, void *), void *arg)
 {
 	int rv;
 	rv = assl_connect(c, host, port, flags);
