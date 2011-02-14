@@ -8,11 +8,9 @@ LIBDIR=${DESTDIR}${PREFIX}/lib
 LIB= assl
 SRCS= assl.c assl_event.c ssl_privsep.c
 .if defined(${COMPILER_VERSION})  &&  ${COMPILER_VERSION:L} == "gcc4"
-CFLAGS+= -fdiagnostics-show-option -Wall -Werror
-.else
-CFLAGS+= -Wall -Werror
+CFLAGS+= -fdiagnostics-show-option
 .endif
-CFLAGS+= -ggdb3
+CFLAGS+= -Wall -Werror -ggdb3
 CPPFLAGS+=-I${.CURDIR}
 
 MAN= assl.3
