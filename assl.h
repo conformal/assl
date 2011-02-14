@@ -104,17 +104,17 @@ struct assl_serve_ctx;
 void			assl_initialize(void);
 struct assl_context	*assl_alloc_context(enum assl_method, int);
 void			assl_set_cert_flags(int);
-int			assl_load_file_certs(struct assl_context *, char *,
-			    char *, char *);
+int			assl_load_file_certs(struct assl_context *,
+			    const char *, const char *, const char *);
 int			assl_connect(struct assl_context *, const char *,
 				const char *, int);
 int			assl_event_connect(struct assl_context *, const char *,
 			    const char *, int,
 			    void (*rd_cb)(int, short, void *),
 			    void (*wr_cb)(int, short, void *), void *);
-int			assl_serve(char *, char *, int, void (*)(int),
-			    void (*)(void));
-struct assl_serve_ctx	*assl_event_serve(char *, char *, int flags,
+int			assl_serve(const char *, const char *, int,
+			    void (*)(int), void (*)(void));
+struct assl_serve_ctx	*assl_event_serve(const char *, const char *, int flags,
 			    void (*)(int, short, void *), void *);
 void			assl_event_serve_stop(struct assl_serve_ctx *);
 int			assl_accept(struct assl_context *, int);
@@ -136,7 +136,8 @@ ssize_t			assl_write_timeout(struct assl_context *, void *,
 ssize_t			assl_gets(struct assl_context *, char *, int);
 ssize_t			assl_puts(struct assl_context *, char *, int);
 
-int			assl_load_file_certs_to_mem(char *, char *, char *);
+int			assl_load_file_certs_to_mem(const char *, const char *,
+			    const char *);
 int			assl_use_mem_certs(struct assl_context *);
 void			assl_destroy_mem_certs(void);
 void			assl_event_enable_write(struct assl_context *);

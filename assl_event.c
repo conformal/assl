@@ -51,7 +51,7 @@ assl_event_cb(int fd, short event, void *arg)
 }
 
 struct assl_serve_ctx *
-assl_event_serve(char *listen_ip, char *listen_port, int flags,
+assl_event_serve(const char *listen_ip, const char *listen_port, int flags,
     void (*cb_fn)(int, short, void *), void *cb_arg)
 {
 	struct addrinfo		hints, *res, *ai;

@@ -321,7 +321,7 @@ assl_destroy_mem_certs(void)
 }
 
 int
-assl_load(char *filename, void **buf, off_t *len)
+assl_load(const char *filename, void **buf, off_t *len)
 {
 	int			f = -1, rv = 1;
 	struct stat		sb;
@@ -361,7 +361,7 @@ done:
 }
 
 int
-assl_load_file_certs_to_mem(char *ca, char *cert, char *key)
+assl_load_file_certs_to_mem(const char *ca, const char *cert, const char *key)
 {
 	int			rv = 1;
 
@@ -441,7 +441,8 @@ done:
 }
 
 int
-assl_load_file_certs(struct assl_context *c, char *ca, char *cert, char *key)
+assl_load_file_certs(struct assl_context *c, const char *ca, const char *cert,
+		const char *key)
 {
 	int			rv = 1;
 	SSL_CTX			*ctx;
@@ -824,8 +825,8 @@ done:
 }
 
 int
-assl_serve(char *listen_ip, char *listen_port, int flags, void (*cb)(int),
-    void (*intr_cb)(void))
+assl_serve(const char *listen_ip, const char *listen_port, int flags,
+		void (*cb)(int), void (*intr_cb)(void))
 {
 	struct addrinfo		hints, *res, *ai;
 	int			s = -1, on = 1, i, nfds, x, c;

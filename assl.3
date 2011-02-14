@@ -29,19 +29,19 @@
 .Ft void
 .Fn assl_set_cert_flags "int flags"
 .Ft int
-.Fn assl_load_file_certs "struct assl_context *ctx" "char *ca" "char *cert" "char *key"
+.Fn assl_load_file_certs "struct assl_context *ctx" "const char *ca" "const char *cert" "const char *key"
 .Ft int
-.Fn assl_load_file_certs_to_mem "char *ca" "char *cert" "char *key"
+.Fn assl_load_file_certs_to_mem "const char *ca" "const char *cert" "const char *key"
 .Ft int
 .Fn assl_use_mem_certs "struct assl_context *c"
 .Ft int
-.Fn assl_connect "struct assl_context *ctx" "char *host" "char *port" "int flags"
+.Fn assl_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags"
 .Ft int
-.Fn assl_event_connect "struct assl_context *ctx" "char *host" "char *port" "int flags" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
+.Fn assl_event_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
 .Ft int
-.Fn assl_serve "char *host" "char *port" "int flags" "void (*callback)(int sock)" "void (*intr_cb)(void)"
+.Fn assl_serve "const char *host" "const char *port" "int flags" "void (*callback)(int sock)" "void (*intr_cb)(void)"
 .Ft struct assl_serve_ctx *
-.Fn assl_event_serve "char *host" "char *port" "int flags" "void (*cb_fn)(int, short, void *)" "void *cb_arg"
+.Fn assl_event_serve "const char *host" "const char *port" "int flags" "void (*cb_fn)(int, short, void *)" "void *cb_arg"
 .Ft void
 .Fn assl_event_serve_stop "struct assl_serve_ctx *ctx"
 
