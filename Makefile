@@ -1,8 +1,8 @@
 # $assl$
 
-PREFIX?=/usr/local
-BINDIR=${PREFIX}/bin
-LIBDIR=${PREFIX}/lib
+LOCALBASE?=/usr/local
+BINDIR=${LOCALBASE}/bin
+LIBDIR=${LOCALBASE}/lib
 
 #WANTLINT=
 LIB= assl
@@ -14,7 +14,7 @@ CFLAGS+= -Wall -Werror -ggdb3
 CPPFLAGS+=-I${.CURDIR}
 
 MAN= assl.3
-MANDIR= ${PREFIX}/man/cat
+MANDIR= ${LOCALBASE}/man/cat
 MLINKS+=assl.3 assl_initialize.3
 MLINKS+=assl.3 assl_alloc_context.3
 MLINKS+=assl.3 assl_set_cert_flags.3
@@ -40,9 +40,9 @@ HDRS= assl.h
 
 afterinstall:
 	@cd ${.CURDIR}; for i in ${HDRS}; do \
-	cmp -s $$i ${PREFIX}/include/$$i || \
-	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${PREFIX}/include; \
-	echo ${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${PREFIX}/include; \
+	cmp -s $$i ${LOCALBASE}/include/$$i || \
+	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${DESTDIR}${LOCALBASE}/include; \
+	echo ${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${DESTDIR}${LOCALBASE}/include; \
 	done
 
 .include <bsd.own.mk>
