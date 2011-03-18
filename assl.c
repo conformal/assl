@@ -37,8 +37,28 @@ static const char *version = "Release: "ASSL_VERSION;
 
 #include "assl_internal.h"
 
-/* error handling */
+/* set to stop assl_serve */
+volatile sig_atomic_t	assl_stop_serving;
 
+/* set to indicate this is a child process */
+pid_t			assl_child;
+
+/* XXX these have to be global because openssl is retarded */
+int			assl_ignore_self_signed_cert;
+int			assl_ignore_expired_cert;
+
+/* memory certificates lookup */
+struct assl_mem_cert_list	assl_mc;
+RB_HEAD(assl_mem_cert_list, assl_mem_cert);
+
+int
+assl_mem_cert_cmp(struct assl_mem_cert *c1, struct assl_mem_cert *c2)
+{
+	return (c1->assl_token < c2->assl_token);
+}
+RB_GENERATE(assl_mem_cert_list, assl_mem_cert, entry, assl_mem_cert_cmp);
+
+/* error handling */
 #ifndef ASSL_NO_FANCY_ERRORS
 void
 assl_fatalx(const char *errstr)
@@ -58,24 +78,6 @@ SLIST_HEAD(assl_error_stack, assl_error);
 /* XXX NOT concurrency safe! */
 char			assl_last_error[1024];
 struct assl_error_stack	aes;
-
-/* set to stop assl_serve */
-volatile sig_atomic_t	assl_stop_serving;
-
-/* set to indicate this is a child process */
-pid_t			assl_child;
-
-/* XXX these have to be global because openssl is retarded */
-int			assl_ignore_self_signed_cert;
-int			assl_ignore_expired_cert;
-
-/* pre-loaded certificates */
-void			*assl_mem_ca;
-off_t			assl_mem_ca_len;
-void			*assl_mem_cert;
-off_t			assl_mem_cert_len;
-void			*assl_mem_key;
-off_t			assl_mem_key_len;
 
 char *
 assl_geterror(int et)
@@ -195,7 +197,6 @@ assl_warnx(const char *errstr)
 }
 #endif /* ASSL_NO_FANCY_ERRORS */
 
-/* utility functions */
 int
 assl_set_nonblock(int fd)
 {
@@ -234,6 +235,8 @@ assl_initialize(void)
 	OpenSSL_add_ssl_algorithms();
 
 	assl_err_stack_unwind();
+
+	RB_INIT(&assl_mc);
 }
 
 /* XXX this function has got to go, can't have globals like this */
@@ -298,26 +301,53 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 }
 
 void
-assl_destroy_mem_certs(void)
+assl_free_mem_cert(struct assl_mem_cert* mc)
 {
-	if (assl_mem_ca) {
-		bzero(assl_mem_ca, assl_mem_ca_len);
-		free(assl_mem_ca);
-		assl_mem_ca = NULL;
-		assl_mem_ca_len = 0;
+	if (mc->assl_mem_ca) {
+		bzero(mc->assl_mem_ca, mc->assl_mem_ca_len);
+		free(mc->assl_mem_ca);
+		mc->assl_mem_ca = NULL;
+		mc->assl_mem_ca_len = 0;
 	}
-	if (assl_mem_cert) {
-		bzero(assl_mem_cert, assl_mem_cert_len);
-		free(assl_mem_cert);
-		assl_mem_cert = NULL;
-		assl_mem_cert_len = 0;
+	if (mc->assl_mem_cert) {
+		bzero(mc->assl_mem_cert, mc->assl_mem_cert_len);
+		free(mc->assl_mem_cert);
+		mc->assl_mem_cert = NULL;
+		mc->assl_mem_cert_len = 0;
 	}
-	if (assl_mem_key) {
-		bzero(assl_mem_key, assl_mem_key_len);
-		free(assl_mem_key);
-		assl_mem_key = NULL;
-		assl_mem_key_len = 0;
+	if (mc->assl_mem_key) {
+		bzero(mc->assl_mem_key, mc->assl_mem_key_len);
+		free(mc->assl_mem_key);
+		mc->assl_mem_key = NULL;
+		mc->assl_mem_key_len = 0;
 	}
+
+	bzero(mc, sizeof *mc);
+	free(mc);
+}
+
+int
+assl_destroy_mem_certs(void *token)
+{
+	struct assl_mem_cert	*mc, mcfind;
+	int			rv = 1;
+
+	assl_err_stack_unwind();
+
+	bzero(&mcfind, sizeof mcfind);
+	mcfind.assl_token = token;
+	mc = RB_FIND(assl_mem_cert_list, &assl_mc, &mcfind);
+	if (mc == NULL) {
+		assl_err_own("invalid certificate token");
+		ERROR_OUT(ERR_OWN, done);
+	}
+
+	RB_REMOVE(assl_mem_cert_list, &assl_mc, mc);
+	assl_free_mem_cert(mc);
+
+	rv = 0;
+done:
+	return (rv);
 }
 
 int
@@ -360,39 +390,42 @@ done:
 	return (rv);
 }
 
-int
+void *
 assl_load_file_certs_to_mem(const char *ca, const char *cert, const char *key)
 {
-	int			rv = 1;
+	struct assl_mem_cert	*mc = NULL;
 
 	assl_err_stack_unwind();
 
-	if (ca && assl_load(ca, &assl_mem_ca, &assl_mem_ca_len)) {
+	mc = calloc(1, sizeof *mc);
+	if (mc == NULL)
+		ERROR_OUT(ERR_LIBC, done);
+
+	if (ca && assl_load(ca, &mc->assl_mem_ca, &mc->assl_mem_ca_len)) {
 		assl_err_own("assl_load ca failed");
 		ERROR_OUT(ERR_OWN, done);
 	}
-
-	if (cert && assl_load(cert, &assl_mem_cert, &assl_mem_cert_len)) {
+	if (cert && assl_load(cert, &mc->assl_mem_cert, &mc->assl_mem_cert_len)) {
 		assl_err_own("assl_load cert failed");
 		ERROR_OUT(ERR_OWN, done);
 	}
-
-	if (key && assl_load(key, &assl_mem_key, &assl_mem_key_len)) {
+	if (key && assl_load(key, &mc->assl_mem_key, &mc->assl_mem_key_len)) {
 		assl_err_own("assl_load key failed");
 		ERROR_OUT(ERR_OWN, done);
 	}
 
-	rv = 0;
+	return (mc);
 done:
-	if (rv)
-		assl_destroy_mem_certs();
-	return (rv);
+	if (mc)
+		assl_free_mem_cert(mc);
+	return (NULL);
 }
 
 int
-assl_use_mem_certs(struct assl_context *c)
+assl_use_mem_certs(struct assl_context *c, void *token)
 {
 	int			rv = 1;
+	struct assl_mem_cert	*mc = token;
 
 	assl_err_stack_unwind();
 
@@ -400,37 +433,36 @@ assl_use_mem_certs(struct assl_context *c)
 		assl_err_own("no context");
 		ERROR_OUT(ERR_OWN, done);
 	}
+	if (mc == NULL) {
+		assl_err_own("no token");
+		ERROR_OUT(ERR_OWN, done);
+	}
 
 	if (c->as_server) {
 		/* server requires all the goodies */
-		if (assl_mem_ca == NULL || assl_mem_cert == NULL ||
-		    assl_mem_key == NULL) {
-			if (assl_mem_ca == NULL)
+		if (mc->assl_mem_ca == NULL || mc->assl_mem_cert == NULL ||
+		    mc->assl_mem_key == NULL) {
+			if (mc->assl_mem_ca == NULL)
 				assl_err_own("no ca");
-			else if (assl_mem_cert == NULL)
+			else if (mc->assl_mem_cert == NULL)
 				assl_err_own("no cert");
-			else if (assl_mem_key == NULL)
+			else if (mc->assl_mem_key == NULL)
 				assl_err_own("no key");
 			ERROR_OUT(ERR_OWN, done);
 		}
 	}
 
-	c->as_mem_ca = assl_mem_ca;
-	c->as_mem_ca_len = assl_mem_ca_len;
-	c->as_mem_cert = assl_mem_cert;
-	c->as_mem_cert_len = assl_mem_cert_len;
-	c->as_mem_key = assl_mem_key;
-	c->as_mem_key_len = assl_mem_key_len;
+	c->as_token = token;
 
 	/* use certs */
-	if (!ssl_ctx_load_verify_memory(c->as_ctx, c->as_mem_ca,
-	    c->as_mem_ca_len))
+	if (!ssl_ctx_load_verify_memory(c->as_ctx, mc->assl_mem_ca,
+	    mc->assl_mem_ca_len))
 		ERROR_OUT(ERR_SSL, done);
-	if (!ssl_ctx_use_certificate_chain(c->as_ctx, c->as_mem_cert,
-	   c->as_mem_cert_len))
+	if (!ssl_ctx_use_certificate_chain(c->as_ctx, mc->assl_mem_cert,
+	   mc->assl_mem_cert_len))
 		ERROR_OUT(ERR_SSL, done);
-	if (!ssl_ctx_use_private_key(c->as_ctx, c->as_mem_key,
-	    c->as_mem_key_len))
+	if (!ssl_ctx_use_private_key(c->as_ctx, mc->assl_mem_key,
+	    mc->assl_mem_key_len))
 		ERROR_OUT(ERR_SSL, done);
 	if (!SSL_CTX_check_private_key(c->as_ctx))
 		ERROR_OUT(ERR_SSL, done);

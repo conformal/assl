@@ -1,5 +1,37 @@
-int assl_set_nonblock(int);
-void assl_fatalx(const char *);
+/* $assl$ */
+/*
+ * Copyright (c) 2010, 2011 Marco Peereboom <marco@peereboom.us>
+ *
+ * Permission to use, copy, modify, and distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+#include <sys/tree.h>
+
+int		assl_set_nonblock(int);
+void		assl_fatalx(const char *);
+
+/* pre-loaded certificates */
+struct assl_mem_cert {
+	RB_ENTRY(assl_mem_cert)	entry;
+
+	void			*assl_token;
+	void			*assl_mem_ca;
+	off_t			assl_mem_ca_len;
+	void			*assl_mem_cert;
+	off_t			assl_mem_cert_len;
+	void			*assl_mem_key;
+	off_t			assl_mem_key_len;
+};
 
 /* error handling */
 #define ASSL_NO_FANCY_ERRORS
@@ -8,7 +40,6 @@ void assl_fatalx(const char *);
 #define ERROR_OUT(e, g) do { goto g; } while (0)
 #define assl_err_stack_unwind() do { } while (0)
 #define assl_err_own(s, ...) do { } while (0)
-
 #else
 #define ERR_LIBC	(0)
 #define ERR_SSL		(1)
@@ -28,17 +59,8 @@ extern char			assl_last_error[1024];
 extern struct assl_error_stack	aes;
 
 /* set to indicate this is a child process */
-extern pid_t			assl_child;
-extern int		assl_ignore_self_signed_cert;
-extern int		assl_ignore_expired_cert;
-extern void		*assl_mem_ca;
-extern off_t		assl_mem_ca_len;
-extern void		*assl_mem_cert;
-extern off_t		assl_mem_cert_len;
-extern void		*assl_mem_key;
-extern off_t		assl_mem_key_len;
-char * assl_geterror(int et);
-void assl_push_error(const char *file, const char *func, int line, int et);
-void assl_err_stack_unwind(void);
-void assl_err_own(char *s, ...);
+char		*assl_geterror(int);
+void		assl_push_error(const char *, const char *, int, int);
+void		assl_err_stack_unwind(void);
+void		assl_err_own(char *, ...);
 #endif

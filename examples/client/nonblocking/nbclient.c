@@ -26,12 +26,13 @@ main(int argc, char *argv[])
 	int			i;
 	char			buf[65536 * 10], *b;
 	ssize_t			wr, tot;
+	void			*t;
 
 	assl_initialize();
 
 #ifdef USE_MEM_CERTS
-	if (assl_load_file_certs_to_mem("../ca/ca.crt", "client/client.crt",
-	    "client/private/client.key"))
+	if ((t = assl_load_file_certs_to_mem("../ca/ca.crt", "client/client.crt",
+	    "client/private/client.key")) == NULL)
 		assl_fatalx("assl_load_file_certs");
 #endif
 	for (i = 0;;i++) {
@@ -40,7 +41,7 @@ main(int argc, char *argv[])
 			assl_fatalx("assl_alloc_context");
 
 #ifdef USE_MEM_CERTS
-		if (assl_use_mem_certs(c))
+		if (assl_use_mem_certs(c, t))
 			assl_fatalx("assl_use_mem_certs");
 #else
 		if (assl_load_file_certs(c, "../ca/ca.crt", "client/client.crt",

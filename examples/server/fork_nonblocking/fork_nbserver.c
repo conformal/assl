@@ -18,6 +18,7 @@
 
 void			serve_callback(int);
 
+void				*token;
 pid_t				child;
 extern volatile sig_atomic_t	assl_stop_serving;
 
@@ -103,7 +104,7 @@ serve_callback(int s)
 		assl_fatalx("assl_alloc_context");
 
 #ifdef USE_MEM_CERTS
-	if (assl_use_mem_certs(c))
+	if (assl_use_mem_certs(c, token))
 		assl_fatalx("assl_use_mem_certs");
 #else
 	if (assl_load_file_certs(c, "../ca/ca.crt", "server/server.crt",
@@ -157,8 +158,8 @@ main(int argc, char *argv[])
 	sigaction(SIGCHLD, &sact, NULL);
 
 #ifdef USE_MEM_CERTS
-	if (assl_load_file_certs_to_mem("../ca/ca.crt", "server/server.crt",
-	    "server/private/server.key"))
+	if ((token = assl_load_file_certs_to_mem("../ca/ca.crt",
+	    "server/server.crt", "server/private/server.key")) == NULL)
 		assl_fatalx("assl_load_file_certs");
 #endif
 	assl_serve(NULL, ASSL_DEFAULT_PORT,

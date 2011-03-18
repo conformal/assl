@@ -30,10 +30,10 @@
 .Fn assl_set_cert_flags "int flags"
 .Ft int
 .Fn assl_load_file_certs "struct assl_context *ctx" "const char *ca" "const char *cert" "const char *key"
-.Ft int
+.Ft void *
 .Fn assl_load_file_certs_to_mem "const char *ca" "const char *cert" "const char *key"
 .Ft int
-.Fn assl_use_mem_certs "struct assl_context *c"
+.Fn assl_use_mem_certs "struct assl_context *c" "void *token"
 .Ft int
 .Fn assl_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags"
 .Ft int
@@ -63,8 +63,8 @@
 .Fn assl_event_enable_write "struct assl_context *ctx"
 .Ft void
 .Fn assl_event_disable_write "struct assl_context *ctx"
-.Ft void
-.Fn assl_destroy_mem_certs "void"
+.Ft int
+.Fn assl_destroy_mem_certs "void *token"
 .Ft int
 .Fn assl_close "struct assl_context *ctx"
 .Ft int
@@ -182,6 +182,11 @@ preloads all required keys and certificates to authenticate a client or server
 to memory for use at a later time.
 This functionality is provided to enable programs that require privilege
 dropping.
+This function can be called multiple times to load additional certificates to
+memory.
+The function returns an opaque non
+.Pa NULL
+token to identify the certificates at a later time.
 .Fa cert
 and
 .Fa key
@@ -190,10 +195,16 @@ calling machine to the remote machine.
 .Fa ca
 contains the Certificate Authority certificate.
 All files must be provided in PEM format.
-The function returns a non-zero value to indicate failure.
+The function returns a
+.Pa NULL
+value to indicate failure.
 .Pp
 .Fn assl_use_mem_certs
-assign in memory certificates to provided context.
+assign in memory certificates identified by token to the provided context.
+Note that multiple contexts can use the same in memory certificates provided
+that
+.Pa assl_destroy_mem_certs
+isn't called.
 .Pp
 .Fn assl_connect
 tries to establish an SSL/TLS connection to a
@@ -416,7 +427,8 @@ and no more data is available to send, used in conjunction with
 .Fn assl_event_enable_write .
 .Pp
 .Fn assl_destroy_mem_certs
-clears and frees in memory certificates.
+clears and frees in memory certificates identified by the
+.Fa token .
 .Pp
 .Fn assl_close
 function terminates all connections and unwinds all resources, including

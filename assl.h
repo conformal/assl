@@ -80,12 +80,7 @@ struct assl_context {
 	BIO			*as_sbio;
 
 	/* memory certificates */
-	void			*as_mem_ca;
-	off_t			as_mem_ca_len;
-	void			*as_mem_cert;
-	off_t			as_mem_cert_len;
-	void			*as_mem_key;
-	off_t			as_mem_key_len;
+	void			*as_token;
 
 	/* openssl */
 	const SSL_METHOD	*as_method;
@@ -136,10 +131,10 @@ ssize_t			assl_write_timeout(struct assl_context *, void *,
 ssize_t			assl_gets(struct assl_context *, char *, int);
 ssize_t			assl_puts(struct assl_context *, char *, int);
 
-int			assl_load_file_certs_to_mem(const char *, const char *,
+void			*assl_load_file_certs_to_mem(const char *, const char *,
 			    const char *);
-int			assl_use_mem_certs(struct assl_context *);
-void			assl_destroy_mem_certs(void);
+int			assl_use_mem_certs(struct assl_context *, void *);
+int			assl_destroy_mem_certs(void *);
 void			assl_event_enable_write(struct assl_context *);
 void			assl_event_disable_write(struct assl_context *);
 
