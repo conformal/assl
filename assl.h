@@ -122,8 +122,8 @@ int			assl_event_accept(struct assl_context *, int,
 			    void (*)(int, short, void *),
 			    void (*)(int, short, void *),
 			    void *);
-void			assl_fatalx(const char *);
-void			assl_warnx(const char *);
+void			assl_fatalx(const char *, ...);
+void			assl_warnx(const char *, ...);
 ssize_t			assl_read(struct assl_context *, void *, size_t);
 ssize_t			assl_write(struct assl_context *, void *, size_t);
 int			assl_close(struct assl_context *);

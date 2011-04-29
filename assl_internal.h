@@ -18,7 +18,7 @@
 #include <sys/tree.h>
 
 int		assl_set_nonblock(int);
-void		assl_fatalx(const char *);
+void		assl_fatalx(const char *, ...);
 
 /* pre-loaded certificates */
 struct assl_mem_cert {

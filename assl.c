@@ -61,16 +61,26 @@ RB_GENERATE(assl_mem_cert_list, assl_mem_cert, entry, assl_mem_cert_cmp);
 /* error handling */
 #ifndef ASSL_NO_FANCY_ERRORS
 void
-assl_fatalx(const char *errstr)
+assl_fatalx(const char *s, ...)
 {
-	fprintf(stderr, "%s\n", errstr);
+	va_list			ap;
+
+	va_start(ap, s);
+	vfprintf(stderr, s, ap);
+	fprintf(stderr, "\n");
+	va_end(ap);
 	exit(1);
 }
 
 void
-assl_warnx(const char *errstr)
+assl_warnx(const char *s, ...)
 {
+	va_list			ap;
+
 	fprintf(stderr, "%s\n", errstr);
+	va_start(ap, s);
+	vfprintf(stderr, s, ap);
+	fprintf(stderr, "\n");
 }
 #else
 SLIST_HEAD(assl_error_stack, assl_error);
@@ -151,11 +161,15 @@ assl_err_own(char *s, ...)
 	va_end(ap);
 }
 void
-assl_fatalx(const char *errstr)
+assl_fatalx(const char *s, ...)
 {
+	va_list			ap;
 	struct assl_error	*ce;
 
-	fprintf(stderr, "%s\n\n", errstr);
+	va_start(ap, s);
+	vfprintf(stderr, s, ap);
+	va_end(ap);
+	fprintf(stderr, "\n\n");
 	fprintf(stderr, "ASSL Fatal Error\n");
 
 	SLIST_FOREACH(ce, &aes, link) {
@@ -176,11 +190,15 @@ assl_fatalx(const char *errstr)
 }
 
 void
-assl_warnx(const char *errstr)
+assl_warnx(const char *s, ...)
 {
+	va_list			ap;
 	struct assl_error	*ce;
 
-	fprintf(stderr, "%s\n\n", errstr);
+	va_start(ap, s);
+	vfprintf(stderr, s, ap);
+	va_end(ap);
+	fprintf(stderr, "\n");
 	fprintf(stderr, "ASSL Warning\n");
 
 	SLIST_FOREACH(ce, &aes, link) {
