@@ -725,6 +725,7 @@ assl_get_parameters(struct assl_context *c)
 
 	const SSL_CIPHER	*ci;
 	EVP_PKEY		*pktmp;
+	char			*s;
 
 	c->as_bits = -1;
 
@@ -738,9 +739,12 @@ assl_get_parameters(struct assl_context *c)
 	}
 
 	ci = SSL_get_current_cipher(c->as_ssl);
-	if (ci)
+	if (ci) {
 		SSL_CIPHER_description(ci, c->as_protocol,
 		    sizeof c->as_protocol);
+		s = c->as_protocol;
+		strsep(&s, "\n");
+	}
 }
 
 int
