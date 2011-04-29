@@ -719,9 +719,33 @@ done:
 	return (rv);
 }
 
+void
+assl_get_parameters(struct assl_context *c)
+{
+
+	const SSL_CIPHER	*ci;
+	EVP_PKEY		*pktmp;
+
+	c->as_bits = -1;
+
+	c->as_peer = SSL_get_peer_certificate(c->as_ssl);
+	if (c->as_peer) {
+		pktmp = X509_get_pubkey(c->as_peer);
+		if (pktmp) {
+			c->as_bits = EVP_PKEY_bits(pktmp);
+			EVP_PKEY_free(pktmp);
+		}
+	}
+
+	ci = SSL_get_current_cipher(c->as_ssl);
+	if (ci)
+		SSL_CIPHER_description(ci, c->as_protocol,
+		    sizeof c->as_protocol);
+}
+
 int
 assl_connect(struct assl_context *c, const char *host, const char *port,
-		int flags)
+    int flags)
 {
 	struct addrinfo		hints, *res = NULL, *ai;
 	int			p, s = -1, on = 1, rv = 1, retries;
@@ -812,6 +836,7 @@ retry:
 	}
 
 	c->as_ssl_session = SSL_get_session(c->as_ssl);
+	assl_get_parameters(c);
 
 	rv = 0;
 done:
@@ -850,6 +875,7 @@ assl_accept(struct assl_context *c, int s)
 	}
 
 	c->as_ssl_session = SSL_get_session(c->as_ssl);
+	assl_get_parameters(c);
 
 	rv = 0;
 done:
@@ -1038,6 +1064,8 @@ assl_close(struct assl_context *c)
 		assl_err_own("no context");
 		ERROR_OUT(ERR_OWN, done);
 	}
+	if (c->as_peer)
+		X509_free(c->as_peer);
 	if (c->as_ssl) {
 		SSL_shutdown(c->as_ssl);
 		SSL_free(c->as_ssl);

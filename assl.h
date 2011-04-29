@@ -88,6 +88,11 @@ struct assl_context {
 	int			as_verify_mode;
 	int			as_verify_depth;
 
+	/* protocol defs */
+	X509			*as_peer;
+	int			as_bits;	/* -1 invalid */
+	char			as_protocol[128];
+
 	/* event */
 	struct event		*as_ev_rd;
 	struct event		*as_ev_wr;
