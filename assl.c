@@ -271,8 +271,8 @@ int
 assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 {
 	/* openssl is retarded that it doesn't pass in a void * for params */
-	/*
 	fprintf(stderr, "assl_verify_callback: ctx->error %d\n", ctx->error);
+	/*
 	*/
 	rv = 0; /* fail */
 
@@ -286,8 +286,8 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 			if (assl_ignore_expired_cert) {
 				rv = 1;
 				ctx->error = X509_V_OK;
-				/*
 				fprintf(stderr, "ignoring expired\n");
+				/*
 				*/
 			}
 			break;
@@ -295,8 +295,8 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 			if (assl_ignore_self_signed_cert) {
 				rv = 1;
 				ctx->error = X509_V_OK;
-				/*
 				fprintf(stderr, "ignoring self signed\n");
+				/*
 				*/
 			}
 			break;
@@ -304,15 +304,15 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
 			rv = 1;
 			ctx->error = X509_V_OK;
-			/*
 			fprintf(stderr, "ignoring %d\n", ctx->error);
+			/*
 			*/
 			break;
 	}
 
-	/*
 	fprintf(stderr, "assl_verify_callback: %s  rv %d error %d\n",
 	   rv == 0 ? "failed" : "success", rv, ctx->error);
+	/*
 	*/
 
 	return (rv);
@@ -755,6 +755,7 @@ assl_get_parameters(struct assl_context *c)
 			EVP_PKEY_free(pktmp);
 		}
 	}
+	fprintf(stderr, "get_params %p\n", c->as_peer);
 
 	ci = SSL_get_current_cipher(c->as_ssl);
 	if (ci) {
@@ -1082,6 +1083,7 @@ assl_close(struct assl_context *c)
 {
 	assl_err_stack_unwind();
 
+	fprintf(stderr, "byby\n");
 	if (c == NULL) {
 		assl_err_own("no context");
 		ERROR_OUT(ERR_OWN, done);
