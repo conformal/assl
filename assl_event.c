@@ -136,15 +136,21 @@ done:
 void
 assl_event_serve_stop(struct assl_serve_ctx *ctx)
 {
-	if (ctx->fd[0] != -1)
+	if (ctx->fd[0] != -1) {
 		event_del(ctx->ev[0]);
 		free(ctx->ev[0]);
+		ctx->ev[0] = NULL;
 		close(ctx->fd[0]);
+		ctx->fd[0] = -1;
+	}
 
-	if (ctx->fd[1] != -1)
+	if (ctx->fd[1] != -1) {
 		event_del(ctx->ev[1]);
 		free(ctx->ev[1]);
+		ctx->ev[1] = NULL;
 		close(ctx->fd[1]);
+		ctx->fd[1] = -1;
+	}
 }
 
 int
@@ -171,10 +177,15 @@ assl_event_accept(struct assl_context *ctx, int s,
 
 	return (rv);
 fail:
-	if (ctx->as_ev_rd)
+	if (ctx->as_ev_rd) {
 		free(ctx->as_ev_rd);
-	if (ctx->as_ev_wr)
+		ctx->as_ev_rd = NULL;
+	}
+	if (ctx->as_ev_wr) {
 		free(ctx->as_ev_wr);
+		ctx->as_ev_wr = NULL;
+	}
+
 	return -1;
 }
 
