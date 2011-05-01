@@ -154,18 +154,29 @@ assl_event_accept(struct assl_context *ctx, int s,
 {
 	int rv;
 
+	ctx->as_ev_rd = calloc(1, sizeof(*ctx->as_ev_rd));
+	if (ctx->as_ev_rd)
+		goto fail;
+	ctx->as_ev_wr = calloc(1, sizeof(*ctx->as_ev_wr));
+	if (ctx->as_ev_wr)
+		goto fail;
+
 	rv = assl_accept(ctx, s);
-	if (rv == -1)
+	if (rv)
 		return rv;
 
-	ctx->as_ev_rd = calloc(1, sizeof(*ctx->as_ev_rd));
 	event_set(ctx->as_ev_rd, ctx->as_sock, EV_READ|EV_PERSIST, rd_cb, arg);
 	event_add(ctx->as_ev_rd, NULL);
 
-	ctx->as_ev_wr = calloc(1, sizeof(*ctx->as_ev_wr));
 	event_set(ctx->as_ev_wr, ctx->as_sock, EV_WRITE|EV_PERSIST, wr_cb, arg);
 
 	return (rv);
+fail:
+	if (ctx->as_ev_rd)
+		free(ctx->as_ev_rd);
+	if (ctx->as_ev_wr)
+		free(ctx->as_ev_wr);
+	return -1;
 }
 
 
