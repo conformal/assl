@@ -165,10 +165,9 @@ assl_event_accept(struct assl_context *ctx, int s,
 	if (rv)
 		return rv;
 
+	event_set(ctx->as_ev_wr, ctx->as_sock, EV_WRITE|EV_PERSIST, wr_cb, arg);
 	event_set(ctx->as_ev_rd, ctx->as_sock, EV_READ|EV_PERSIST, rd_cb, arg);
 	event_add(ctx->as_ev_rd, NULL);
-
-	event_set(ctx->as_ev_wr, ctx->as_sock, EV_WRITE|EV_PERSIST, wr_cb, arg);
 
 	return (rv);
 fail:
