@@ -19,7 +19,10 @@
 #include <signal.h>
 #include "assl.h"
 
-#define USE_MEM_CERTS
+/* XXX: assl_use_mem_cert prototype now requires a token.  Won't compile when
+ * enabled.
+ */
+/* #define USE_MEM_CERTS */
 void serve_rd_worker(int fd, short event, void *arg);
 void serve_wr_worker(int fd, short event, void *arg);
 void serve_open_writer(int fd, short event, void *arg);
@@ -96,6 +99,7 @@ serve_open_writer(int fd, short event, void *arg)
 		assl_fatalx("assl_alloc_context");
 
 #ifdef USE_MEM_CERTS
+	/* XXX: Function prototype now requires a token.  This won't compile. */
 	if (assl_use_mem_certs(wctx->c))
 		assl_fatalx("assl_use_mem_certs");
 #else
