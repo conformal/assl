@@ -1,32 +1,107 @@
 # $assl$
 
-CFLAGS+= -O2 -Wall -ggdb -D_GNU_SOURCE -D_BSD_SOURCE -I.
-LDFLAGS+=
-LDADD+= -lssl
+# Attempt to include platform specific makefile.
+# OSNAME may be passed in.
+OSNAME ?= $(shell uname -s)
+OSNAME := $(shell echo $(OSNAME) | tr A-Z a-z)
+-include config/Makefile.$(OSNAME)
 
-PREFIX?= /usr/local
-LIBDIR?= $(PREFIX)/lib
-MANDIR?= $(PREFIX)/share/man
+# Default paths.
+LOCALBASE ?= /usr/local
+BINDIR ?= ${LOCALBASE}/bin
+LIBDIR ?= ${LOCALBASE}/lib
+INCDIR ?= ${LOCALBASE}/include
 
-CC= gcc
+# Use obj directory if it exists.
+OBJPREFIX ?= obj/
+ifeq "$(wildcard $(OBJPREFIX))" ""
+	OBJPREFIX =	
+endif
 
-LVERS= $(shell . shlib_version; echo $$major.$$minor)
+# Get shared library version.
+-include shlib_version
+SO_MAJOR = $(major)
+SO_MINOR = $(minor)
 
-all: libassl.so.$(LVERS)
+# System utils.
+AR ?= ar
+CC ?= gcc
+INSTALL ?= install
+LN ?= ln
+LNFLAGS ?= -sf
+MKDIR ?= mkdir
+RM ?= rm -f
 
-%.so: %.c
-	$(CC) $(CFLAGS) -c -fpic -DPIC $+ -o $@
+# Compiler and linker flags.
+CPPFLAGS += -DNEED_LIBCLENS
+INCFLAGS += -I$(INCDIR)/clens
+WARNFLAGS ?= -Wall -Werror
+DEBUG += -g
+CFLAGS += $(INCFLAGS) $(WARNFLAGS) $(DEBUG)
+LDFLAGS += -lclens
+SHARED_OBJ_EXT ?= o
 
-libassl.so.$(LVERS): assl.so
-	$(CC) -shared -fpic -o libassl.so.$(LVERS) assl.so $(LDADD)
-	ln -sf libassl.so.$(LVERS) libassl.so
+LIB.NAME = assl
+LIB.SRCS = assl.c assl_event.c ssl_privsep.c
+LIB.HEADERS = assl.h
+LIB.OBJS = $(addprefix $(OBJPREFIX), $(LIB.SRCS:.c=.o))
+LIB.SOBJS = $(addprefix $(OBJPREFIX), $(LIB.SRCS:.c=.$(SHARED_OBJ_EXT)))
+LIB.DEPS = $(addsuffix .depend, $(LIB.OBJS))
+ifneq "$(LIB.OBJS)" "$(LIB.SOBJS)"
+	LIB.DEPS += $(addsuffix .depend, $(LIB.SOBJS))
+endif
+LIB.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS) 
 
-install: all
-	install -Dm 644 assl.3 $(DESTDIR)$(MANDIR)/man3/assl.3
-	install -Dm 755 libassl.so.$(LVERS) $(DESTDIR)$(LIBDIR)
-	ln -sf $(DESTDIR)$(LIBDIR)/libassl.so.$(LVERS) $(DESTDIR)$(LIBDIR)/libassl.so
+all: $(OBJPREFIX)$(LIB.SHARED) $(OBJPREFIX)$(LIB.STATIC)
 
+obj:
+	-$(MKDIR) obj
+
+$(OBJPREFIX)$(LIB.SHARED): $(LIB.SOBJS)
+	$(CC) $(LDFLAGS.SO) $^ $(LIB.LDFLAGS) -o $@
+
+$(OBJPREFIX)$(LIB.STATIC): $(LIB.OBJS)
+	$(AR) $(ARFLAGS) $@ $^
+
+$(OBJPREFIX)%.$(SHARED_OBJ_EXT): %.c
+	@echo "Generating $@.depend"
+	@$(CC) $(INCFLAGS) -MM $(CPPFLAGS) $< | \
+	sed 's,$*\.o[ :]*,$@ $@.depend : ,g' > $@.depend
+	$(CC) $(CFLAGS) $(PICFLAG) $(CPPFLAGS) -o $@ -c $<
+
+$(OBJPREFIX)%.o: %.c
+	@echo "Generating $@.depend"
+	@$(CC) $(INCFLAGS) -MM $(CPPFLAGS) $< | \
+	sed 's,$*\.o[ :]*,$@ $@.depend : ,g' >> $@.depend
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $< 
+
+depend: 
+	@echo "Dependencies are automatically generated.  This target is not necessary."	
+
+install:
+	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.SHARED) $(LIBDIR)/
+	$(LN) $(LNFLAGS) $(LIB.SHARED) $(LIBDIR)/$(LIB.SONAME)
+	$(LN) $(LNFLAGS) $(LIB.SHARED) $(LIBDIR)/$(LIB.DEVLNK)
+	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.STATIC) $(LIBDIR)/
+	$(INSTALL) -m 0644 $(LIB.HEADERS) $(INCDIR)/
+	
+uninstall:
+	$(RM) $(LIBDIR)/$(LIB.DEVLNK)
+	$(RM) $(LIBDIR)/$(LIB.SONAME)
+	$(RM) $(LIBDIR)/$(LIB.SHARED)
+	$(RM) $(LIBDIR)/$(LIB.STATIC)
+	(cd $(INCDIR)/ && $(RM) $(LIB.HEADERS))
+	
 clean:
-	rm -f assl.so libassl.so.$(LVERS) libassl.so *.o linux/*.o
+	$(RM) $(LIB.SOBJS)
+	$(RM) $(OBJPREFIX)$(LIB.SHARED)
+	$(RM) $(OBJPREFIX)/$(LIB.SONAME)
+	$(RM) $(OBJPREFIX)/$(LIB.DEVLNK)
+	$(RM) $(LIB.OBJS)
+	$(RM) $(OBJPREFIX)$(LIB.STATIC)
+	$(RM) $(LIB.DEPS)
 
-.PHONY: all install clean
+-include $(LIB.DEPS)
+
+.PHONY: clean depend install uninstall
+

@@ -30,9 +30,9 @@ INCFLAGS += -I ../../.. -I $(INCDIR)/clens
 WARNFLAGS ?= -Wall -Werror
 DEBUG += -g
 CFLAGS += $(INCFLAGS) $(WARNFLAGS) $(DEBUG)
-LDFLAGS += -L../../../obj -L../../.. -lassl -lssl -lcrypto -lclens
+LDFLAGS += -L../../../obj -L../../.. -lassl -lssl -lcrypto -levent -lclens
 
-BIN.NAME = nbclient
+BIN.NAME = nbeclient
 BIN.SRCS = nbclient.c
 BIN.OBJS = $(addprefix $(OBJPREFIX), $(BIN.SRCS:.c=.o))
 BIN.DEPS = $(addsuffix .depend, $(BIN.OBJS))

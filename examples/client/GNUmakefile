@@ -1,13 +1,15 @@
 # $assl$
 
-SUBDIRS= blocking nonblocking nullcrypt
+SUBDIRS = blocking event nonblocking nonblocking_event nullcrypt
+TARGETS = clean obj install uninstall depend
 
 all: $(SUBDIRS)
 
-clean:
-	@for i in $(SUBDIRS); do $(MAKE) -C $$i/ clean; done
+$(TARGETS):
+	@for i in $(SUBDIRS); do $(MAKE) -C $$i/ $@; done
 
 $(SUBDIRS): 
-	$(MAKE) -C $@ $(MOO)
+	$(MAKE) -C $@
 
-.PHONY: all clean $(SUBDIRS)
+.PHONY: all $(SUBDIRS) $(TARGETS)
+

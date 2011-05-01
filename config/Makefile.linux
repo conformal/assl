@@ -1,0 +1,13 @@
+# $assl$
+
+ARFLAGS = crs
+
+LIB.SONAME = lib$(LIB.NAME).so.$(SO_MAJOR)
+LIB.DEVLNK = lib$(LIB.NAME).so
+LIB.SHARED = lib$(LIB.NAME).so.$(SO_MAJOR).$(SO_MINOR)
+LIB.STATIC = lib$(LIB.NAME).a
+
+CPPFLAGS += -D_GNU_SOURCE
+LDFLAGS.SO = -shared -Wl,-soname=$(LIB.SONAME)
+SHARED_OBJ_EXT = pic_o
+PICFLAG = -fPIC

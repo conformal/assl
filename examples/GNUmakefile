@@ -1,13 +1,15 @@
 # $assl$
 
-SUBDIRS= client server
+SUBDIRS = client server
+TARGETS = clean obj install uninstall depend
 
 all: $(SUBDIRS)
 
-clean:
-	@for i in $(SUBDIRS); do $(MAKE) -C $$i/ clean; done
+$(TARGETS):
+	@for i in $(SUBDIRS); do $(MAKE) -C $$i/ $@; done
 
 $(SUBDIRS): 
 	$(MAKE) -C $@
 
-.PHONY: all $(SUBDIRS)
+.PHONY: all $(SUBDIRS) $(TARGETS)
+

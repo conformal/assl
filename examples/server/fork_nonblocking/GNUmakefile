@@ -1,16 +1,71 @@
 # $assl$
 
-CFLAGS+= -O2 -Wall -ggdb -D_GNU_SOURCE -D_BSD_SOURCE -I ../../../
-LDFLAGS+= -L/usr/local/lib -L ../../../ -lssl -lcrypto -lassl
+# Attempt to include platform specific makefile.
+# OSNAME may be passed in.
+OSNAME ?= $(shell uname -s)
+OSNAME := $(shell echo $(OSNAME) | tr A-Z a-z)
+-include ../../../config/Makefile.$(OSNAME)
 
-CC=gcc
+# Default paths.
+LOCALBASE ?= /usr/local
+BINDIR ?= ${LOCALBASE}/bin
+LIBDIR ?= ${LOCALBASE}/lib
+INCDIR ?= ${LOCALBASE}/include
 
-all: fork_nbserver
+# Use obj directory if it exists.
+OBJPREFIX ?= obj/
+ifeq "$(wildcard $(OBJPREFIX))" ""
+	OBJPREFIX =	
+endif
 
-fork_nbserver: fork_nbserver.c ../../../linux/strlcpy.o
-	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $+
+# System utils.
+CC ?= gcc
+INSTALL ?= install
+MKDIR ?= mkdir
+RM ?= rm -f
 
+# Compiler and linker flags.
+CPPFLAGS += -DNEED_LIBCLENS
+INCFLAGS += -I ../../.. -I $(INCDIR)/clens
+WARNFLAGS ?= -Wall -Werror
+DEBUG += -g
+CFLAGS += $(INCFLAGS) $(WARNFLAGS) $(DEBUG)
+LDFLAGS += -L../../../obj -L../../.. -lassl -lssl -lcrypto -lclens
+
+BIN.NAME = fork_nbserver
+BIN.SRCS = fork_nbserver.c
+BIN.OBJS = $(addprefix $(OBJPREFIX), $(BIN.SRCS:.c=.o))
+BIN.DEPS = $(addsuffix .depend, $(BIN.OBJS))
+BIN.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS) $(LDADD)
+
+all: $(OBJPREFIX)$(BIN.NAME) 
+
+obj:
+	-$(MKDIR) obj
+
+$(OBJPREFIX)$(BIN.NAME): $(BIN.OBJS)
+	$(CC) $^ $(BIN.LDFLAGS) -o $@
+	
+
+$(OBJPREFIX)%.o: %.c
+	@echo "Generating $@.depend"
+	@$(CC) $(INCFLAGS) -MM $(CPPFLAGS) $< | \
+	sed 's,$*\.o[ :]*,$@ $@.depend : ,g' >> $@.depend
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $< 
+
+depend: 
+	@echo "Dependencies are automatically generated.  This target is not necessary."	
+
+install:
+	
+uninstall:
+	
 clean:
-	rm -rf fork_nbserver *.o ../../../linux/*.o
+	$(RM) $(BIN.OBJS)
+	$(RM) $(OBJPREFIX)$(BIN.NAME)
+	$(RM) $(BIN.DEPS)
 
-.PHONY: all clean
+-include $(BIN.DEPS)
+
+.PHONY: clean depend install uninstall
+
