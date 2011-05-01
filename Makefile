@@ -38,6 +38,8 @@ MLINKS+=assl.3 assl_event_connect.3
 MLINKS+=assl.3 assl_event_close.3
 HDRS= assl.h
 
+CLEANFILES+=	assl.cat3
+
 afterinstall:
 	@cd ${.CURDIR}; for i in ${HDRS}; do \
 	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${DESTDIR}${LOCALBASE}/include; \
