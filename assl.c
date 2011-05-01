@@ -640,7 +640,7 @@ assl_alloc_context(enum assl_method m, int flags)
 
 	/* do not encrypt transport */
 	if (flags & ASSL_F_DONT_ENCRYPT)
-		if (!SSL_CTX_set_cipher_list(c->as_ctx, "NULL-SHA"))
+		if (!SSL_CTX_set_cipher_list(c->as_ctx, "eNULL"))
 			ERROR_OUT(ERR_SSL, unwind);
 
 	c->as_verify_depth = ASSL_VERIFY_DEPTH;
