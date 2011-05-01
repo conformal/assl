@@ -186,15 +186,16 @@ assl_event_connect(struct assl_context *c, const char *host, const char *port,
     		void (*wr_cb)(int, short, void *), void *arg)
 {
 	int rv;
-	rv = assl_connect(c, host, port, flags);
-
-	if (rv)
-		return rv;
 
 	c->as_ev_rd = calloc(1, sizeof(*c->as_ev_rd));
 	c->as_ev_wr = calloc(1, sizeof(*c->as_ev_wr));
 	if (c->as_ev_rd == NULL || c->as_ev_wr == NULL)
 		goto fail;
+
+	rv = assl_connect(c, host, port, flags);
+
+	if (rv)
+		return rv;
 
 	event_set(c->as_ev_rd, c->as_sock, EV_READ|EV_PERSIST, rd_cb, arg);
 	event_set(c->as_ev_wr, c->as_sock, EV_WRITE|EV_PERSIST, wr_cb, arg);
@@ -204,8 +205,6 @@ assl_event_connect(struct assl_context *c, const char *host, const char *port,
 fail:
 	/* in case the first alloc succeeded, will be NULL otherwise */
 	free(c->as_ev_rd);
-
-	assl_close(c);
 
 	return 1;
 }
