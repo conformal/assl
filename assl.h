@@ -18,6 +18,10 @@
 #ifndef AGGLOMERATEDSSL_H
 #define AGGLOMERATEDSSL_H
 
+#ifdef NEED_LIBCLENS
+#include <clens.h>
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <err.h>
@@ -33,6 +37,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <sys/queue.h>
 
 #include <netinet/in.h>
 #include <netdb.h>
@@ -144,11 +149,7 @@ void			assl_event_enable_write(struct assl_context *);
 void			assl_event_disable_write(struct assl_context *);
 
 #ifdef __linux__
-#include "linux/queue.h"
 #define INFTIM		(-1)
-size_t			strlcpy(char *, const char *, size_t);
-#else
-#include <sys/queue.h>
 #endif
 
 #endif /* AGGLOMERATEDSSL_H */
