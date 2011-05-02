@@ -161,10 +161,10 @@ assl_event_accept(struct assl_context *ctx, int s,
 	int rv;
 
 	ctx->as_ev_rd = calloc(1, sizeof(*ctx->as_ev_rd));
-	if (ctx->as_ev_rd)
+	if (ctx->as_ev_rd == NULL)
 		goto fail;
 	ctx->as_ev_wr = calloc(1, sizeof(*ctx->as_ev_wr));
-	if (ctx->as_ev_wr)
+	if (ctx->as_ev_wr == NULL)
 		goto fail;
 
 	rv = assl_accept(ctx, s);
