@@ -198,7 +198,8 @@ assl_event_enable_write(struct assl_context *ctx)
 void
 assl_event_disable_write(struct assl_context *ctx)
 {
-	event_del(ctx->as_ev_wr);
+	if (ctx->as_ev_wr)
+		event_del(ctx->as_ev_wr);
 }
 
 int
