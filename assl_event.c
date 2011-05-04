@@ -27,9 +27,9 @@ struct assl_serve_ctx {
 	int		fd[2];
 };
 
-/* 
+/*
  * assl_event_cb
- * 
+ *
  * Internal function used to service listen socket before invoking
  * user's callback.
  */
@@ -130,8 +130,8 @@ done:
 	return (ctx);
 }
 
-/* 
- * close the listening socket 
+/*
+ * close the listening socket
  */
 void
 assl_event_serve_stop(struct assl_serve_ctx *ctx)
@@ -204,8 +204,8 @@ assl_event_disable_write(struct assl_context *ctx)
 
 int
 assl_event_connect(struct assl_context *c, const char *host, const char *port,
-		int flags, void (*rd_cb)(int, short, void *),
-    		void (*wr_cb)(int, short, void *), void *arg)
+    int flags, void (*rd_cb)(int, short, void *),
+    void (*wr_cb)(int, short, void *), void *arg)
 {
 	int rv;
 
