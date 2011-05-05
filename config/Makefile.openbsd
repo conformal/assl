@@ -1,0 +1,8 @@
+# $assl$
+
+MANDIR= ${LOCALBASE}/man/cat
+
+.if defined(${COMPILER_VERSION})  &&  ${COMPILER_VERSION:L} == "gcc4"
+CFLAGS+= -fdiagnostics-show-option
+.endif
+

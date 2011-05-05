@@ -1,20 +1,19 @@
 # $assl$
 
+SYSTEM != uname -s
+.if exists(${.CURDIR}/config/Makefile.$(SYSTEM:L))
+.  include "${.CURDIR}/config/Makefile.$(SYSTEM:L)"
+.endif
+
 LOCALBASE?=/usr/local
-BINDIR=${LOCALBASE}/bin
-LIBDIR=${LOCALBASE}/lib
+LIBDIR?=${LOCALBASE}/lib
+INCDIR?=${LOCALBASE}/include
 
 #WANTLINT=
 LIB= assl
 SRCS= assl.c assl_event.c ssl_privsep.c
-.if defined(${COMPILER_VERSION})  &&  ${COMPILER_VERSION:L} == "gcc4"
-CFLAGS+= -fdiagnostics-show-option
-.endif
-CFLAGS+= -Wall -Werror -ggdb3
-CPPFLAGS+=-I${.CURDIR}
-
+HDRS= assl.h
 MAN= assl.3
-MANDIR= ${LOCALBASE}/man/cat
 MLINKS+=assl.3 assl_initialize.3
 MLINKS+=assl.3 assl_alloc_context.3
 MLINKS+=assl.3 assl_set_cert_flags.3
@@ -36,14 +35,29 @@ MLINKS+=assl.3 assl_event_enable_write.3
 MLINKS+=assl.3 assl_event_disable_write.3
 MLINKS+=assl.3 assl_event_connect.3
 MLINKS+=assl.3 assl_event_close.3
-HDRS= assl.h
 
-CLEANFILES+=	assl.cat3
+DEBUG+= -ggdb3 
+CFLAGS+= -Wall -Werror
+CFLAGS+= -I${.CURDIR} -I${INCDIR}
+
+CLEANFILES+= assl.cat3
 
 afterinstall:
 	@cd ${.CURDIR}; for i in ${HDRS}; do \
+	cmp -s $$i ${LOCALBASE}/include/$$i || \
 	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${DESTDIR}${LOCALBASE}/include; \
 	echo ${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${DESTDIR}${LOCALBASE}/include; \
+	done
+
+uninstall:
+	@for i in $(HDRS); do \
+	echo rm -f ${INCDIR}/$$i ;\
+	rm -f ${INCDIR}/$$i; \
+	done
+
+	@for i in $(_LIBS); do \
+	echo rm -f ${LIBDIR}/$$i ;\
+	rm -f ${LIBDIR}/$$i; \
 	done
 
 .include <bsd.own.mk>
