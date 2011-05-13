@@ -319,6 +319,15 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 }
 
 void
+assl_setup_verify(struct assl_context *c)
+{
+	/* use callback to ignore some errors such as expired cert */
+	SSL_CTX_set_verify(c->as_ctx, c->as_verify_mode, assl_verify_callback);
+	SSL_CTX_set_mode(c->as_ctx, SSL_MODE_AUTO_RETRY);
+	SSL_CTX_set_verify_depth(c->as_ctx, c->as_verify_depth);
+}
+
+void
 assl_free_mem_cert(struct assl_mem_cert* mc)
 {
 	if (mc->assl_mem_ca) {
@@ -485,6 +494,8 @@ assl_use_mem_certs(struct assl_context *c, void *token)
 	if (!SSL_CTX_check_private_key(c->as_ctx))
 		ERROR_OUT(ERR_SSL, done);
 
+	assl_setup_verify(c);
+
 	rv = 0;
 done:
 	return (rv);
@@ -529,10 +540,7 @@ assl_load_file_certs(struct assl_context *c, const char *ca, const char *cert,
 	if (c->as_server)
 		SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file(ca));
 
-	/* use callback to ignore some errors such as expired cert */
-	SSL_CTX_set_verify(c->as_ctx, c->as_verify_mode, assl_verify_callback);
-	SSL_CTX_set_mode(c->as_ctx, SSL_MODE_AUTO_RETRY);
-	SSL_CTX_set_verify_depth(c->as_ctx, c->as_verify_depth);
+	assl_setup_verify(c);
 
 	rv = 0;
 done:
