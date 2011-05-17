@@ -257,6 +257,7 @@ assl_event_close(struct assl_context *c)
 /* XXX - what about non-gcc */
 #define __weak  __attribute__((weak));
 
+/*
 int event_add(struct event *ev, const struct timeval *timeout) __weak;
 int
 event_add(struct event *ev, const struct timeval *timeout)
@@ -286,3 +287,4 @@ event_set(struct event *ev, int fd, short event, void (*fn)(int, short,
 	fflush(stderr);
 	_exit(20);
 }
+*/
