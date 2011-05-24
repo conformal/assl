@@ -38,6 +38,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <sys/queue.h>
+#include <sys/time.h>
 
 #include <netinet/in.h>
 #include <netdb.h>
