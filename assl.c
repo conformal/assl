@@ -749,7 +749,7 @@ void
 assl_get_parameters(struct assl_context *c)
 {
 
-	SSL_CIPHER		*ci;
+	const SSL_CIPHER	*ci;
 	EVP_PKEY		*pktmp;
 	char			*s;
 
