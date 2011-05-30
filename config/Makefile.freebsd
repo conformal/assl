@@ -7,5 +7,5 @@ MANDIR=$(LOCALBASE)/man/man
 
 CFLAGS+= -fdiagnostics-show-option
 CFLAGS+= -DNEED_LIBCLENS
-CFLAGS+= -I$(INCDIR)/clens
+CFLAGS+= -I${INCDIR}/clens -I${LOCALBASE}/ssl/include
 LDADD+= -L ${LIBDIR} -lclens
