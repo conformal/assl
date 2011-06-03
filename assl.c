@@ -829,6 +829,7 @@ retry:
 				if (retries > 5)
 					ERROR_OUT(ERR_LIBC, done);
 				retries++;
+				usleep(500000);
 				goto retry;
 			}
 
