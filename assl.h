@@ -48,7 +48,14 @@
 #include "openssl/err.h"
 #include "openssl/engine.h"
 
-#define ASSL_VERSION		"0.9.6"
+/* versioning */
+#define ASSL_VERSION_MAJOR	0
+#define ASSL_VERSION_MINOR	9
+#define ASSL_VERSION_PATCH	7
+#define ASSL_VERSION		"0.9.7"
+
+void	assl_version(int *major, int *minor, int *patch);
+
 #define ASSL_DEFAULT_PORT	"4433"
 
 #define ASSL_F_NONBLOCK		(1<<0)

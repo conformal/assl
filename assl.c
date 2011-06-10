@@ -47,6 +47,14 @@ pid_t			assl_child;
 int			assl_ignore_self_signed_cert;
 int			assl_ignore_expired_cert;
 
+void
+assl_version(int *major, int *minor, int *patch)
+{
+	*major = ASSL_VERSION_MAJOR;
+	*minor = ASSL_VERSION_MINOR;
+	*patch = ASSL_VERSION_PATCH;
+}
+
 /* memory certificates lookup */
 struct assl_mem_cert_list	assl_mc;
 RB_HEAD(assl_mem_cert_list, assl_mem_cert);
