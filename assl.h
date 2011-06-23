@@ -109,6 +109,9 @@ struct assl_context {
 	/* event */
 	struct event		*as_ev_rd;
 	struct event		*as_ev_wr;
+
+	/* peer IP */
+	char			*as_peername;
 };
 
 /* contents of this structure are private */

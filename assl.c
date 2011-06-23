@@ -756,9 +756,11 @@ done:
 void
 assl_get_parameters(struct assl_context *c)
 {
-
 	const SSL_CIPHER	*ci;
 	EVP_PKEY		*pktmp;
+	struct sockaddr_storage	ss;
+	socklen_t		len;
+	char			peer[NI_MAXHOST];	
 	char			*s;
 
 	c->as_bits = -1;
@@ -779,6 +781,12 @@ assl_get_parameters(struct assl_context *c)
 		s = c->as_protocol;
 		strsep(&s, "\n");
 	}
+
+	len = sizeof(ss);
+	if (getpeername(c->as_sock, (struct sockaddr *)&ss, &len) != -1 &&
+		getnameinfo((struct sockaddr *)&ss, len,
+			peer, NI_MAXHOST, NULL, 0, NI_NUMERICHOST) == 0)
+		c->as_peername = strdup(peer);
 }
 
 int
@@ -1118,6 +1126,8 @@ assl_close(struct assl_context *c)
 		SSL_CTX_free(c->as_ctx);
 		c->as_ctx = NULL;
 	}
+	if (c->as_peername) 
+		free(c->as_peername);
 
 	free(c);
 done:
