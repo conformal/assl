@@ -44,7 +44,7 @@ CLEANFILES+= assl.cat3
 
 afterinstall:
 	@cd ${.CURDIR}; for i in ${HDRS}; do \
-	cmp -s $$i ${LOCALBASE}/include/$$i || \
+	cmp -s $$i ${DESTDIR}${LOCALBASE}/include/$$i || \
 	${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${DESTDIR}${LOCALBASE}/include; \
 	echo ${INSTALL} ${INSTALL_COPY} -m 444 -o $(BINOWN) -g $(BINGRP) $$i ${DESTDIR}${LOCALBASE}/include; \
 	done
