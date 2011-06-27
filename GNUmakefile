@@ -50,7 +50,7 @@ LIB.DEPS = $(addsuffix .depend, $(LIB.OBJS))
 ifneq "$(LIB.OBJS)" "$(LIB.SOBJS)"
 	LIB.DEPS += $(addsuffix .depend, $(LIB.SOBJS))
 endif
-LIB.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS) 
+LIB.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS)
 
 all: $(OBJPREFIX)$(LIB.SHARED) $(OBJPREFIX)$(LIB.STATIC)
 
@@ -76,7 +76,7 @@ $(OBJPREFIX)%.o: %.c
 	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $< 
 
 depend: 
-	@echo "Dependencies are automatically generated.  This target is not necessary."	
+	@echo "Dependencies are automatically generated.  This target is not necessary."
 
 install:
 	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.SHARED) $(LIBDIR)/
