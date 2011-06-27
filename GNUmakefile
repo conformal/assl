@@ -104,4 +104,3 @@ clean:
 -include $(LIB.DEPS)
 
 .PHONY: clean depend install uninstall
-
