@@ -244,6 +244,32 @@ done:
 	return (rv);
 }
 
+int
+assl_set_keepalive(int fd)
+{
+	int			val = 1;
+
+	if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val)) == -1)
+		return (-1);
+
+	return (0);
+}
+
+void
+assl_set_tos(int fd, int flags)
+{
+	int	tos;
+
+	if (flags & ASSL_F_LOWDELAY) {
+		tos = IPTOS_LOWDELAY;
+		setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
+	}
+	if (flags & ASSL_F_THROUGHPUT) {
+		tos = IPTOS_THROUGHPUT;
+		setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
+	}
+}
+
 void
 assl_initialize(void)
 {
@@ -760,7 +786,7 @@ assl_get_parameters(struct assl_context *c)
 	EVP_PKEY		*pktmp;
 	struct sockaddr_storage	ss;
 	socklen_t		len;
-	char			peer[NI_MAXHOST];	
+	char			peer[NI_MAXHOST];
 	char			*s;
 
 	c->as_bits = -1;
@@ -833,7 +859,15 @@ retry:
 			close(s);
 			ERROR_OUT(ERR_LIBC, done);
 		}
-
+		if (flags & ASSL_F_KEEPALIVE)
+			if (assl_set_keepalive(s)) {
+				close(s);
+				ERROR_OUT(ERR_LIBC, done);
+			}
+                if (ai->ai_family == AF_INET &&
+			(flags & ASSL_F_LOWDELAY ||
+			 flags & ASSL_F_THROUGHPUT))
+                        assl_set_tos(s, flags);
 		if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0) {
 			close(s);
 			/*
@@ -970,6 +1004,15 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 				ERROR_OUT(ERR_LIBC, done);
 			}
 
+		if (flags & ASSL_F_KEEPALIVE)
+			if (assl_set_keepalive(s)) {
+				close(s);
+				ERROR_OUT(ERR_LIBC, done);
+			}
+               if (ai->ai_family == AF_INET &&
+                        (flags & ASSL_F_LOWDELAY ||
+                         flags & ASSL_F_THROUGHPUT))
+                        assl_set_tos(s, flags);
 		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
 		if (bind(s, ai->ai_addr, ai->ai_addrlen) < 0) {
@@ -1126,7 +1169,7 @@ assl_close(struct assl_context *c)
 		SSL_CTX_free(c->as_ctx);
 		c->as_ctx = NULL;
 	}
-	if (c->as_peername) 
+	if (c->as_peername)
 		free(c->as_peername);
 
 	free(c);

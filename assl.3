@@ -53,7 +53,7 @@
 .Fn assl_read "struct assl_context *ctx" "void *buf" "size_t nbytes"
 .Ft ssize_t
 .Fn assl_write "struct assl_context *ctx" "void *buf" "size_t nbytes"
-.Ft ssize_t	
+.Ft ssize_t
 .Fn assl_gets "struct assl_context *ctx" "char *buf" "int size"
 .Ft ssize_t
 .Fn assl_puts "struct assl_context *ctx" "char *buf" "int send_nul"
@@ -222,8 +222,12 @@ to unwind the context.
 If
 .Fa flags
 is set to ASSL_F_NONBLOCK then the socket will be set up as non-blocking.
+If
+.Fa flags
+is set to ASSL_F_KEEPALIVE then the socket will enable keepalive packets
+on the connection.
 .Pp
-The 
+The
 .Fn assl_event_connect
 is like
 .Fn assl_connect ,
@@ -260,6 +264,12 @@ parameter is a bitwise field and can be set to:
 .Bl -tag -width "ASSL_F_CLOSE_SOCKET" -offset indent -compact
 .It Cm ASSL_F_NONBLOCK
 Set the socket to non-block.
+.It Cm ASSL_F_KEEPALIVE
+Enable the periodic transmission of messages on a connect socket.
+.It Cm ASSL_F_LOWDELAY
+Enable the lowdelay type of service on the socket.
+.It Cm ASSL_F_THROUGHPUT
+Enable the throughput type of service on the socket.
 .It Cm ASSL_F_CLOSE_SOCKET
 Close the socket upon return from the callback.
 This is to facilitate forking applications.
@@ -288,7 +298,7 @@ prior to calling
 has the same meaning as in
 .Fn assl_serve .
 .Fa cb_fn
-will be called with the file descriptor and 
+will be called with the file descriptor and
 .Fa cb_arg
 when the listening socket is contacted the code then can
 fork or perform required configuration and accept the connection
@@ -314,9 +324,9 @@ The function returns a non-zero value to indicate failure.
 .Fn assl_event_accept
 will configure libevent read and write callback functions for the accepted
 socket. By default the write event will not be enabled and can be toggled
-with 
+with
 .Fn assl_event_enable_write
-and 
+and
 .Fn assl_event_disable_write
 when the write socket is found not be be accepting all of the written data.
 .Pp
@@ -413,7 +423,7 @@ ready and this mimics the
 semantics.
 .Pp
 .Fn assl_event_enable_write
-should be called when using libevent and 
+should be called when using libevent and
 .Fn assl_write
 returns \-1 or partially completed write, to schedule
 the completion of the write.
@@ -439,7 +449,7 @@ It is recommended to set the context pointer to NULL after this call.
 .Fn assl_event_close
 function terminates
 .Fn assl_event_accept
-and 
+and
 .Fn assl_event_connect
 connections and unwinds all resources, including
 context memory.

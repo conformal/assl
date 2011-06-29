@@ -41,6 +41,8 @@
 #include <sys/time.h>
 
 #include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
 #include <netdb.h>
 
 #include "openssl/bio.h"
@@ -63,6 +65,9 @@ void	assl_version(int *major, int *minor, int *patch);
 #define ASSL_F_CHILD		(1<<2)
 #define ASSL_F_DONT_VERIFY	(1<<3)
 #define ASSL_F_DONT_ENCRYPT	(1<<4)
+#define ASSL_F_KEEPALIVE	(1<<5)
+#define ASSL_F_LOWDELAY		(1<<6)
+#define ASSL_F_THROUGHPUT	(1<<7)
 #define ASSL_F_BLOCK		(0)
 
 #define ASSL_GF_IGNORE_SELF_SIGNED	(1<<0)
