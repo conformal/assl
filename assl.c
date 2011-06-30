@@ -53,6 +53,9 @@ assl_version(int *major, int *minor, int *patch)
 	*major = ASSL_VERSION_MAJOR;
 	*minor = ASSL_VERSION_MINOR;
 	*patch = ASSL_VERSION_PATCH;
+	/* Portable way to avoid unused variable compile warnings */
+	(void) (cvstag);
+	(void) (vertag);
 }
 
 /* memory certificates lookup */
@@ -273,10 +276,6 @@ assl_set_tos(int fd, int flags)
 void
 assl_initialize(void)
 {
-	/* shut gcc up */
-	cvstag = cvstag;
-	version = version;
-
 	SSL_library_init();
 	SSL_load_error_strings();
 
