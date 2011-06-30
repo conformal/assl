@@ -19,7 +19,7 @@
 #include "ssl_privsep.h"
 
 static const char *cvstag = "$assl$";
-static const char *version = "Release: "ASSL_VERSION;
+static const char *vertag = "Release: "ASSL_VERSION;
 
 /*
  * XXX todo:
