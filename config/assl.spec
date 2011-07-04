@@ -43,7 +43,7 @@ make install DESTDIR=$RPM_BUILD_ROOT LOCALBASE=/usr
 %package devel
 Summary: Libraries and header files to develop applications using assl
 Group: Development/Libraries
-Requires: clens >= 0.0.5, openssl-devel >= 1.0.0d
+Requires: clens-devel >= 0.0.5, openssl-devel >= 1.0.0d
 
 %description devel
 This package contains the libraries, include files, and documentation to
