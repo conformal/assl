@@ -7,6 +7,7 @@ OSNAME := $(shell echo $(OSNAME) | tr A-Z a-z)
 -include config/Makefile.$(OSNAME)
 
 # Default paths.
+DESTDIR ?=
 LOCALBASE ?= /usr/local
 BINDIR ?= ${LOCALBASE}/bin
 LIBDIR ?= ${LOCALBASE}/lib
@@ -105,17 +106,19 @@ depend:
 	@echo "Dependencies are automatically generated.  This target is not necessary."
 
 install:
-	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.SHARED) $(LIBDIR)/
-	$(LN) $(LNFLAGS) $(LIB.SHARED) $(LIBDIR)/$(LIB.SONAME)
-	$(LN) $(LNFLAGS) $(LIB.SHARED) $(LIBDIR)/$(LIB.DEVLNK)
-	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.STATIC) $(LIBDIR)/
-	$(INSTALL) -m 0644 $(LIB.HEADERS) $(INCDIR)/
-	$(INSTALL) -m 0755 -d $(addprefix $(MANDIR)/, $(LIB.MDIRS))
+	$(INSTALL) -m 0755 -d $(DESTDIR)$(LIBDIR)/
+	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.SHARED) $(DESTDIR)$(LIBDIR)/
+	$(LN) $(LNFLAGS) $(LIB.SHARED) $(DESTDIR)$(LIBDIR)/$(LIB.SONAME)
+	$(LN) $(LNFLAGS) $(LIB.SHARED) $(DESTDIR)$(LIBDIR)/$(LIB.DEVLNK)
+	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.STATIC) $(DESTDIR)$(LIBDIR)/
+	$(INSTALL) -m 0755 -d $(DESTDIR)$(INCDIR)/
+	$(INSTALL) -m 0644 $(LIB.HEADERS) $(DESTDIR)$(INCDIR)/
+	$(INSTALL) -m 0755 -d $(addprefix $(DESTDIR)$(MANDIR)/, $(LIB.MDIRS))
 	$(foreach page, $(LIB.MANPAGES), \
-		$(INSTALL) -m 0444 $(page) $(addprefix $(MANDIR)/, \
+		$(INSTALL) -m 0444 $(page) $(addprefix $(DESTDIR)$(MANDIR)/, \
 		$(subst ., man, $(suffix $(page))))/; \
 	)
-	@set $(addprefix $(MANDIR)/, $(LIB.MLINKS)); \
+	@set $(addprefix $(DESTDIR)$(MANDIR)/, $(LIB.MLINKS)); \
 	while : ; do \
 		case $$# in \
 			0) break;; \
@@ -127,12 +130,12 @@ install:
 	done
 
 uninstall:
-	$(RM) $(LIBDIR)/$(LIB.DEVLNK)
-	$(RM) $(LIBDIR)/$(LIB.SONAME)
-	$(RM) $(LIBDIR)/$(LIB.SHARED)
-	$(RM) $(LIBDIR)/$(LIB.STATIC)
-	$(RM) $(addprefix $(INCDIR)/, $(LIB.HEADERS))
-	@set $(addprefix $(MANDIR)/, $(LIB.MLINKS)); \
+	$(RM) $(DESTDIR)$(LIBDIR)/$(LIB.DEVLNK)
+	$(RM) $(DESTDIR)$(LIBDIR)/$(LIB.SONAME)
+	$(RM) $(DESTDIR)$(LIBDIR)/$(LIB.SHARED)
+	$(RM) $(DESTDIR)$(LIBDIR)/$(LIB.STATIC)
+	$(RM) $(addprefix $(DESTDIR)$(INCDIR)/, $(LIB.HEADERS))
+	@set $(addprefix $(DESTDIR)$(MANDIR)/, $(LIB.MLINKS)); \
 	while : ; do \
 		case $$# in \
 			0) break;; \
@@ -143,7 +146,7 @@ uninstall:
 		$(RM) $$link; \
 	done
 	$(foreach page, $(LIB.MANPAGES), \
-		$(RM) $(addprefix $(MANDIR)/, \
+		$(RM) $(addprefix $(DESTDIR)$(MANDIR)/, \
 		$(subst ., man, $(suffix $(page))))/$(page); \
 	)
 
