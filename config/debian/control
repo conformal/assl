@@ -1,0 +1,30 @@
+Source: assl
+Priority: optional
+Maintainer: Conformal Systems LLC <package-discuss@conformal.com>
+Build-Depends: debhelper (>= 7), libc6-dev, locales
+Standards-Version: 3.8.3
+Section: libs
+Homepage: http://opensource.conformal.com/wiki/assl
+
+Package: libassl-dev
+Section: libdevel
+Architecture: any
+Depends: libclens-dev (>= 0.0.5), libassl (= ${binary:Version})
+Description: Library that provides a sane interface to the OpenSSL API - development
+ This package contains the libraries, include files, and documentation
+ to develop applications with assl.
+ assl (Agglomerated SSL) was written in order to hide the awful OpenSSL API. It
+ strives to reuse the OpenSSL APIs and provide a much simpler and sane
+ interface for programmers that are interested in writing applications that
+ require the SSL/TLS protocol for secure communications.
+
+Package: libassl
+Section: libs
+Architecture: any
+Depends: libevent-1.4-2, ${shlibs:Depends}, ${misc:Depends}
+Description: Library that provides a sane interface to the OpenSSL API - runtime
+ This package contains the runtime, shared library of assl.
+ assl (Agglomerated SSL) was written in order to hide the awful OpenSSL API. It
+ strives to reuse the OpenSSL APIs and provide a much simpler and sane
+ interface for programmers that are interested in writing applications that
+ require the SSL/TLS protocol for secure communications.
