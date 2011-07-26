@@ -1,7 +1,7 @@
 # $assl$
 
 %define name		assl
-%define version		0.10.0
+%define version		0.10.1
 %define release		1
 
 Name: 		%{name}
@@ -57,5 +57,9 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Tue Jul 26 2011 - davec 0.10.1-1
+- Improve portability
+- Don't link against clens directly from library
+- Minor cleanup
 * Tue Jul 03 2011 - davec 0.10.0-1
 - Create
