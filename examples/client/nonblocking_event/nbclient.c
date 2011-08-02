@@ -17,6 +17,7 @@
 
 #include <event.h>
 #include <signal.h>
+#include <unistd.h>
 #include "assl.h"
 
 /* XXX: assl_use_mem_cert prototype now requires a token.  Won't compile when
