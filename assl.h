@@ -22,33 +22,7 @@
 #include <clens.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <err.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <poll.h>
-#include <signal.h>
-#include <string.h>
-#include <unistd.h>
-#include <unistd.h>
-
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/wait.h>
-#include <sys/queue.h>
-#include <sys/time.h>
-
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
-#include <netdb.h>
-
-#include "openssl/bio.h"
-#include "openssl/ssl.h"
-#include "openssl/err.h"
-#include "openssl/engine.h"
+#include <openssl/ssl.h>
 
 /* versioning */
 #define ASSL_VERSION_MAJOR	0

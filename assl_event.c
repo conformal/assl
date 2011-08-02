@@ -16,6 +16,17 @@
  */
 
 #include <event.h>
+#include <unistd.h>
+
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <sys/queue.h>
+#include <sys/time.h>
+
+#include <netdb.h>
+
 #include "assl.h"
 #include "assl_internal.h"
 
