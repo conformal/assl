@@ -24,9 +24,6 @@
 
 #include <sys/stat.h>
 
-#include <netinet/in.h>
-#include <netinet/in_systm.h>
-#include <netinet/ip.h>
 #include <netdb.h>
 
 #include <openssl/engine.h>
@@ -241,53 +238,6 @@ assl_warnx(const char *s, ...)
 	}
 }
 #endif /* ASSL_NO_FANCY_ERRORS */
-
-int
-assl_set_nonblock(int fd)
-{
-	int			val, rv = 1;
-
-	val = fcntl(fd, F_GETFL, 0);
-	if (val < 0)
-		goto done;
-
-	if (val & O_NONBLOCK)
-		return (0);
-
-	val |= O_NONBLOCK;
-	if (fcntl(fd, F_SETFL, val) == -1)
-		goto done;
-
-	rv = 0;
-done:
-	return (rv);
-}
-
-int
-assl_set_keepalive(int fd)
-{
-	int			val = 1;
-
-	if (setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, &val, sizeof(val)) == -1)
-		return (-1);
-
-	return (0);
-}
-
-void
-assl_set_tos(int fd, int flags)
-{
-	int	tos;
-
-	if (flags & ASSL_F_LOWDELAY) {
-		tos = IPTOS_LOWDELAY;
-		setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
-	}
-	if (flags & ASSL_F_THROUGHPUT) {
-		tos = IPTOS_THROUGHPUT;
-		setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
-	}
-}
 
 void
 assl_initialize(void)
@@ -955,10 +905,10 @@ assl_accept(struct assl_context *c, int s)
 	c->as_sock = s;
 
 	/* figure out if context is non-blocking */
-	r = fcntl(s, F_GETFL, 0);
+	r = assl_is_nonblock(c, s);
 	if (r < 0)
 		ERROR_OUT(ERR_LIBC, done);
-	c->as_nonblock = r & O_NONBLOCK ? 1 : 0;
+	c->as_nonblock = r;
 
 	c->as_ssl = SSL_new(c->as_ctx);
 	c->as_sbio = BIO_new_socket(c->as_sock, BIO_CLOSE);

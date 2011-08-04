@@ -11,7 +11,7 @@ INCDIR?=${LOCALBASE}/include
 
 #WANTLINT=
 LIB= assl
-SRCS= assl.c assl_event.c ssl_privsep.c
+SRCS= assl.c assl_event.c assl_socket.c ssl_privsep.c
 HDRS= assl.h
 MAN= assl.3
 MLINKS+=assl.3 assl_initialize.3

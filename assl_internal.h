@@ -19,6 +19,7 @@
 #include <sys/queue.h>
 #include <sys/tree.h>
 
+int		assl_is_nonblock(struct assl_context *, int);
 int		assl_set_nonblock(int);
 int		assl_set_keepalive(int);
 void		assl_set_tos(int, int);

@@ -45,7 +45,7 @@ LDFLAGS +=
 SHARED_OBJ_EXT ?= o
 
 LIB.NAME = assl
-LIB.SRCS = assl.c assl_event.c ssl_privsep.c
+LIB.SRCS = assl.c assl_event.c assl_socket.c ssl_privsep.c
 LIB.HEADERS = assl.h
 LIB.MANPAGES = assl.3
 LIB.MLINKS  = assl.3 assl_initialize.3
