@@ -101,7 +101,6 @@ assl_warnx(const char *s, ...)
 {
 	va_list			ap;
 
-	fprintf(stderr, "%s\n", errstr);
 	va_start(ap, s);
 	vfprintf(stderr, s, ap);
 	fprintf(stderr, "\n");
