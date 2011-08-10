@@ -38,10 +38,7 @@ struct assl_mem_cert {
 	off_t			assl_mem_key_len;
 };
 
-/* error handling */
-#define ASSL_NO_FANCY_ERRORS
-
-#ifndef ASSL_NO_FANCY_ERRORS
+#ifdef ASSL_NO_FANCY_ERRORS
 #define ERROR_OUT(e, g) do { goto g; } while (0)
 #define assl_err_stack_unwind() do { } while (0)
 #define assl_err_own(s, ...) do { } while (0)
@@ -68,4 +65,4 @@ char		*assl_geterror(int);
 void		assl_push_error(const char *, const char *, int, int);
 void		assl_err_stack_unwind(void);
 void		assl_err_own(char *, ...);
-#endif
+#endif /* ASSL_NO_FANCY_ERRORS */

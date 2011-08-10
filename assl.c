@@ -83,7 +83,7 @@ assl_mem_cert_cmp(struct assl_mem_cert *c1, struct assl_mem_cert *c2)
 RB_GENERATE(assl_mem_cert_list, assl_mem_cert, entry, assl_mem_cert_cmp);
 
 /* error handling */
-#ifndef ASSL_NO_FANCY_ERRORS
+#ifdef ASSL_NO_FANCY_ERRORS
 void
 assl_fatalx(const char *s, ...)
 {
