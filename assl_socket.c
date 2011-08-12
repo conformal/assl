@@ -15,6 +15,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <unistd.h>
 #include <fcntl.h>
 
 #include <sys/types.h>
@@ -26,6 +27,38 @@
 
 #include "assl.h"
 #include "assl_internal.h"
+
+int
+assl_initialize_sockets()
+{
+	/* Nothing to do. */
+	return (0);
+}
+
+int
+assl_shutdown_sockets()
+{
+	/* Nothing to do. */
+	return (0);
+}
+
+int
+assl_close_socket(int s)
+{
+	return close(s);
+}
+
+void
+assl_get_socket_error(int err, char *outstr, int len)
+{
+	strlcpy(outstr, strerror(err), len);
+}
+
+BIO *
+assl_bio_new_socket(int sock, int close_flag)
+{
+	return BIO_new_socket(sock, close_flag);
+}
 
 int
 assl_is_nonblock(struct assl_context *c, int s)

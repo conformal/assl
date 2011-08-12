@@ -119,7 +119,8 @@ assl_geterror(int et)
 
 	switch (et) {
 	case ERR_LIBC:
-		strlcpy(assl_last_error, strerror(errno), sizeof assl_last_error);
+		strlcpy(assl_last_error, strerror(errno), sizeof
+		    assl_last_error);
 		break;
 	case ERR_SSL:
 		es = (char *)ERR_lib_error_string(ERR_get_error());
@@ -183,6 +184,7 @@ assl_err_own(char *s, ...)
 	vsnprintf(assl_last_error, sizeof assl_last_error, s, ap);
 	va_end(ap);
 }
+
 void
 assl_fatalx(const char *s, ...)
 {
@@ -241,6 +243,9 @@ assl_warnx(const char *s, ...)
 void
 assl_initialize(void)
 {
+	if (assl_initialize_sockets())
+		assl_fatalx("socket initialization failed");
+
 	SSL_library_init();
 	SSL_load_error_strings();
 
@@ -560,6 +565,8 @@ assl_alloc_context(enum assl_method m, int flags)
 
 	assl_err_stack_unwind();
 
+	assl_initialize_sockets();
+
 	if (flags & ASSL_F_CHILD)
 		assl_child = getpid();
 
@@ -820,12 +827,12 @@ retry:
 			ERROR_OUT(ERR_LIBC, done);
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on,
 		    sizeof(on)) == -1) {
-			close(s);
+			assl_close_socket(s);
 			ERROR_OUT(ERR_LIBC, done);
 		}
 		if (flags & ASSL_F_KEEPALIVE)
 			if (assl_set_keepalive(s)) {
-				close(s);
+				assl_close_socket(s);
 				ERROR_OUT(ERR_LIBC, done);
 			}
                 if (ai->ai_family == AF_INET &&
@@ -833,7 +840,7 @@ retry:
 			 flags & ASSL_F_THROUGHPUT))
                         assl_set_tos(s, flags);
 		if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0) {
-			close(s);
+			assl_close_socket(s);
 			/*
 			 * required for unit test
 			 * without this quick connections will eventually
@@ -861,7 +868,7 @@ retry:
 
 		/* go do ssl magic */
 		c->as_ssl = SSL_new(c->as_ctx);
-		c->as_sbio = BIO_new_socket(c->as_sock, BIO_CLOSE);
+		c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
 		SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 		SSL_set_connect_state(c->as_ssl);
 
@@ -910,7 +917,7 @@ assl_accept(struct assl_context *c, int s)
 	c->as_nonblock = r;
 
 	c->as_ssl = SSL_new(c->as_ctx);
-	c->as_sbio = BIO_new_socket(c->as_sock, BIO_CLOSE);
+	c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 	SSL_set_accept_state(c->as_ssl);
 
@@ -964,13 +971,13 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 
 		if (flags & ASSL_F_NONBLOCK)
 			if (assl_set_nonblock(s)) {
-				close(s);
+				assl_close_socket(s);
 				ERROR_OUT(ERR_LIBC, done);
 			}
 
 		if (flags & ASSL_F_KEEPALIVE)
 			if (assl_set_keepalive(s)) {
-				close(s);
+				assl_close_socket(s);
 				ERROR_OUT(ERR_LIBC, done);
 			}
                if (ai->ai_family == AF_INET &&
@@ -980,12 +987,12 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
 		if (bind(s, ai->ai_addr, ai->ai_addrlen) < 0) {
-			close(s);
+			assl_close_socket(s);
 			continue;
 		}
 
 		if (listen(s, /* XXX */ 10) < 0) {
-			close(s);
+			assl_close_socket(s);
 			continue;
 		}
 
@@ -1017,7 +1024,7 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 			/* hand off to caller */
 			cb(s);
 			if (flags & ASSL_F_CLOSE_SOCKET)
-				close(s);
+				assl_close_socket(s);
 		}
 	}
 
@@ -1126,7 +1133,7 @@ assl_close(struct assl_context *c)
 		c->as_ssl = NULL;
 	}
 	if (c->as_sock != -1) {
-		close(c->as_sock);
+		assl_close_socket(c->as_sock);
 		c->as_sock = -1;
 	}
 	if (c->as_ctx) {
@@ -1137,6 +1144,9 @@ assl_close(struct assl_context *c)
 		free(c->as_peername);
 
 	free(c);
+	if (assl_shutdown_sockets())
+		return (1);
+
 done:
 	return (0);
 }
