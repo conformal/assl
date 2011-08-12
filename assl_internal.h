@@ -22,6 +22,7 @@
 int		assl_initialize_sockets();
 int		assl_shutdown_sockets();
 int		assl_close_socket(int);
+void		assl_get_socket_error(int, char *, int);
 BIO		*assl_bio_new_socket(int sock, int close_flag);
 int		assl_is_nonblock(struct assl_context *, int);
 int		assl_set_nonblock(int);
@@ -50,6 +51,7 @@ struct assl_mem_cert {
 #define ERR_LIBC	(0)
 #define ERR_SSL		(1)
 #define ERR_OWN		(2)
+#define ERR_SOCKET	(3)
 
 #define ERROR_OUT(e, g)	do { assl_push_error(__FILE__, __FUNCTION__, __LINE__, e); goto g; } while(0)
 

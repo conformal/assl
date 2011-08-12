@@ -67,7 +67,7 @@ assl_is_nonblock(struct assl_context *c, int s)
 
 	r = fcntl(s, F_GETFL, 0);
 	if (r < 0)
-		ERROR_OUT(ERR_LIBC, done);
+		ERROR_OUT(ERR_SOCKET, done);
 
 	rv = 0;
 	if (r & O_NONBLOCK)

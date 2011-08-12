@@ -130,6 +130,10 @@ assl_geterror(int et)
 			strlcpy(assl_last_error, "unknown SSL error",
 			    sizeof assl_last_error);
 		break;
+	case ERR_SOCKET:
+		assl_get_socket_error(errno, assl_last_error,
+		    sizeof assl_last_error);
+		break;
 	default:
 		strlcpy(assl_last_error, "unknown error",
 		    sizeof assl_last_error);
@@ -724,12 +728,12 @@ assl_negotiate_nonblock(struct assl_context *c)
 			if (p == -1) {
 				if (errno == EINTR)
 					continue;
-				ERROR_OUT(ERR_LIBC, done);
+				ERROR_OUT(ERR_SOCKET, done);
 			}
 			break;
 		case SSL_ERROR_SYSCALL:
 			rv = -1;
-			ERROR_OUT(ERR_LIBC, done);
+			ERROR_OUT(ERR_SOCKET, done);
 			break;
 		case SSL_ERROR_ZERO_RETURN:
 			/* connection hung up on the other side */
@@ -815,7 +819,7 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 	hints.ai_socktype = SOCK_STREAM;
 
 	if (getaddrinfo(host, port, &hints, &res))
-		ERROR_OUT(ERR_LIBC, done);
+		ERROR_OUT(ERR_SOCKET, done);
 
 	for (ai = res; ai; ai = ai->ai_next) {
 		retries = 0;
@@ -824,16 +828,16 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 retry:
 		s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
 		if (s < 0)
-			ERROR_OUT(ERR_LIBC, done);
+			ERROR_OUT(ERR_SOCKET, done);
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on,
 		    sizeof(on)) == -1) {
 			assl_close_socket(s);
-			ERROR_OUT(ERR_LIBC, done);
+			ERROR_OUT(ERR_SOCKET, done);
 		}
 		if (flags & ASSL_F_KEEPALIVE)
 			if (assl_set_keepalive(s)) {
 				assl_close_socket(s);
-				ERROR_OUT(ERR_LIBC, done);
+				ERROR_OUT(ERR_SOCKET, done);
 			}
                 if (ai->ai_family == AF_INET &&
 			(flags & ASSL_F_LOWDELAY ||
@@ -848,19 +852,19 @@ retry:
 			 */
 			if (errno == EADDRINUSE) {
 				if (retries > 5)
-					ERROR_OUT(ERR_LIBC, done);
+					ERROR_OUT(ERR_SOCKET, done);
 				retries++;
 				usleep(500000);
 				goto retry;
 			}
 
-			ERROR_OUT(ERR_LIBC, done);
+			ERROR_OUT(ERR_SOCKET, done);
 		}
 
 		c->as_sock = s;
 		if (flags & ASSL_F_NONBLOCK) {
 			if (assl_set_nonblock(s))
-				ERROR_OUT(ERR_LIBC, done);
+				ERROR_OUT(ERR_SOCKET, done);
 			c->as_nonblock = 1;
 		}
 
@@ -913,7 +917,7 @@ assl_accept(struct assl_context *c, int s)
 	/* figure out if context is non-blocking */
 	r = assl_is_nonblock(c, s);
 	if (r < 0)
-		ERROR_OUT(ERR_LIBC, done);
+		ERROR_OUT(ERR_SOCKET, done);
 	c->as_nonblock = r;
 
 	c->as_ssl = SSL_new(c->as_ctx);
@@ -972,13 +976,13 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 		if (flags & ASSL_F_NONBLOCK)
 			if (assl_set_nonblock(s)) {
 				assl_close_socket(s);
-				ERROR_OUT(ERR_LIBC, done);
+				ERROR_OUT(ERR_SOCKET, done);
 			}
 
 		if (flags & ASSL_F_KEEPALIVE)
 			if (assl_set_keepalive(s)) {
 				assl_close_socket(s);
-				ERROR_OUT(ERR_LIBC, done);
+				ERROR_OUT(ERR_SOCKET, done);
 			}
                if (ai->ai_family == AF_INET &&
                         (flags & ASSL_F_LOWDELAY ||
@@ -1088,7 +1092,7 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 		case SSL_ERROR_SYSCALL:
 			/* reuse errno */
 			tot = -1;
-			ERROR_OUT(ERR_LIBC, done);
+			ERROR_OUT(ERR_SOCKET, done);
 			break;
 		case SSL_ERROR_ZERO_RETURN:
 			/* clean hang up on the other side */
@@ -1266,7 +1270,7 @@ assl_gets(struct assl_context *c, char *s, int size)
 			if (errno == EAGAIN || errno == EINTR)
 				if (tot)
 					return (tot);
-			ERROR_OUT(ERR_LIBC, bad); /* XXX probably LIBC */
+			ERROR_OUT(ERR_SOCKET, bad); /* XXX probably socket */
 		}
 
 		*(s + 1) = '\0';
@@ -1316,7 +1320,7 @@ assl_puts(struct assl_context *c, char *s, int send_nul)
 		if (errno == EAGAIN || errno == EINTR)
 			if (tot)
 				return (tot);
-		ERROR_OUT(ERR_LIBC, bad); /* XXX probably LIBC */
+		ERROR_OUT(ERR_SOCKET, bad); /* XXX probably socket */
 	}
 
 	return (tot);
