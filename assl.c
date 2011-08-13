@@ -839,10 +839,10 @@ retry:
 				assl_close_socket(s);
 				ERROR_OUT(ERR_SOCKET, done);
 			}
-                if (ai->ai_family == AF_INET &&
-			(flags & ASSL_F_LOWDELAY ||
-			 flags & ASSL_F_THROUGHPUT))
-                        assl_set_tos(s, flags);
+		if (ai->ai_family == AF_INET &&
+		    (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT))
+			assl_set_tos(s, flags);
+
 		if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0) {
 			assl_close_socket(s);
 			/*
@@ -984,10 +984,11 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 				assl_close_socket(s);
 				ERROR_OUT(ERR_SOCKET, done);
 			}
-               if (ai->ai_family == AF_INET &&
-                        (flags & ASSL_F_LOWDELAY ||
-                         flags & ASSL_F_THROUGHPUT))
-                        assl_set_tos(s, flags);
+
+		if (ai->ai_family == AF_INET &&
+		    (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT))
+			assl_set_tos(s, flags);
+
 		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
 		if (bind(s, ai->ai_addr, ai->ai_addrlen) < 0) {
