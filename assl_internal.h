@@ -24,7 +24,7 @@ int		assl_shutdown_sockets();
 int		assl_close_socket(int);
 void		assl_get_socket_error(int, char *, int);
 BIO		*assl_bio_new_socket(int sock, int close_flag);
-int		assl_is_nonblock(struct assl_context *, int);
+int		assl_is_nonblock(int);
 int		assl_set_nonblock(int);
 int		assl_set_keepalive(int);
 void		assl_set_tos(int, int);

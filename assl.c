@@ -915,7 +915,7 @@ assl_accept(struct assl_context *c, int s)
 	c->as_sock = s;
 
 	/* figure out if context is non-blocking */
-	r = assl_is_nonblock(c, s);
+	r = assl_is_nonblock(s);
 	if (r < 0)
 		ERROR_OUT(ERR_SOCKET, done);
 	c->as_nonblock = r;

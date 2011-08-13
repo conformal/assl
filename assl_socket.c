@@ -61,7 +61,7 @@ assl_bio_new_socket(int sock, int close_flag)
 }
 
 int
-assl_is_nonblock(struct assl_context *c, int s)
+assl_is_nonblock(int s)
 {
 	int	r, rv = -1;
 
