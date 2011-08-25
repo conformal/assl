@@ -704,14 +704,31 @@ done:
 int
 assl_negotiate_nonblock(struct assl_context *c)
 {
-	int			r, rv = 1, p;
+	int			r, rv = 1;
+	struct timeval		tval, told;
+	struct timeval		now, start, elapsed;
 
 	assl_err_stack_unwind();
 
 	if (c == NULL) {
 		assl_err_own("no context");
+		ERROR_OUT(ERR_OWN, bad);
+	}
+
+	if (assl_get_recvtimeo(c->as_sock, &told))
+		ERROR_OUT(ERR_SOCKET, bad);
+
+	/* in lieu of poll */
+	tval.tv_sec = 1;
+	tval.tv_usec = 0;
+	if (assl_set_recvtimeo(c->as_sock, &tval))
+		ERROR_OUT(ERR_SOCKET, done);
+
+	if (gettimeofday(&now, NULL) == -1) {
+		assl_err_own("can't obtain time");
 		ERROR_OUT(ERR_OWN, done);
 	}
+	bcopy(&now, &start, sizeof start);
 
 	for (;;) {
 		if (c->as_server)
@@ -719,18 +736,24 @@ assl_negotiate_nonblock(struct assl_context *c)
 		else
 			r = SSL_connect(c->as_ssl);
 
+		if (gettimeofday(&now, NULL) == -1) {
+			assl_err_own("can't obtain time");
+			ERROR_OUT(ERR_OWN, done);
+		}
+		timersub(&now, &start, &elapsed);
+		if (((double)elapsed.tv_sec +
+		    ((double)elapsed.tv_usec / 1000000)) > 10) {
+			assl_err_own("SSL negotiation timeout");
+			ERROR_OUT(ERR_OWN, done);
+		}
+
 		switch (SSL_get_error(c->as_ssl, r)) {
 		case SSL_ERROR_NONE:
 			rv = 0;
 			goto done;
 		case SSL_ERROR_WANT_READ:
-			p = assl_poll(c, 10 * 1000, POLLIN, NULL);
-			if (p == -1) {
-				if (errno == EINTR)
-					continue;
-				ERROR_OUT(ERR_SOCKET, done);
-			}
-			break;
+			/* try to read again */
+			continue;
 		case SSL_ERROR_SYSCALL:
 			rv = -1;
 			ERROR_OUT(ERR_SOCKET, done);
@@ -751,6 +774,8 @@ assl_negotiate_nonblock(struct assl_context *c)
 		}
 	}
 done:
+	assl_set_recvtimeo(c->as_sock, &told);
+bad:
 	return (rv);
 }
 

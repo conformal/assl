@@ -122,3 +122,23 @@ assl_set_tos(int fd, int flags)
 		setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
 	}
 }
+
+int
+assl_get_recvtimeo(int fd, struct timeval *t)
+{
+	socklen_t		sz = sizeof *t;
+
+	if (getsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, t, &sz) == -1)
+		return (-1);
+
+	return (0);
+}
+
+int
+assl_set_recvtimeo(int fd, struct timeval *t)
+{
+	if (setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, t, sizeof *t) == -1)
+		return (-1);
+
+	return (0);
+}
