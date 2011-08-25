@@ -822,73 +822,69 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 		ERROR_OUT(ERR_SOCKET, done);
 
 	for (ai = res; ai; ai = ai->ai_next) {
+		if (s != -1) {
+			close(s);
+			s = -1;
+		}
+
 		retries = 0;
 		if (ai->ai_family != AF_INET && ai->ai_family != AF_INET6)
 		    continue;
-retry:
 		s = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
-		if (s < 0)
-			ERROR_OUT(ERR_SOCKET, done);
+		if (s == -1)
+			continue;
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on,
-		    sizeof(on)) == -1) {
-			assl_close_socket(s);
-			ERROR_OUT(ERR_SOCKET, done);
-		}
-		if (flags & ASSL_F_KEEPALIVE)
-			if (assl_set_keepalive(s)) {
-				assl_close_socket(s);
-				ERROR_OUT(ERR_SOCKET, done);
-			}
+		    sizeof(on)) == -1)
+			continue;
 		if (ai->ai_family == AF_INET &&
 		    (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT))
 			assl_set_tos(s, flags);
-
-		if (connect(s, ai->ai_addr, ai->ai_addrlen) < 0) {
-			assl_close_socket(s);
-			/*
-			 * required for unit test
-			 * without this quick connections will eventually
-			 * fail with a "Address already in use" error
-			 */
-			if (errno == EADDRINUSE) {
-				if (retries > 5)
-					ERROR_OUT(ERR_SOCKET, done);
-				retries++;
-				usleep(500000);
-				goto retry;
-			}
-
-			ERROR_OUT(ERR_SOCKET, done);
+		if (flags & ASSL_F_KEEPALIVE) {
+			if (assl_set_keepalive(s))
+				c->as_keepalive = 0;
+			else
+				c->as_keepalive = 1;
 		}
-
-		c->as_sock = s;
-		if (flags & ASSL_F_NONBLOCK) {
-			if (assl_set_nonblock(s))
-				ERROR_OUT(ERR_SOCKET, done);
-			c->as_nonblock = 1;
-		}
-
-		rv = -1; /* negative for ssl errors */
-
-		/* go do ssl magic */
-		c->as_ssl = SSL_new(c->as_ctx);
-		c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
-		SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
-		SSL_set_connect_state(c->as_ssl);
-
-		if (assl_negotiate_nonblock(c)) {
-			assl_err_own("SSL/TLS connect failed");
-			ERROR_OUT(ERR_OWN, done);
-		}
-
-		if (c->as_verify_mode == SSL_VERIFY_NONE)
+		if (connect(s, ai->ai_addr, ai->ai_addrlen) == 0)
 			break;
 
-		if (SSL_get_verify_result(c->as_ssl) != X509_V_OK)
-			ERROR_OUT(ERR_SSL, done);
+		/*
+		 * required for unit test
+		 * without this quick connections will eventually
+		 * fail with a "Address already in use" error
+		 */
+		if (errno == EADDRINUSE) {
+			if (retries > 5)
+				ERROR_OUT(ERR_SOCKET, done);
+			retries++;
+			usleep(500000);
+		}
+	}
+	if (s == -1)
+		ERROR_OUT(ERR_SOCKET, done);
 
-		/* all done */
-		break;
+	if (flags & ASSL_F_NONBLOCK) {
+		if (assl_set_nonblock(s)) {
+			close(s);
+			s = -1;
+			ERROR_OUT(ERR_SOCKET, done);
+		}
+		c->as_nonblock = 1;
+	}
+
+	c->as_sock = s;
+
+	rv = -1; /* negative for ssl errors */
+
+	/* go do ssl magic */
+	c->as_ssl = SSL_new(c->as_ctx);
+	c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
+	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
+	SSL_set_connect_state(c->as_ssl);
+
+	if (assl_negotiate_nonblock(c)) {
+		assl_err_own("SSL/TLS connect failed");
+		ERROR_OUT(ERR_OWN, done);
 	}
 
 	c->as_ssl_session = SSL_get_session(c->as_ssl);
@@ -1032,8 +1028,6 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 				assl_close_socket(s);
 		}
 	}
-
-	/* NOTREACHED */
 done:
 	return (1);
 }

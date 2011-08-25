@@ -66,6 +66,7 @@ struct assl_context {
 	/* generic */
 	int			as_nonblock;	/* 1 when non-block */
 	int			as_server;	/* 1 if server mode */
+	int			as_keepalive;	/* 1 when keepalive is set */
 	SSL			*as_ssl;
 	SSL_SESSION		*as_ssl_session;
 	int			as_sock;
