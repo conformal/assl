@@ -27,8 +27,8 @@
 /* versioning */
 #define ASSL_VERSION_MAJOR	0
 #define ASSL_VERSION_MINOR	10
-#define ASSL_VERSION_PATCH	1
-#define ASSL_VERSION		"0.10.1"
+#define ASSL_VERSION_PATCH	2
+#define ASSL_VERSION		"0.10.2"
 
 void	assl_version(int *major, int *minor, int *patch);
 
