@@ -1,7 +1,7 @@
 assl (0.10.2-1) unstable; urgency=low
 
   * Rework SSL negotiation to take up to roughly 10 seconds
-  * Try to connect to all IP addresses before failing
+  * Attempt a connection to each address returned by host lookup instead of just the first address returned
 
  -- Conformal Systems <package-discuss@conformal.com>  Wed, 31 Aug 2011 15:14:00 -0500
  

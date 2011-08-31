@@ -59,7 +59,7 @@ develop applications with assl.
 %changelog
 * Wed Aug 31 2011 - dhill 0.10.2-1
 - Rework SSL negotiation to take up to roughly 10 seconds
-- Try to connect to all IP addresses before failing
+- Attempt a connection to each address returned by host lookup instead of just the first address returned 
 * Tue Jul 26 2011 - davec 0.10.1-1
 - Improve portability
 - Don't link against clens directly from library
