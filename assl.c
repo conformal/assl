@@ -84,7 +84,7 @@ RB_GENERATE(assl_mem_cert_list, assl_mem_cert, entry, assl_mem_cert_cmp);
 
 /* error handling */
 #ifdef ASSL_NO_FANCY_ERRORS
-void
+__dead void
 assl_fatalx(const char *s, ...)
 {
 	va_list			ap;
@@ -189,7 +189,7 @@ assl_err_own(char *s, ...)
 	va_end(ap);
 }
 
-void
+__dead void
 assl_fatalx(const char *s, ...)
 {
 	va_list			ap;
