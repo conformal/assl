@@ -1,4 +1,3 @@
-# $assl$
 
 PROG=fork_nbserver
 NOMAN=

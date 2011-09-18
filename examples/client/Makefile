@@ -1,4 +1,3 @@
-# $assl$
 
 .include <bsd.own.mk>
 

@@ -1,4 +1,3 @@
-# $assl$
 
 PROG=nbserver
 NOMAN=

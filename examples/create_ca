@@ -1,5 +1,4 @@
 #/bin/sh
-# $assl$
 
 mkdir -p ca/private
 chmod 700 ca/private

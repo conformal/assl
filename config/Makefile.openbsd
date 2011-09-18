@@ -1,4 +1,3 @@
-# $assl$
 
 .ifdef ROFF
 MANDIR= ${LOCALBASE}/man/cat

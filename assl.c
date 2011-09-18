@@ -1,4 +1,3 @@
-/* $assl$ */
 /*
  * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
  *
@@ -31,7 +30,6 @@
 #include "assl.h"
 #include "ssl_privsep.h"
 
-static const char *cvstag = "$assl$";
 static const char *vertag = "Release: "ASSL_VERSION;
 
 /*
@@ -67,7 +65,6 @@ assl_version(int *major, int *minor, int *patch)
 	*minor = ASSL_VERSION_MINOR;
 	*patch = ASSL_VERSION_PATCH;
 	/* Portable way to avoid unused variable compile warnings */
-	(void) (cvstag);
 	(void) (vertag);
 }
 

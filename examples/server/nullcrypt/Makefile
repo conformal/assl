@@ -1,4 +1,3 @@
-# $assl$
 
 PROG=nullcrypt
 NOMAN=

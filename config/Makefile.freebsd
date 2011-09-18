@@ -1,4 +1,3 @@
-# $assl$
 
 .include "${.CURDIR}/shlib_version"
 SHLIB_MAJOR=${major}

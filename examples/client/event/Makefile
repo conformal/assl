@@ -1,4 +1,3 @@
-# $assl$
 
 PROG=evclient
 NOMAN=

@@ -1,4 +1,3 @@
-# $assl$
 
 %define name		assl
 %define version		0.10.2

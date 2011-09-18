@@ -1,4 +1,3 @@
-/* $assl$ */
 /*
  * Copyright (c) 2010, 2011 Marco Peereboom <marco@peereboom.us>
  *

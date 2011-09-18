@@ -1,4 +1,3 @@
-/*	$assl$	*/
 /*      $OpenBSD: ssl_privsep.c,v 1.8 2010/08/26 13:00:19 marco Exp $    */
 
 /* Copyright (C) 1995-1998 Eric Young (eay@cryptsoft.com)
