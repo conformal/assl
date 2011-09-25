@@ -1,0 +1,103 @@
+@comment $OpenBSD: PLIST,v 1.6 2011/06/23 22:50:28 naddy Exp $
+include/assl.h
+lib/libassl.a
+%%SHARED%%
+lib/libassl_p.a
+%%no_mips64%%
+@man man/man3/assl.3
+@man man/man3/assl_accept.3
+@man man/man3/assl_alloc_context.3
+@man man/man3/assl_close.3
+@man man/man3/assl_connect.3
+@man man/man3/assl_event_accept.3
+@man man/man3/assl_event_close.3
+@man man/man3/assl_event_connect.3
+@man man/man3/assl_event_disable_write.3
+@man man/man3/assl_event_enable_write.3
+@man man/man3/assl_event_serve.3
+@man man/man3/assl_event_serve_stop.3
+@man man/man3/assl_fatalx.3
+@man man/man3/assl_gets.3
+@man man/man3/assl_initialize.3
+@man man/man3/assl_load_file_certs.3
+@man man/man3/assl_poll.3
+@man man/man3/assl_puts.3
+@man man/man3/assl_read.3
+@man man/man3/assl_serve.3
+@man man/man3/assl_set_cert_flags.3
+@man man/man3/assl_write.3
+share/examples/assl/
+share/examples/assl/GNUmakefile
+share/examples/assl/Makefile
+share/examples/assl/README
+share/examples/assl/ca/
+share/examples/assl/ca/ca.crt
+share/examples/assl/ca/private/
+share/examples/assl/ca/private/ca.key
+share/examples/assl/client/
+share/examples/assl/client/GNUmakefile
+share/examples/assl/client/Makefile
+share/examples/assl/client/README
+share/examples/assl/client/blocking/
+share/examples/assl/client/blocking/GNUmakefile
+share/examples/assl/client/blocking/Makefile
+share/examples/assl/client/blocking/bclient.c
+share/examples/assl/client/client/
+share/examples/assl/client/client/client.crt
+share/examples/assl/client/client/client.csr
+share/examples/assl/client/client/private/
+share/examples/assl/client/client/private/client.key
+share/examples/assl/client/create_client
+share/examples/assl/client/event/
+share/examples/assl/client/event/GNUmakefile
+share/examples/assl/client/event/Makefile
+share/examples/assl/client/event/evclient.c
+share/examples/assl/client/nonblocking/
+share/examples/assl/client/nonblocking/GNUmakefile
+share/examples/assl/client/nonblocking/Makefile
+share/examples/assl/client/nonblocking/nbclient.c
+share/examples/assl/client/nonblocking_event/
+share/examples/assl/client/nonblocking_event/GNUmakefile
+share/examples/assl/client/nonblocking_event/Makefile
+share/examples/assl/client/nonblocking_event/nbclient.c
+share/examples/assl/client/nullcrypt/
+share/examples/assl/client/nullcrypt/GNUmakefile
+share/examples/assl/client/nullcrypt/Makefile
+share/examples/assl/client/nullcrypt/nullcrypt.c
+share/examples/assl/client/sign_client
+share/examples/assl/create_ca
+share/examples/assl/server/
+share/examples/assl/server/GNUmakefile
+share/examples/assl/server/Makefile
+share/examples/assl/server/README
+share/examples/assl/server/blocking/
+share/examples/assl/server/blocking/GNUmakefile
+share/examples/assl/server/blocking/Makefile
+share/examples/assl/server/blocking/bserver.c
+share/examples/assl/server/create_server
+share/examples/assl/server/event/
+share/examples/assl/server/event/GNUmakefile
+share/examples/assl/server/event/Makefile
+share/examples/assl/server/event/evserver.c
+share/examples/assl/server/fork_event/
+share/examples/assl/server/fork_event/GNUmakefile
+share/examples/assl/server/fork_event/Makefile
+share/examples/assl/server/fork_event/evserver.c
+share/examples/assl/server/fork_nonblocking/
+share/examples/assl/server/fork_nonblocking/GNUmakefile
+share/examples/assl/server/fork_nonblocking/Makefile
+share/examples/assl/server/fork_nonblocking/fork_nbserver.c
+share/examples/assl/server/nonblocking/
+share/examples/assl/server/nonblocking/GNUmakefile
+share/examples/assl/server/nonblocking/Makefile
+share/examples/assl/server/nonblocking/nbserver.c
+share/examples/assl/server/nullcrypt/
+share/examples/assl/server/nullcrypt/GNUmakefile
+share/examples/assl/server/nullcrypt/Makefile
+share/examples/assl/server/nullcrypt/nullcrypt.c
+share/examples/assl/server/server/
+share/examples/assl/server/server/private/
+share/examples/assl/server/server/private/server.key
+share/examples/assl/server/server/server.crt
+share/examples/assl/server/server/server.csr
+share/examples/assl/server/sign_server
