@@ -1,4 +1,3 @@
-
 .ifdef ROFF
 MANDIR= ${LOCALBASE}/man/cat
 .else

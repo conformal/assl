@@ -1,4 +1,3 @@
-
 # Attempt to include platform specific makefile.
 # OSNAME may be passed in.
 OSNAME ?= $(shell uname -s)
@@ -14,7 +13,7 @@ INCDIR ?= ${LOCALBASE}/include
 # Use obj directory if it exists.
 OBJPREFIX ?= obj/
 ifeq "$(wildcard $(OBJPREFIX))" ""
-	OBJPREFIX =	
+	OBJPREFIX =
 endif
 
 # System utils.
@@ -37,28 +36,28 @@ BIN.OBJS = $(addprefix $(OBJPREFIX), $(BIN.SRCS:.c=.o))
 BIN.DEPS = $(addsuffix .depend, $(BIN.OBJS))
 BIN.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS) $(LDADD)
 
-all: $(OBJPREFIX)$(BIN.NAME) 
+all: $(OBJPREFIX)$(BIN.NAME)
 
 obj:
 	-$(MKDIR) obj
 
 $(OBJPREFIX)$(BIN.NAME): $(BIN.OBJS)
 	$(CC) $^ $(BIN.LDFLAGS) -o $@
-	
+
 
 $(OBJPREFIX)%.o: %.c
 	@echo "Generating $@.depend"
 	@$(CC) $(INCFLAGS) -MM $(CPPFLAGS) $< | \
 	sed 's,$*\.o[ :]*,$@ $@.depend : ,g' >> $@.depend
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
 
-depend: 
-	@echo "Dependencies are automatically generated.  This target is not necessary."	
+depend:
+	@echo "Dependencies are automatically generated.  This target is not necessary."
 
 install:
-	
+
 uninstall:
-	
+
 clean:
 	$(RM) $(BIN.OBJS)
 	$(RM) $(OBJPREFIX)$(BIN.NAME)

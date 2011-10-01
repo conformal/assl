@@ -1,4 +1,3 @@
-
 SUBDIRS = client server
 TARGETS = clean obj install uninstall depend
 

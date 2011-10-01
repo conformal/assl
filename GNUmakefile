@@ -1,4 +1,3 @@
-
 # Attempt to include platform specific makefile.
 # OSNAME may be passed in.
 OSNAME ?= $(shell uname -s)
@@ -16,7 +15,7 @@ MANDIR ?= $(LOCALBASE)/share/man
 # Use obj directory if it exists.
 OBJPREFIX ?= obj/
 ifeq "$(wildcard $(OBJPREFIX))" ""
-	OBJPREFIX =	
+	OBJPREFIX =
 endif
 
 # Get shared library version.
@@ -74,8 +73,8 @@ LIB.DEPS = $(addsuffix .depend, $(LIB.OBJS))
 ifneq "$(LIB.OBJS)" "$(LIB.SOBJS)"
 	LIB.DEPS += $(addsuffix .depend, $(LIB.SOBJS))
 endif
-LIB.MDIRS = $(foreach page, $(LIB.MANPAGES), $(subst ., man, $(suffix $(page)))) 
-LIB.MLINKS := $(foreach page, $(LIB.MLINKS), $(subst ., man, $(suffix $(page)))/$(page)) 
+LIB.MDIRS = $(foreach page, $(LIB.MANPAGES), $(subst ., man, $(suffix $(page))))
+LIB.MLINKS := $(foreach page, $(LIB.MLINKS), $(subst ., man, $(suffix $(page)))/$(page))
 LIB.LDFLAGS = $(LDFLAGS.EXTRA) $(LDFLAGS)
 
 all: $(OBJPREFIX)$(LIB.SHARED) $(OBJPREFIX)$(LIB.STATIC)
@@ -99,9 +98,9 @@ $(OBJPREFIX)%.o: %.c
 	@echo "Generating $@.depend"
 	@$(CC) $(INCFLAGS) -MM $(CPPFLAGS) $< | \
 	sed 's,$*\.o[ :]*,$@ $@.depend : ,g' >> $@.depend
-	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $< 
+	$(CC) $(CFLAGS) $(CPPFLAGS) -o $@ -c $<
 
-depend: 
+depend:
 	@echo "Dependencies are automatically generated.  This target is not necessary."
 
 install:

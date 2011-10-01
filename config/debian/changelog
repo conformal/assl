@@ -4,7 +4,7 @@ assl (0.10.2-1) unstable; urgency=low
   * Attempt a connection to each address returned by host lookup instead of just the first address returned
 
  -- Conformal Systems <package-discuss@conformal.com>  Wed, 31 Aug 2011 15:14:00 -0500
- 
+
 assl (0.10.1-1) unstable; urgency=low
 
   * Improve portability

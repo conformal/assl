@@ -1,4 +1,3 @@
-
 SYSTEM != uname -s
 .if exists(${.CURDIR}/config/Makefile.$(SYSTEM:L))
 .  include "${.CURDIR}/config/Makefile.$(SYSTEM:L)"
@@ -35,7 +34,7 @@ MLINKS+=assl.3 assl_event_disable_write.3
 MLINKS+=assl.3 assl_event_connect.3
 MLINKS+=assl.3 assl_event_close.3
 
-DEBUG+= -ggdb3 
+DEBUG+= -ggdb3
 CFLAGS+= -Wall -Werror
 CFLAGS+= -I${.CURDIR} -I${INCDIR}
 

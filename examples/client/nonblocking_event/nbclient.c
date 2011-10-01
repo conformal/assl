@@ -144,7 +144,7 @@ serve_wr_worker(int fd, short event, void *arg)
 	} else if (wr == 0 && wctx->tot != 0) {
 		/* other end closed socket */
 		close = 1;
-	} else { 
+	} else {
 		wctx->tot -= wr;
 		wctx->b += wr;
 	}

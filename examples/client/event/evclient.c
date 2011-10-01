@@ -98,7 +98,7 @@ main(int argc, char *argv[])
 		if (assl_event_connect(c, "localhost", ASSL_DEFAULT_PORT,
 		    ASSL_F_NONBLOCK, rd_callback, wr_callback, wctx))
 			assl_fatalx("server connect failed");
-		
+
 		assl_event_enable_write(wctx->c);
 
 		event_dispatch();

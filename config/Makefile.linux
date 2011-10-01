@@ -1,4 +1,3 @@
-
 ARFLAGS = crs
 
 LIB.SONAME = lib$(LIB.NAME).so.$(SO_MAJOR)
