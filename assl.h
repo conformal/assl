@@ -24,10 +24,14 @@
 #include <openssl/ssl.h>
 
 /* versioning */
+#define ASSL_STRINGIFY(x)	#x
+#define ASSL_STR(x)		ASSL_STRINGIFY(x)
 #define ASSL_VERSION_MAJOR	0
 #define ASSL_VERSION_MINOR	10
 #define ASSL_VERSION_PATCH	2
-#define ASSL_VERSION		"0.10.2"
+#define ASSL_VERSION		ASSL_STR(ASSL_VERSION_MAJOR) "." \
+				ASSL_STR(ASSL_VERSION_MINOR) "." \
+				ASSL_STR(ASSL_VERSION_PATCH)
 
 void	assl_version(int *major, int *minor, int *patch);
 
