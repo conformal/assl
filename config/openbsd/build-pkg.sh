@@ -66,7 +66,7 @@ fi
 
 rm -f ${name}-${VERSION}.tar.gz
 rm -f ${name}-${VERSION}
-rm -rf bld
+${SUDO} rm -rf bld
 mkdir bld
 export WRKOBJDIR=${PWD}/bld
 
