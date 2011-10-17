@@ -34,9 +34,15 @@ MLINKS+=assl.3 assl_event_disable_write.3
 MLINKS+=assl.3 assl_event_connect.3
 MLINKS+=assl.3 assl_event_close.3
 
+BUILDVERSION != sh "${.CURDIR}/buildver.sh"
+
 DEBUG+= -ggdb3
 CFLAGS+= -Wall -Werror
 CFLAGS+= -I${.CURDIR} -I${INCDIR}
+.if !${BUILDVERSION} == ""
+CPPFLAGS+= -DBUILDSTR=\"$(BUILDVERSION)\"
+.endif
+
 
 CLEANFILES+= assl.cat3
 

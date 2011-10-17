@@ -30,7 +30,11 @@
 #include "assl.h"
 #include "ssl_privsep.h"
 
-static const char *vertag = "Release: "ASSL_VERSION;
+#ifdef BUILDSTR
+static const char *vertag = "version: "ASSL_VERSION " " BUILDSTR;
+#else
+static const char *vertag = "version: "ASSL_VERSION;
+#endif
 
 /*
  * XXX todo:
@@ -58,14 +62,18 @@ pid_t			assl_child;
 int			assl_ignore_self_signed_cert;
 int			assl_ignore_expired_cert;
 
+const char *
+assl_verstring(void)
+{
+	return vertag;
+}
+
 void
 assl_version(int *major, int *minor, int *patch)
 {
 	*major = ASSL_VERSION_MAJOR;
 	*minor = ASSL_VERSION_MINOR;
 	*patch = ASSL_VERSION_PATCH;
-	/* Portable way to avoid unused variable compile warnings */
-	(void) (vertag);
 }
 
 /* memory certificates lookup */

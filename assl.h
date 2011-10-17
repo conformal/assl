@@ -33,7 +33,8 @@
 				ASSL_STR(ASSL_VERSION_MINOR) "." \
 				ASSL_STR(ASSL_VERSION_PATCH)
 
-void	assl_version(int *major, int *minor, int *patch);
+const char	*assl_verstring(void);
+void		 assl_version(int *major, int *minor, int *patch);
 
 #define ASSL_DEFAULT_PORT	"4433"
 
