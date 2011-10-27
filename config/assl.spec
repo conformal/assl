@@ -1,5 +1,5 @@
 %define name		assl
-%define version		0.10.2
+%define version		0.11.0
 %define release		1
 
 Name: 		%{name}
@@ -55,6 +55,12 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Thu Oct 27 2011 - davec 0.11.0-1
+- Annotate functions that do not return
+- Several man page corrections
+- Make failure messages consistent
+- Add build versioning
+- Other minor cleanup
 * Wed Aug 31 2011 - dhill 0.10.2-1
 - Rework SSL negotiation to take up to roughly 10 seconds
 - Attempt a connection to each address returned by host lookup instead of just the first address returned
