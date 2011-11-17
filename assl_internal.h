@@ -26,7 +26,7 @@ BIO		*assl_bio_new_socket(int sock, int close_flag);
 int		assl_is_nonblock(int);
 int		assl_set_nonblock(int);
 int		assl_set_keepalive(int);
-void		assl_set_tos(int, int);
+void		assl_set_tos(int, int, int);
 int		assl_get_recvtimeo(int, struct timeval *);
 int		assl_set_recvtimeo(int, struct timeval *);
 void		assl_fatalx(const char *, ...);

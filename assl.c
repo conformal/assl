@@ -872,9 +872,8 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on,
 		    sizeof(on)) == -1)
 			continue;
-		if (ai->ai_family == AF_INET &&
-		    (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT))
-			assl_set_tos(s, flags);
+		if (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT)
+			assl_set_tos(s, ai->ai_family, flags);
 		if (flags & ASSL_F_KEEPALIVE) {
 			if (assl_set_keepalive(s))
 				c->as_keepalive = 0;
@@ -1017,9 +1016,8 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 				ERROR_OUT(ERR_SOCKET, done);
 			}
 
-		if (ai->ai_family == AF_INET &&
-		    (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT))
-			assl_set_tos(s, flags);
+		if (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT)
+			assl_set_tos(s, ai->ai_family, flags);
 
 		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 

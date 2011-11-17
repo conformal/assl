@@ -108,17 +108,26 @@ assl_set_keepalive(int fd)
 }
 
 void
-assl_set_tos(int fd, int flags)
+assl_set_tos(int fd, int family, int flags)
 {
-	int	tos;
+	int	level, optname, tos;
+
+	if (family == AF_INET) {
+		level = IPPROTO_IP;
+		optname = IP_TOS;
+	} else if (family == AF_INET6) {
+		level = IPPROTO_IPV6;
+		optname = IPV6_TCLASS;
+	} else
+		return;
 
 	if (flags & ASSL_F_LOWDELAY) {
 		tos = IPTOS_LOWDELAY;
-		setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
+		setsockopt(fd, level, optname, &tos, sizeof(tos));
 	}
 	if (flags & ASSL_F_THROUGHPUT) {
 		tos = IPTOS_THROUGHPUT;
-		setsockopt(fd, IPPROTO_IP, IP_TOS, &tos, sizeof(tos));
+		setsockopt(fd, level, optname, &tos, sizeof(tos));
 	}
 }
 
