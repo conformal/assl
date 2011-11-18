@@ -832,6 +832,7 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 {
 	struct addrinfo		hints, *res = NULL, *ai;
 	int			p, s = -1, on = 1, rv = 1, retries;
+	int			gairv;
 
 	assl_err_stack_unwind();
 
@@ -854,8 +855,10 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 
-	if (getaddrinfo(host, port, &hints, &res))
-		ERROR_OUT(ERR_SOCKET, done);
+	if ((gairv = getaddrinfo(host, port, &hints, &res))) {
+		assl_err_own("%s", gai_strerror(gairv));
+		ERROR_OUT(ERR_OWN, done);
+	}
 
 	for (ai = res; ai; ai = ai->ai_next) {
 		if (s != -1) {
