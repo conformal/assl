@@ -69,6 +69,7 @@ assl_event_serve(const char *listen_ip, const char *listen_port, int flags,
 	int			nfd = -1;
 	int			fds[2];
 	struct assl_serve_ctx	*ctx = NULL;
+	short			event_type;
 
 	if (listen_port == NULL)
 		listen_port = ASSL_DEFAULT_PORT;
@@ -120,16 +121,17 @@ assl_event_serve(const char *listen_ip, const char *listen_port, int flags,
 
 	ctx->fd[1] = -1; /* init, in case nfd == 1 */
 
+	event_type = EV_READ|EV_PERSIST;
 	if (nfd == 2) {
 		ctx->ev[1] = calloc(1, sizeof(*ctx->ev[1]));
 		ctx->fd[1] = fds[1];
-		event_set(ctx->ev[1], fds[1], EV_READ|EV_PERSIST, assl_event_cb,
+		assl_event_set(ctx->ev[1], fds[1], event_type, assl_event_cb,
 		    ctx);
 		event_add(ctx->ev[1], NULL);
 	}
 	ctx->ev[0] = calloc(1, sizeof(*ctx->ev[0]));
 	ctx->fd[0] = fds[0];
-	event_set(ctx->ev[0], fds[0], EV_READ|EV_PERSIST, assl_event_cb, ctx);
+	assl_event_set(ctx->ev[0], fds[0], event_type, assl_event_cb, ctx);
 	event_add(ctx->ev[0], NULL);
 
 	ctx->flags = flags;
@@ -217,7 +219,8 @@ assl_event_connect(struct assl_context *c, const char *host, const char *port,
     int flags, void (*rd_cb)(int, short, void *),
     void (*wr_cb)(int, short, void *), void *arg)
 {
-	int rv;
+	int	rv;
+	short	event_type;
 
 	c->as_ev_rd = calloc(1, sizeof(*c->as_ev_rd));
 	c->as_ev_wr = calloc(1, sizeof(*c->as_ev_wr));
@@ -229,8 +232,9 @@ assl_event_connect(struct assl_context *c, const char *host, const char *port,
 	if (rv)
 		return rv;
 
-	event_set(c->as_ev_rd, c->as_sock, EV_READ|EV_PERSIST, rd_cb, arg);
-	event_set(c->as_ev_wr, c->as_sock, EV_WRITE|EV_PERSIST, wr_cb, arg);
+	event_type = EV_READ|EV_PERSIST;
+	assl_event_set(c->as_ev_rd, c->as_sock, event_type, rd_cb, arg);
+	assl_event_set(c->as_ev_wr, c->as_sock, event_type, wr_cb, arg);
 	event_add(c->as_ev_rd, NULL);
 
 	return rv;

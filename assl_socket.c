@@ -150,3 +150,10 @@ assl_set_recvtimeo(int fd, struct timeval *t)
 
 	return (0);
 }
+
+void
+assl_event_set(struct event *ev, int fd, short event,
+    void (*fn)(int, short, void *), void *arg)
+{
+	event_set(ev, fd, event, fn, arg);
+}
