@@ -183,8 +183,10 @@ assl_event_accept(struct assl_context *ctx, int s,
 	if (rv)
 		return rv;
 
-	event_set(ctx->as_ev_wr, ctx->as_sock, EV_WRITE|EV_PERSIST, wr_cb, arg);
-	event_set(ctx->as_ev_rd, ctx->as_sock, EV_READ|EV_PERSIST, rd_cb, arg);
+	assl_event_set(ctx->as_ev_wr, ctx->as_sock, EV_WRITE|EV_PERSIST, wr_cb,
+	    arg);
+	assl_event_set(ctx->as_ev_rd, ctx->as_sock, EV_READ|EV_PERSIST, rd_cb,
+	    arg);
 	event_add(ctx->as_ev_rd, NULL);
 
 	return (rv);
@@ -220,7 +222,6 @@ assl_event_connect(struct assl_context *c, const char *host, const char *port,
     void (*wr_cb)(int, short, void *), void *arg)
 {
 	int	rv;
-	short	event_type;
 
 	c->as_ev_rd = calloc(1, sizeof(*c->as_ev_rd));
 	c->as_ev_wr = calloc(1, sizeof(*c->as_ev_wr));
@@ -232,9 +233,9 @@ assl_event_connect(struct assl_context *c, const char *host, const char *port,
 	if (rv)
 		return rv;
 
-	event_type = EV_READ|EV_PERSIST;
-	assl_event_set(c->as_ev_rd, c->as_sock, event_type, rd_cb, arg);
-	assl_event_set(c->as_ev_wr, c->as_sock, event_type, wr_cb, arg);
+	assl_event_set(c->as_ev_rd, c->as_sock, EV_READ|EV_PERSIST, rd_cb, arg);
+	assl_event_set(c->as_ev_wr, c->as_sock, EV_WRITE|EV_PERSIST, wr_cb,
+	    arg);
 	event_add(c->as_ev_rd, NULL);
 
 	return rv;
