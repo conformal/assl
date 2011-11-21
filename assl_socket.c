@@ -24,6 +24,8 @@
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 
+#include <event.h>
+
 #include "assl.h"
 #include "assl_internal.h"
 
