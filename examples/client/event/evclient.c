@@ -66,8 +66,8 @@ main(int argc, char *argv[])
 	void			*t;
 	struct workctx          *wctx;
 
-	event_init();
 	assl_initialize();
+	event_init();
 
 #ifdef USE_MEM_CERTS
 	if ((t = assl_load_file_certs_to_mem("../ca/ca.crt", "client/client.crt",
