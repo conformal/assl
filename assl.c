@@ -87,28 +87,51 @@ assl_mem_cert_cmp(struct assl_mem_cert *c1, struct assl_mem_cert *c2)
 }
 RB_GENERATE(assl_mem_cert_list, assl_mem_cert, entry, assl_mem_cert_cmp);
 
+static void	(*assl_log_fn)(int severity, const char *message) = NULL;
+
+void
+assl_set_log_callback(void (*cb)(int, const char *))
+{
+	assl_log_fn = cb;
+}
+
 /* error handling */
 #ifdef ASSL_NO_FANCY_ERRORS
 __dead void
 assl_fatalx(const char *s, ...)
 {
+	char			errmsg[1024];
 	va_list			ap;
 
 	va_start(ap, s);
-	vfprintf(stderr, s, ap);
-	fprintf(stderr, "\n");
+	snprintf(errmsg, sizeof(errmsg), s, ap);
 	va_end(ap);
+	strlcat(errmsg, "\n", sizeof(errmsg));
+
+	if (assl_log_fn) {
+		(*assl_log_fn)(ASSL_LOG_WARN, errmsg);
+	} else {
+		fprintf(stderr, "%s", errmsg);
+	}
+
 	exit(1);
 }
 
 void
 assl_warnx(const char *s, ...)
 {
+	char			errmsg[1024];
 	va_list			ap;
 
 	va_start(ap, s);
-	vfprintf(stderr, s, ap);
-	fprintf(stderr, "\n");
+	snprintf(errmsg, sizeof(errmsg), s, ap);
+	va_end(ap);
+
+	if (assl_log_fn) {
+		(*assl_log_fn)(ASSL_LOG_ERR, errmsg);
+	} else {
+		fprintf(stderr, "%s\n", errmsg);
+	}
 }
 #else
 SLIST_HEAD(assl_error_stack, assl_error);
@@ -194,20 +217,36 @@ assl_err_own(char *s, ...)
 	va_end(ap);
 }
 
-__dead void
-assl_fatalx(const char *s, ...)
+void
+assl_log(int severity, const char *s, va_list ap)
 {
-	va_list			ap;
 	struct assl_error	*ce;
+	const char		*prefix;
+	char			*output = NULL;
+	size_t			 maxsz = 0, sz;
 
-	va_start(ap, s);
-	vfprintf(stderr, s, ap);
-	va_end(ap);
-	fprintf(stderr, "\n\n");
-	fprintf(stderr, "ASSL Fatal Error\n");
+again:
+	sz = 0;
+	sz = vsnprintf(output,  (output ? (maxsz - sz) : 0), s, ap);
+	sz += snprintf(output + sz,  (output ? (maxsz - sz) : 0), "\n\n");
+	/* XXX only if going to stderr? */
+	switch (severity) {
+	case ASSL_LOG_MSG:
+		prefix = "ASSL Info\n";
+		break;
+	case ASSL_LOG_WARN:
+		prefix = "ASSL Warning\n";
+		break;
+	case ASSL_LOG_ERR:
+		prefix = "ASSL Fatal Error\n";
+		break;
+	default:
+		prefix = "ASSL Unknown Error\n";
+	}
+	sz += snprintf(output + sz, (output ? (maxsz - sz) : 0), prefix);
 
 	SLIST_FOREACH(ce, &aes, link) {
-		fprintf(stderr,
+		sz += snprintf(output + sz, (output ? (maxsz - sz) : 0),
 		    "\tfile:\t%s\n"
 		    "\tfunct:\t%s\n"
 		    "\tline:\t%d\n"
@@ -217,6 +256,40 @@ assl_fatalx(const char *s, ...)
 		    ce->line,
 		    ce->errstr);
 	}
+
+	if (maxsz == 0) {
+		sz++; /* for NUL */
+		maxsz = sz;
+		if ((output = calloc(maxsz, 1)) == NULL) {
+			if (assl_log_fn) {
+				(*assl_log_fn)(ASSL_LOG_WARN, "can't allocate "
+				    "memory for warning buffer");
+			} else {
+				fprintf(stderr, "can't allocate memory for "
+				    "warning buffer\n");
+			}
+			return;
+		}
+
+		goto again;
+	}
+
+	if (assl_log_fn) {
+		(*assl_log_fn)(severity, output);
+	} else {
+		fprintf(stderr, "%s", output);
+	}
+	free(output);
+}
+
+__dead void
+assl_fatalx(const char *s, ...)
+{
+	va_list			ap;
+
+	va_start(ap, s);
+	assl_log(ASSL_LOG_ERR, s, ap);
+	va_end(ap);
 
 	if (assl_child)
 		_exit(1);
@@ -227,25 +300,10 @@ void
 assl_warnx(const char *s, ...)
 {
 	va_list			ap;
-	struct assl_error	*ce;
 
 	va_start(ap, s);
-	vfprintf(stderr, s, ap);
+	assl_log(ASSL_LOG_WARN, s, ap);
 	va_end(ap);
-	fprintf(stderr, "\n");
-	fprintf(stderr, "ASSL Warning\n");
-
-	SLIST_FOREACH(ce, &aes, link) {
-		fprintf(stderr,
-		    "\tfile:\t%s\n"
-		    "\tfunct:\t%s\n"
-		    "\tline:\t%d\n"
-		    "\terror:\t%s\n\n",
-		    ce->file,
-		    ce->func,
-		    ce->line,
-		    ce->errstr);
-	}
 }
 #endif /* ASSL_NO_FANCY_ERRORS */
 

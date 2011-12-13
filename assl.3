@@ -23,6 +23,8 @@
 .Fd #include <assl.h>
 .Ft void
 .Fn assl_initialize "void"
+.Ft void
+.Fn assl_set_log_callback "void (*log_cb)(int severity, const char *message)"
 .Ft struct assl_context *
 .Fn assl_alloc_context "enum assl_method method" "int flags"
 .Ft void
@@ -75,6 +77,24 @@
 .Fn assl_initialize
 prepares the library for first use.
 This function must be called before any other function is called.
+.Pp
+.Fn assl_set_log_callback
+may be used to prevent functions such as
+.Fn assl_warnx
+and
+.Fn
+assl_fatalx
+from writing to stderr in a daemon by providing a logging callback.
+The callback will be called with the error message message and a severity
+of one of the following types:
+.Bl -tag -width "ASSL_LOG_WARN" -offset indent -compact
+.It ASSL_LOG_MSG
+Informational message.
+.It ASSL_LOG_WARN
+Non fatal error.
+.It ASSL_LOG_ERR
+Fatal error.
+.El
 .Pp
 .Fn assl_alloc_context
 allocates an

@@ -51,6 +51,11 @@ void		 assl_version(int *major, int *minor, int *patch);
 #define ASSL_GF_IGNORE_SELF_SIGNED	(1<<0)
 #define ASSL_GF_IGNORE_EXPIRED		(1<<1)
 
+/* Logging constants */
+#define	ASSL_LOG_MSG		(1)
+#define	ASSL_LOG_WARN		(2)
+#define	ASSL_LOG_ERR		(3)
+
 enum assl_method {
 	ASSL_M_ALL,
 	ASSL_M_ALL_CLIENT,
@@ -142,6 +147,7 @@ int			assl_use_mem_certs(struct assl_context *, void *);
 int			assl_destroy_mem_certs(void *);
 void			assl_event_enable_write(struct assl_context *);
 void			assl_event_disable_write(struct assl_context *);
+void			assl_set_log_callback(void (*)(int, const char *));
 
 #ifdef __linux__
 #define INFTIM		(-1)
