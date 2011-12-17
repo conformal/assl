@@ -770,6 +770,9 @@ assl_negotiate_nonblock(struct assl_context *c)
 	int			r, rv = 1, p, timo;
 	struct timeval		tval, told;
 	struct timeval		now, end, trem;
+	struct sockaddr_storage	ss;
+	socklen_t		len;
+	char			peer[NI_MAXHOST];
 
 	assl_err_stack_unwind();
 
@@ -777,6 +780,12 @@ assl_negotiate_nonblock(struct assl_context *c)
 		assl_err_own("no context");
 		ERROR_OUT(ERR_OWN, bad);
 	}
+
+	len = sizeof(ss);
+	if (getpeername(c->as_sock, (struct sockaddr *)&ss, &len) != -1 &&
+		getnameinfo((struct sockaddr *)&ss, len,
+			peer, NI_MAXHOST, NULL, 0, NI_NUMERICHOST) == 0)
+		c->as_peername = strdup(peer);
 
 	if (assl_get_recvtimeo(c->as_sock, &told))
 		ERROR_OUT(ERR_SOCKET, bad);
@@ -853,9 +862,6 @@ assl_get_parameters(struct assl_context *c)
 {
 	const SSL_CIPHER	*ci;
 	EVP_PKEY		*pktmp;
-	struct sockaddr_storage	ss;
-	socklen_t		len;
-	char			peer[NI_MAXHOST];
 	char			*s;
 
 	c->as_bits = -1;
@@ -876,12 +882,6 @@ assl_get_parameters(struct assl_context *c)
 		s = c->as_protocol;
 		strsep(&s, "\n");
 	}
-
-	len = sizeof(ss);
-	if (getpeername(c->as_sock, (struct sockaddr *)&ss, &len) != -1 &&
-		getnameinfo((struct sockaddr *)&ss, len,
-			peer, NI_MAXHOST, NULL, 0, NI_NUMERICHOST) == 0)
-		c->as_peername = strdup(peer);
 }
 
 int
