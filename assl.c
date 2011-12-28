@@ -243,7 +243,7 @@ again:
 	default:
 		prefix = "ASSL Unknown Error\n";
 	}
-	sz += snprintf(output + sz, (output ? (maxsz - sz) : 0), prefix);
+	sz += snprintf(output + sz, (output ? (maxsz - sz) : 0), "%s", prefix);
 
 	SLIST_FOREACH(ce, &aes, link) {
 		sz += snprintf(output + sz, (output ? (maxsz - sz) : 0),
