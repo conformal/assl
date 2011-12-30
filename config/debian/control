@@ -21,7 +21,7 @@ Description: Library that provides a sane interface to the OpenSSL API - develop
 Package: libassl3
 Section: libs
 Architecture: any
-Depends: libevent-1.4-2, ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: Library that provides a sane interface to the OpenSSL API - runtime
  This package contains the runtime, shared library of assl.
  assl (Agglomerated SSL) was written in order to hide the awful OpenSSL API. It
