@@ -1,3 +1,12 @@
+assl (0.12.0-1) unstable; urgency=low
+
+  * Make low delay and throughput flags control DSCP for IPv6
+  * Add function to set a callback for log information
+  * Fix an issue with error reporting when getting address information
+  * Other minor code cleanup and enhancements
+
+ -- Conformal Systems <package-discuss@conformal.com>  Fri, 06 Jan 2012 16:43:26 -0600
+
 assl (0.11.0-1) unstable; urgency=low
 
   * Annotate functions that do not return

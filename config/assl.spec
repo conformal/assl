@@ -1,5 +1,5 @@
 %define name		assl
-%define version		0.11.0
+%define version		0.12.0
 %define release		1
 
 Name: 		%{name}
@@ -55,6 +55,11 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Fri Jan 06 2012 - davec 0.12.0-1
+- Make low delay and throughput flags control DSCP for IPv6
+- Add function to set a callback for log information
+- Fix an issue with error reporting when getting address information
+- Other minor code cleanup and enhancements
 * Thu Oct 27 2011 - davec 0.11.0-1
 - Annotate functions that do not return
 - Several man page corrections
