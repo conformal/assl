@@ -894,11 +894,13 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 
 	assl_err_stack_unwind();
 
-	if (c == NULL || host == NULL) {
+	if (c == NULL || host == NULL || port == NULL) {
 		if (c == NULL)
 			assl_err_own("no context");
 		else if (host == NULL)
 			assl_err_own("no host");
+		else if (port == NULL)
+			assl_err_own("no port");
 		ERROR_OUT(ERR_OWN, done);
 	}
 
