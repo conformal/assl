@@ -156,7 +156,7 @@ void			assl_event_enable_write(struct assl_context *);
 void			assl_event_disable_write(struct assl_context *);
 void			assl_set_log_callback(void (*)(int, const char *));
 
-#ifdef __linux__
+#ifndef INFTIM
 #define INFTIM		(-1)
 #endif
 
