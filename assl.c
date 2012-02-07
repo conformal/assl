@@ -138,7 +138,7 @@ SLIST_HEAD(assl_error_stack, assl_error);
 
 /* XXX NOT concurrency safe! */
 char			assl_last_error[1024];
-struct assl_error_stack	aes;
+struct assl_error_stack	aes = SLIST_HEAD_INITIALIZER(aes);
 
 char *
 assl_geterror(int et)
