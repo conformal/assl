@@ -104,7 +104,7 @@ assl_fatalx(const char *s, ...)
 	va_list			ap;
 
 	va_start(ap, s);
-	snprintf(errmsg, sizeof(errmsg), s, ap);
+	vsnprintf(errmsg, sizeof(errmsg), s, ap);
 	va_end(ap);
 	strlcat(errmsg, "\n", sizeof(errmsg));
 
