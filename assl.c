@@ -224,7 +224,10 @@ assl_log(int severity, const char *s, va_list ap)
 	const char		*prefix;
 	char			*output = NULL;
 	size_t			 maxsz = 0, sz;
+	va_list			 cap;
 
+	/* We need to back this up since we process it twice */
+	va_copy(cap, ap);
 again:
 	sz = 0;
 	sz = vsnprintf(output,  (output ? (maxsz - sz) : 0), s, ap);
@@ -270,6 +273,7 @@ again:
 			}
 			return;
 		}
+		va_copy(ap, cap);
 
 		goto again;
 	}
