@@ -1,5 +1,5 @@
 %define name		assl
-%define version		0.12.0
+%define version		0.12.1
 %define release		1
 
 Name: 		%{name}
@@ -55,6 +55,11 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Mon Feb 13 2012 - drahn 0.12.1-1
+- Determine the remote IP address of the remote before negotiate
+- Validate library inputs more completely
+- Fix assl_fatalx() memory corruption using va_list twice without va_copy
+- General cleanup and fixes
 * Fri Jan 06 2012 - davec 0.12.0-1
 - Make low delay and throughput flags control DSCP for IPv6
 - Add function to set a callback for log information

@@ -1,3 +1,12 @@
+assl (0.12.1-1) unstable; urgency=low
+
+  * Determine the remote IP address of the remote before negotiate
+  * Validate library inputs more completely
+  * Fix assl_fatalx() memory corruption using va_list twice without va_copy
+  * General cleanup and fixes
+
+ -- Conformal Systems <package-discuss@conformal.com>  Mon, 13 Feb 2012 10:53:29 -0600
+
 assl (0.12.0-1) unstable; urgency=low
 
   * Make low delay and throughput flags control DSCP for IPv6
