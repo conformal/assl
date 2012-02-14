@@ -82,8 +82,7 @@ This function must be called before any other function is called.
 may be used to prevent functions such as
 .Fn assl_warnx
 and
-.Fn
-assl_fatalx
+.Fn assl_fatalx
 from writing to stderr in a daemon by providing a logging callback.
 The callback will be called with the error message message and a severity
 of one of the following types:
