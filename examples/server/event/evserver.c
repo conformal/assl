@@ -26,8 +26,10 @@ struct workctx {
 };
 
 void			serve_callback(int s, short event, void *arg);
-void			serve_rd_worker(int fd, short event, void *arg);
-void			serve_wr_worker(int fd, short event, void *arg);
+void			serve_rd_worker(evutil_socket_t fd, short event,
+			    void *arg);
+void			serve_wr_worker(evutil_socket_t fd, short event,
+			    void *arg);
 
 void
 serve_callback(int s, short event, void *arg)
@@ -58,7 +60,7 @@ serve_callback(int s, short event, void *arg)
 
 
 void
-serve_rd_worker(int fd, short event, void *arg)
+serve_rd_worker(evutil_socket_t fd, short event, void *arg)
 {
 	struct workctx		*wctx = arg;
 	int			close = 0;
@@ -84,7 +86,7 @@ serve_rd_worker(int fd, short event, void *arg)
 }
 
 void
-serve_wr_worker(int fd, short event, void *arg)
+serve_wr_worker(evutil_socket_t fd, short event, void *arg)
 {
 }
 

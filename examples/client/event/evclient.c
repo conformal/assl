@@ -27,14 +27,14 @@ struct workctx {
 };
 
 void
-rd_callback(int s, short event, void *arg)
+rd_callback(evutil_socket_t s, short event, void *arg)
 {
 	printf("rd_callback called, not expected");
 	exit(2);
 }
 
 void
-wr_callback(int s, short event, void *arg)
+wr_callback(evutil_socket_t s, short event, void *arg)
 {
 	struct workctx		*wctx = arg;
 	int			close = 0;

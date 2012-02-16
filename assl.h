@@ -21,6 +21,12 @@
 #include <clens.h>
 #endif
 
+#include <event.h>
+
+#if !defined(evutil_socket_t)
+#define evutil_socket_t int
+#endif
+
 #include <openssl/ssl.h>
 
 /* versioning */
@@ -115,8 +121,9 @@ int			assl_connect(struct assl_context *, const char *,
 				const char *, int);
 int			assl_event_connect(struct assl_context *, const char *,
 			    const char *, int,
-			    void (*rd_cb)(int, short, void *),
-			    void (*wr_cb)(int, short, void *), void *);
+			    void (*rd_cb)(evutil_socket_t, short, void *),
+			    void (*wr_cb)(evutil_socket_t, short, void *),
+			    void *);
 int			assl_serve(const char *, const char *, int,
 			    void (*)(int), void (*)(void));
 struct assl_serve_ctx	*assl_event_serve(const char *, const char *, int flags,
@@ -124,8 +131,8 @@ struct assl_serve_ctx	*assl_event_serve(const char *, const char *, int flags,
 void			assl_event_serve_stop(struct assl_serve_ctx *);
 int			assl_accept(struct assl_context *, int);
 int			assl_event_accept(struct assl_context *, int,
-			    void (*)(int, short, void *),
-			    void (*)(int, short, void *),
+			    void (*)(evutil_socket_t, short, void *),
+			    void (*)(evutil_socket_t, short, void *),
 			    void *);
 __dead void		assl_fatalx(const char *, ...);
 void			assl_warnx(const char *, ...);

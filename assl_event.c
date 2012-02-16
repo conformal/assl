@@ -44,7 +44,7 @@ struct assl_serve_ctx {
  * user's callback.
  */
 void
-assl_event_cb(int fd, short event, void *arg)
+assl_event_cb(evutil_socket_t fd, short event, void *arg)
 {
 	int s;
 	struct assl_serve_ctx *ctx = arg;
@@ -167,7 +167,8 @@ assl_event_serve_stop(struct assl_serve_ctx *ctx)
 
 int
 assl_event_accept(struct assl_context *ctx, int s,
-    void (*rd_cb)(int, short, void *), void (*wr_cb)(int, short, void *),
+    void (*rd_cb)(evutil_socket_t, short, void *),
+    void (*wr_cb)(evutil_socket_t, short, void *),
     void *arg)
 {
 	int rv;
@@ -218,8 +219,8 @@ assl_event_disable_write(struct assl_context *ctx)
 
 int
 assl_event_connect(struct assl_context *c, const char *host, const char *port,
-    int flags, void (*rd_cb)(int, short, void *),
-    void (*wr_cb)(int, short, void *), void *arg)
+    int flags, void (*rd_cb)(evutil_socket_t, short, void *),
+    void (*wr_cb)(evutil_socket_t, short, void *), void *arg)
 {
 	int	rv;
 
