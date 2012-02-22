@@ -580,6 +580,7 @@ assl_load_file_certs(struct assl_context *c, const char *ca, const char *cert,
 		const char *key)
 {
 	int			rv = 1;
+	struct stat		sb;
 	SSL_CTX			*ctx;
 
 	assl_err_stack_unwind();
@@ -601,6 +602,22 @@ assl_load_file_certs(struct assl_context *c, const char *ca, const char *cert,
 				assl_err_own("no key");
 			ERROR_OUT(ERR_OWN, done);
 		}
+	}
+
+	if (ca && lstat(ca, &sb) != 0) {
+		assl_err_own("unable to load ca \"%s\": %s", ca,
+		    strerror(errno));
+		ERROR_OUT(ERR_OWN, done);
+	}
+	if (cert && lstat(cert, &sb) != 0) {
+		assl_err_own("unable to load cert \"%s\": %s", cert,
+		    strerror(errno));
+		ERROR_OUT(ERR_OWN, done);
+	}
+	if (key && lstat(key, &sb) != 0) {
+		assl_err_own("unable to load key \"%s\": %s", key,
+		    strerror(errno));
+		ERROR_OUT(ERR_OWN, done);
 	}
 
 	if (ca && !SSL_CTX_load_verify_locations(ctx, ca, NULL))
