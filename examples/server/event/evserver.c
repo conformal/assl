@@ -104,5 +104,7 @@ main(int argc, char *argv[])
 
 	event_dispatch();
 
+	assl_event_serve_stop(assl_lctx);
+
 	return (0);
 }
