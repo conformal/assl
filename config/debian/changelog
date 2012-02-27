@@ -1,3 +1,13 @@
+assl (0.12.2-1) unstable; urgency=low
+
+  * Add support for latest version of libevent
+  * Improve error reporting when loading file certificates
+  * Add build versioning on Linux to match support on BSD
+  * Call function to stop server in event server example
+  * Other minor code cleanup and enhancements
+
+ -- Conformal Systems <package-discuss@conformal.com>  Mon, 27 Feb 2012 11:19:02 -0600
+
 assl (0.12.1-1) unstable; urgency=low
 
   * Determine the remote IP address of the remote before negotiate

@@ -1,5 +1,5 @@
 %define name		assl
-%define version		0.12.1
+%define version		0.12.2
 %define release		1
 
 Name: 		%{name}
@@ -55,6 +55,12 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Mon Feb 27 2012 - davec 0.12.2-1
+- Add support for latest version of libevent
+- Improve error reporting when loading file certificates
+- Add build versioning on Linux to match support on BSD
+- Call function to stop server in event server example
+- Other minor code cleanup and enhancements
 * Mon Feb 13 2012 - drahn 0.12.1-1
 - Determine the remote IP address of the remote before negotiate
 - Validate library inputs more completely
