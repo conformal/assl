@@ -1,0 +1,13 @@
+--- Makefile.orig	2012-02-27 11:23:11.000000000 -0600
++++ Makefile	2012-03-05 22:56:16.000000000 -0600
+@@ -4,8 +4,8 @@ SYSTEM != uname -s
+ .endif
+ 
+ LOCALBASE?=/usr/local
+-LIBDIR?=${LOCALBASE}/lib
+-INCDIR?=${LOCALBASE}/include
++LIBDIR=${LOCALBASE}/lib
++INCDIR=${LOCALBASE}/include
+ 
+ #WANTLINT=
+ LIB= assl
