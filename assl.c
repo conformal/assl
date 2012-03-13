@@ -676,17 +676,6 @@ assl_alloc_context(enum assl_method m, int flags)
 		meth = SSLv23_server_method();
 		server = 1;
 		break;
-	case ASSL_M_SSLV2:
-		meth = SSLv2_method();
-		server = 1;
-		break;
-	case ASSL_M_SSLV2_CLIENT:
-		meth = SSLv2_client_method();
-		break;
-	case ASSL_M_SSLV2_SERVER:
-		meth = SSLv2_server_method();
-		server = 1;
-		break;
 	case ASSL_M_SSLV3:
 		meth = SSLv3_method();
 		server = 1;
