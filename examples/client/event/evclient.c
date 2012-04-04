@@ -15,7 +15,7 @@
  */
 
 #include "assl.h"
-#include <event.h>
+#include <event2/event.h>
 
 #define USE_MEM_CERTS
 
@@ -25,6 +25,8 @@ struct workctx {
 	ssize_t			tot;
 	char			buf[65536 * 10];
 };
+
+struct event_base	*ev_base;
 
 void
 rd_callback(evutil_socket_t s, short event, void *arg)
@@ -54,7 +56,7 @@ wr_callback(evutil_socket_t s, short event, void *arg)
 	if (wctx->tot == 0 || close == 1) {
 		assl_event_close(wctx->c);
 		free(wctx);
-		event_loopbreak();
+		event_base_loopbreak(ev_base);
 	}
 }
 
@@ -67,7 +69,6 @@ main(int argc, char *argv[])
 	struct workctx          *wctx;
 
 	assl_initialize();
-	event_init();
 
 #ifdef USE_MEM_CERTS
 	if ((t = assl_load_file_certs_to_mem("../ca/ca.crt", "client/client.crt",
@@ -94,15 +95,17 @@ main(int argc, char *argv[])
 		wctx->c = c;
 		wctx->b = wctx->buf;
 		wctx->tot = sizeof wctx->buf;
+		ev_base = event_base_new();
 
 		if (assl_event_connect(c, "localhost", ASSL_DEFAULT_PORT,
-		    ASSL_F_NONBLOCK, rd_callback, wr_callback, wctx))
+		    ASSL_F_NONBLOCK, ev_base, rd_callback, wr_callback, wctx))
 			assl_fatalx("server connect failed");
 
 		assl_event_enable_write(wctx->c);
 
-		event_dispatch();
+		event_base_dispatch(ev_base);
 		printf("try%d\n", i);
+		event_base_free(ev_base);
 	}
 
 	return (0);

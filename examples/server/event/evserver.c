@@ -13,10 +13,11 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-#include <event.h>
+#include <event2/event.h>
 #include "assl.h"
 
 struct workctx {
+	struct event_base	*base;
 	struct event		*ev;
 	struct assl_context	*c;
 	char			*b;
@@ -34,6 +35,7 @@ void			serve_wr_worker(evutil_socket_t fd, short event,
 void
 serve_callback(int s, short event, void *arg)
 {
+	struct event_base	*ev_base = arg;
 	struct assl_context	*c;
 	struct workctx		*wctx;
 
@@ -44,6 +46,7 @@ serve_callback(int s, short event, void *arg)
 
 	wctx->b = wctx->buf;
 	wctx->tot = sizeof wctx->buf;
+	wctx->base = ev_base;
 
 	c = assl_alloc_context(ASSL_M_ALL, 0);
 	if (c == NULL)
@@ -54,7 +57,8 @@ serve_callback(int s, short event, void *arg)
 	    "server/private/server.key"))
 		assl_fatalx("assl_load_file_certs");
 
-	if (assl_event_accept(c, s, serve_rd_worker, serve_wr_worker, wctx))
+	if (assl_event_accept(c, ev_base,  s, serve_rd_worker,
+	     serve_wr_worker, wctx))
 		assl_fatalx("assl_accept");
 }
 
@@ -94,17 +98,19 @@ int
 main(int argc, char *argv[])
 {
 	struct assl_serve_ctx	*assl_lctx;
+	struct event_base	*ev_base;
 
 	assl_initialize();
 
-	event_init();
+	ev_base = event_base_new();
 
 	assl_lctx = assl_event_serve(NULL, ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK,
-	    serve_callback, NULL);
+	    ev_base, serve_callback, ev_base);
 
-	event_dispatch();
+	event_base_dispatch(ev_base);
 
 	assl_event_serve_stop(assl_lctx);
 
+	event_base_free(ev_base);
 	return (0);
 }

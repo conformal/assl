@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <event.h>
+#include <event2/event.h>
 #include <signal.h>
 #include <unistd.h>
 #include "assl.h"
@@ -28,8 +28,7 @@ void serve_wr_worker(int fd, short event, void *arg);
 void serve_open_writer(int fd, short event, void *arg);
 void serve_stop(int fd, short event, void *arg);
 
-struct event			sigterm_ev;
-struct event			prd_ev;
+struct event_base		*ev_base;
 int 				cnt = 0;
 int				stop = 0;
 int				pfd[2];
@@ -45,9 +44,12 @@ struct wrctx {
 int
 main(int argc, char *argv[])
 {
+	struct event			*sigterm_ev;
+	struct event			*sigint_ev;
+	struct event			*prd_ev;
 	assl_initialize();
 
-	event_init();
+	ev_base = event_base_new();
 
 #ifdef USE_MEM_CERTS
 	if (assl_load_file_certs_to_mem("../ca/ca.crt", "client/client.crt",
@@ -61,17 +63,18 @@ main(int argc, char *argv[])
 
 	cnt = 0;
 
-	signal_set(&sigterm_ev, SIGINT, serve_stop, NULL);
-	signal_add(&sigterm_ev, NULL);
-	signal_set(&sigterm_ev, SIGTERM, serve_stop, NULL);
-	signal_add(&sigterm_ev, NULL);
+	sigint_ev = evsignal_new(ev_base, SIGINT, serve_stop, NULL);
+	evsignal_add(sigint_ev, NULL);
+	sigterm_ev = evsignal_new(ev_base, SIGTERM, serve_stop, NULL);
+	evsignal_add(sigterm_ev, NULL);
 
-	event_set(&prd_ev, pfd[0], EV_READ|EV_PERSIST, serve_open_writer, NULL);
-	event_add(&prd_ev, NULL);
+	prd_ev = event_new(ev_base, pfd[0], EV_READ|EV_PERSIST,
+	    serve_open_writer, NULL);
+	event_add(prd_ev, NULL);
 
 	write(pfd[1], "a", 1);
 	//serve_open_writer(0, 0, NULL);
-	event_dispatch();
+	event_base_dispatch(ev_base);
 	exit(1);
 }
 
@@ -112,7 +115,7 @@ serve_open_writer(int fd, short event, void *arg)
 	wctx->b = wctx->buf;
 
 	if (assl_event_connect(wctx->c, "localhost", ASSL_DEFAULT_PORT,
-	    ASSL_F_NONBLOCK, serve_rd_worker, serve_wr_worker, wctx))
+	    ASSL_F_NONBLOCK, ev_base, serve_rd_worker, serve_wr_worker, wctx))
 		assl_fatalx("assl_connect");
 
 	printf("try%d\n", cnt);
@@ -156,6 +159,6 @@ serve_wr_worker(int fd, short event, void *arg)
 		if (stop == 0)
 			write(pfd[1], "a", 1);
 		else
-			event_loopexit(NULL);
+			event_base_loopexit(ev_base, NULL);
 	}
 }

@@ -133,7 +133,7 @@ void			assl_event_serve_stop(struct assl_serve_ctx *);
 int			assl_accept(struct assl_context *, int);
 int			assl_event_accept(struct assl_context *,
 			    struct event_base *, int,
-			    void (*)(evutil_soctket_t, short, void *),
+			    void (*)(evutil_socket_t, short, void *),
 			    void (*)(evutil_socket_t, short, void *),
 			    void *);
 __dead void		assl_fatalx(const char *, ...);

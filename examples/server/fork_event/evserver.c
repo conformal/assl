@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include <errno.h>
-#include <event.h>
+#include <event2/event.h>
 #include <signal.h>
 #include <unistd.h>
 
@@ -43,6 +43,7 @@ void			sighdlr(int sig);
 void
 serve_callback(int s, short event, void *arg)
 {
+	struct event_base	*ev_base;
 	struct assl_context	*c;
 	struct workctx		*wctx;
 	pid_t			child;
@@ -71,7 +72,7 @@ serve_callback(int s, short event, void *arg)
 	printf("running in child\n");
 
 	/* reinit libevent, we do not want to handle events of the parent */
-	event_init();
+	ev_base = event_base_new();
 
 	wctx = calloc(1, sizeof(*wctx));
 	if (wctx == NULL)
@@ -89,10 +90,13 @@ serve_callback(int s, short event, void *arg)
 	    "server/private/server.key"))
 		assl_fatalx("assl_load_file_certs");
 
-	if (assl_event_accept(c, s, serve_rd_worker, serve_wr_worker, wctx))
+	if (assl_event_accept(c, ev_base, s, serve_rd_worker, serve_wr_worker,
+	    wctx))
 		assl_fatalx("assl_accept");
 
-	event_dispatch();
+	event_base_dispatch(ev_base);
+
+	event_base_free(ev_base);
 }
 
 
@@ -134,6 +138,7 @@ struct assl_serve_ctx	*assl_lctx = NULL;
 int
 main(int argc, char *argv[])
 {
+	struct event_base	*ev_base;
 	struct sigaction	sact;
 
 	/* signaling */
@@ -152,12 +157,14 @@ main(int argc, char *argv[])
 
 	assl_initialize();
 
-	event_init();
+	ev_base = event_base_new();
 
 	assl_lctx = assl_event_serve(NULL, ASSL_DEFAULT_PORT,
-	    ASSL_F_NONBLOCK|ASSL_F_CLOSE_SOCKET, serve_callback, NULL);
+	    ASSL_F_NONBLOCK|ASSL_F_CLOSE_SOCKET, ev_base, serve_callback, NULL);
 
-	event_dispatch();
+	event_base_dispatch(ev_base);
+
+	event_base_free(ev_base);
 
 	return (0);
 }
