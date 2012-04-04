@@ -21,7 +21,7 @@
 #include <clens.h>
 #endif
 
-#include <event.h>
+#include <event2/event.h>
 
 #if !defined(evutil_socket_t)
 #define evutil_socket_t int
@@ -120,18 +120,20 @@ int			assl_load_file_certs(struct assl_context *,
 int			assl_connect(struct assl_context *, const char *,
 				const char *, int);
 int			assl_event_connect(struct assl_context *, const char *,
-			    const char *, int,
+			    const char *, int, struct event_base *,
 			    void (*rd_cb)(evutil_socket_t, short, void *),
 			    void (*wr_cb)(evutil_socket_t, short, void *),
 			    void *);
 int			assl_serve(const char *, const char *, int,
 			    void (*)(int), void (*)(void));
 struct assl_serve_ctx	*assl_event_serve(const char *, const char *, int flags,
-			    void (*)(int, short, void *), void *);
+			    struct event_base *, void (*)(int, short, void *),
+			    void *);
 void			assl_event_serve_stop(struct assl_serve_ctx *);
 int			assl_accept(struct assl_context *, int);
-int			assl_event_accept(struct assl_context *, int,
-			    void (*)(evutil_socket_t, short, void *),
+int			assl_event_accept(struct assl_context *,
+			    struct event_base *, int,
+			    void (*)(evutil_soctket_t, short, void *),
 			    void (*)(evutil_socket_t, short, void *),
 			    void *);
 __dead void		assl_fatalx(const char *, ...);

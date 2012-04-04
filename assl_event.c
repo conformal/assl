@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <event.h>
+#include <event2/event.h>
 #include <unistd.h>
 
 #include <sys/socket.h>
@@ -62,7 +62,8 @@ assl_event_cb(evutil_socket_t fd, short event, void *arg)
 
 struct assl_serve_ctx *
 assl_event_serve(const char *listen_ip, const char *listen_port, int flags,
-    void (*cb_fn)(int, short, void *), void *cb_arg)
+    struct event_base *ev_base, void (*cb_fn)(int, short, void *),
+    void *cb_arg)
 {
 	struct addrinfo		hints, *res, *ai;
 	int			s = -1, on = 1, i;
@@ -123,15 +124,15 @@ assl_event_serve(const char *listen_ip, const char *listen_port, int flags,
 
 	event_type = EV_READ|EV_PERSIST;
 	if (nfd == 2) {
-		ctx->ev[1] = calloc(1, sizeof(*ctx->ev[1]));
 		ctx->fd[1] = fds[1];
-		assl_event_set(ctx->ev[1], fds[1], event_type, assl_event_cb,
-		    ctx);
+		ctx->ev[1] = event_new(ev_base, fds[1], event_type,
+		    assl_event_cb, ctx);
+		/* XXX alloc failure? */
 		event_add(ctx->ev[1], NULL);
 	}
-	ctx->ev[0] = calloc(1, sizeof(*ctx->ev[0]));
 	ctx->fd[0] = fds[0];
-	assl_event_set(ctx->ev[0], fds[0], event_type, assl_event_cb, ctx);
+	ctx->ev[0] = event_new(ev_base, fds[0], event_type, assl_event_cb, ctx);
+	/* XXX alloc failure? */
 	event_add(ctx->ev[0], NULL);
 
 	ctx->flags = flags;
@@ -166,40 +167,39 @@ assl_event_serve_stop(struct assl_serve_ctx *ctx)
 }
 
 int
-assl_event_accept(struct assl_context *ctx, int s,
+assl_event_accept(struct assl_context *ctx, struct event_base *ev_base, int s,
     void (*rd_cb)(evutil_socket_t, short, void *),
     void (*wr_cb)(evutil_socket_t, short, void *),
     void *arg)
 {
 	int rv;
 
-	ctx->as_ev_rd = calloc(1, sizeof(*ctx->as_ev_rd));
-	if (ctx->as_ev_rd == NULL)
-		goto fail;
-	ctx->as_ev_wr = calloc(1, sizeof(*ctx->as_ev_wr));
-	if (ctx->as_ev_wr == NULL)
-		goto fail;
-
 	rv = assl_accept(ctx, s);
 	if (rv)
 		return rv;
 
-	assl_event_set(ctx->as_ev_wr, ctx->as_sock, EV_WRITE|EV_PERSIST, wr_cb,
-	    arg);
-	assl_event_set(ctx->as_ev_rd, ctx->as_sock, EV_READ|EV_PERSIST, rd_cb,
-	    arg);
+	ctx->as_ev_rd = event_new(ev_base, ctx->as_sock, EV_READ|EV_PERSIST,
+	    rd_cb, arg);
+	if (ctx->as_ev_rd == NULL)
+		goto fail;
+	ctx->as_ev_wr = event_new(ev_base, ctx->as_sock, EV_WRITE|EV_PERSIST,
+	    wr_cb, arg);
+	if (ctx->as_ev_wr == NULL)
+		goto fail;
+
 	event_add(ctx->as_ev_rd, NULL);
 
 	return (rv);
 fail:
 	if (ctx->as_ev_rd) {
-		free(ctx->as_ev_rd);
+		event_free(ctx->as_ev_rd);
 		ctx->as_ev_rd = NULL;
 	}
 	if (ctx->as_ev_wr) {
-		free(ctx->as_ev_wr);
+		event_free(ctx->as_ev_wr);
 		ctx->as_ev_wr = NULL;
 	}
+	/* XXX what about accepted socket? */
 
 	return -1;
 }
@@ -219,32 +219,38 @@ assl_event_disable_write(struct assl_context *ctx)
 
 int
 assl_event_connect(struct assl_context *c, const char *host, const char *port,
-    int flags, void (*rd_cb)(evutil_socket_t, short, void *),
+    int flags, struct event_base *ev_base,
+    void (*rd_cb)(evutil_socket_t, short, void *),
     void (*wr_cb)(evutil_socket_t, short, void *), void *arg)
 {
 	int	rv;
-
-	c->as_ev_rd = calloc(1, sizeof(*c->as_ev_rd));
-	c->as_ev_wr = calloc(1, sizeof(*c->as_ev_wr));
-	if (c->as_ev_rd == NULL || c->as_ev_wr == NULL)
-		goto fail;
 
 	rv = assl_connect(c, host, port, flags);
 
 	if (rv)
 		return rv;
 
-	assl_event_set(c->as_ev_rd, c->as_sock, EV_READ|EV_PERSIST, rd_cb, arg);
-	assl_event_set(c->as_ev_wr, c->as_sock, EV_WRITE|EV_PERSIST, wr_cb,
-	    arg);
+	c->as_ev_rd = event_new(ev_base, c->as_sock, EV_READ|EV_PERSIST,
+	    rd_cb, arg);
+	if (c->as_ev_rd == NULL)
+		goto fail;
+	c->as_ev_wr = event_new(ev_base, c->as_sock, EV_WRITE|EV_PERSIST,
+	    wr_cb, arg);
+	if (c->as_ev_wr == NULL)
+		goto fail;
 	event_add(c->as_ev_rd, NULL);
 
 	return rv;
 fail:
-	/* in case the first alloc succeeded, will be NULL otherwise */
-	free(c->as_ev_rd);
-	c->as_ev_rd = NULL;
-	c->as_ev_wr = NULL;
+	if (c->as_ev_rd) {
+		event_free(c->as_ev_rd);
+		c->as_ev_rd = NULL;
+	}
+	if (c->as_ev_wr) {
+		event_free(c->as_ev_wr);
+		c->as_ev_wr = NULL;
+	}
+	/* XXX what about connected socket? */
 
 	return 1;
 }
