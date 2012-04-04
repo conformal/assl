@@ -38,17 +38,17 @@
 .Ft int
 .Fn assl_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags"
 .Ft int
-.Fn assl_event_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
+.Fn assl_event_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags" "struct event_base *ev_base "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
 .Ft int
 .Fn assl_serve "const char *host" "const char *port" "int flags" "void (*callback)(int sock)" "void (*intr_cb)(void)"
 .Ft struct assl_serve_ctx *
-.Fn assl_event_serve "const char *host" "const char *port" "int flags" "void (*cb_fn)(int, short, void *)" "void *cb_arg"
+.Fn assl_event_serve "const char *host" "const char *port" "int flags" "struct event_base *ev_base" "void (*cb_fn)(int, short, void *)" "void *cb_arg"
 .Ft void
 .Fn assl_event_serve_stop "struct assl_serve_ctx *ctx"
 .Ft int
 .Fn assl_accept "struct assl_context *ctx" "int sock"
 .Ft int
-.Fn assl_event_accept "struct assl_context *ctx" "int s" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
+.Fn assl_event_accept "struct assl_context *ctx" "struct event_base *ev_base" "int s" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
 .Ft ssize_t
 .Fn assl_read "struct assl_context *ctx" "void *buf" "size_t nbytes"
 .Ft ssize_t
@@ -251,7 +251,9 @@ is like
 however it sets up libevent read and write callback functions
 .Fa rd_cb
 and
-.Fa wr_cb .
+.Fa wr_cb
+on the libevent base
+.Fa ev_base .
 .Fa cb_arg will be passed the the callback function when it is invoked.
 .Pp
 .Fn assl_serve
@@ -308,8 +310,10 @@ connections on
 .Fa host
 and
 .Fa port
-It performs its operation via libevent callbacks which should be intialized
-prior to calling
+It performs its operation via libevent callbacks in the libevent event loop
+denotes by
+.Fa ev_base
+which should be intialized prior to calling
 .Fn assl_event_serve .
 .Fa flags
 has the same meaning as in
@@ -340,7 +344,10 @@ The function returns a non-zero value to indicate failure.
 .Pp
 .Fn assl_event_accept
 will configure libevent read and write callback functions for the accepted
-socket. By default the write event will not be enabled and can be toggled
+socket for the
+.Fa ev_base
+event loop.
+By default the write event will not be enabled and can be toggled
 with
 .Fn assl_event_enable_write
 and
