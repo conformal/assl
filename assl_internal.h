@@ -27,8 +27,8 @@ int		assl_is_nonblock(int);
 int		assl_set_nonblock(int);
 int		assl_set_keepalive(int);
 void		assl_set_tos(int, int, int);
-void		assl_event_set(struct event *, int, short,
-		    void (*)(evutil_socket_t, short, void *), void *);
+struct event	*assl_event_new(struct event_base *, int, short,
+		     void (*)(evutil_socket_t, short, void *), void *);
 int		assl_get_recvtimeo(int, struct timeval *);
 int		assl_set_recvtimeo(int, struct timeval *);
 void		assl_fatalx(const char *, ...);

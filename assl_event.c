@@ -125,13 +125,14 @@ assl_event_serve(const char *listen_ip, const char *listen_port, int flags,
 	event_type = EV_READ|EV_PERSIST;
 	if (nfd == 2) {
 		ctx->fd[1] = fds[1];
-		ctx->ev[1] = event_new(ev_base, fds[1], event_type,
+		ctx->ev[1] = assl_event_new(ev_base, fds[1], event_type,
 		    assl_event_cb, ctx);
 		/* XXX alloc failure? */
 		event_add(ctx->ev[1], NULL);
 	}
 	ctx->fd[0] = fds[0];
-	ctx->ev[0] = event_new(ev_base, fds[0], event_type, assl_event_cb, ctx);
+	ctx->ev[0] = assl_event_new(ev_base, fds[0], event_type, assl_event_cb,
+	    ctx);
 	/* XXX alloc failure? */
 	event_add(ctx->ev[0], NULL);
 
@@ -178,12 +179,12 @@ assl_event_accept(struct assl_context *ctx, struct event_base *ev_base, int s,
 	if (rv)
 		return rv;
 
-	ctx->as_ev_rd = event_new(ev_base, ctx->as_sock, EV_READ|EV_PERSIST,
-	    rd_cb, arg);
+	ctx->as_ev_rd = assl_event_new(ev_base, ctx->as_sock,
+	    EV_READ|EV_PERSIST, rd_cb, arg);
 	if (ctx->as_ev_rd == NULL)
 		goto fail;
-	ctx->as_ev_wr = event_new(ev_base, ctx->as_sock, EV_WRITE|EV_PERSIST,
-	    wr_cb, arg);
+	ctx->as_ev_wr = assl_event_new(ev_base, ctx->as_sock,
+	    EV_WRITE|EV_PERSIST, wr_cb, arg);
 	if (ctx->as_ev_wr == NULL)
 		goto fail;
 
@@ -230,11 +231,11 @@ assl_event_connect(struct assl_context *c, const char *host, const char *port,
 	if (rv)
 		return rv;
 
-	c->as_ev_rd = event_new(ev_base, c->as_sock, EV_READ|EV_PERSIST,
+	c->as_ev_rd = assl_event_new(ev_base, c->as_sock, EV_READ|EV_PERSIST,
 	    rd_cb, arg);
 	if (c->as_ev_rd == NULL)
 		goto fail;
-	c->as_ev_wr = event_new(ev_base, c->as_sock, EV_WRITE|EV_PERSIST,
+	c->as_ev_wr = assl_event_new(ev_base, c->as_sock, EV_WRITE|EV_PERSIST,
 	    wr_cb, arg);
 	if (c->as_ev_wr == NULL)
 		goto fail;
