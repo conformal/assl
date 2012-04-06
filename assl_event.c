@@ -260,12 +260,12 @@ assl_event_close(struct assl_context *c)
 {
 	if (c->as_ev_rd) {
 		event_del(c->as_ev_rd);
-		free(c->as_ev_rd);
+		event_free(c->as_ev_rd);
 		c->as_ev_rd = NULL;
 	}
 	if (c->as_ev_wr) {
 		event_del(c->as_ev_wr);
-		free(c->as_ev_wr);
+		event_free(c->as_ev_wr);
 		c->as_ev_wr = NULL;
 	}
 	return assl_close(c);
