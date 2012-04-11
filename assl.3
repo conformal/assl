@@ -38,17 +38,9 @@
 .Ft int
 .Fn assl_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags"
 .Ft int
-.Fn assl_event_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags" "struct event_base *ev_base "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
-.Ft int
 .Fn assl_serve "const char *host" "const char *port" "int flags" "void (*callback)(int sock)" "void (*intr_cb)(void)"
-.Ft struct assl_serve_ctx *
-.Fn assl_event_serve "const char *host" "const char *port" "int flags" "struct event_base *ev_base" "void (*cb_fn)(int, short, void *)" "void *cb_arg"
-.Ft void
-.Fn assl_event_serve_stop "struct assl_serve_ctx *ctx"
 .Ft int
 .Fn assl_accept "struct assl_context *ctx" "int sock"
-.Ft int
-.Fn assl_event_accept "struct assl_context *ctx" "struct event_base *ev_base" "int s" "void (*rd_cb)(int, short, void *)" "void (*wr_cb)(int, short, void *)" "void *cb_arg"
 .Ft ssize_t
 .Fn assl_read "struct assl_context *ctx" "void *buf" "size_t nbytes"
 .Ft ssize_t
@@ -59,16 +51,10 @@
 .Fn assl_puts "struct assl_context *ctx" "char *buf" "int send_nul"
 .Ft int
 .Fn assl_poll "struct assl_context *ctx" "int mseconds" "short event" "short *revents"
-.Ft void
-.Fn assl_event_enable_write "struct assl_context *ctx"
-.Ft void
-.Fn assl_event_disable_write "struct assl_context *ctx"
 .Ft int
 .Fn assl_destroy_mem_certs "void *token"
 .Ft int
 .Fn assl_close "struct assl_context *ctx"
-.Ft int
-.Fn assl_event_close "struct assl_context *ctx"
 .Ft void
 .Fn assl_fatalx "const char *errstr"
 .Ft void
@@ -244,18 +230,6 @@ If
 is set to ASSL_F_KEEPALIVE then the socket will enable keepalive packets
 on the connection.
 .Pp
-The
-.Fn assl_event_connect
-is like
-.Fn assl_connect ,
-however it sets up libevent read and write callback functions
-.Fa rd_cb
-and
-.Fa wr_cb
-on the libevent base
-.Fa ev_base .
-.Fa cb_arg will be passed the the callback function when it is invoked.
-.Pp
 .Fn assl_serve
 is a blocking function that sets up a listening socket that waits for
 incoming connections on
@@ -304,32 +278,6 @@ If
 .Fa intr_cb
 is non-NULL it will be called when the underlying functions are interrupted with EINTR.
 .Pp
-.Fn assl_event_serve
-is a non-blocking function that sets up a listening socket for incoming
-connections on
-.Fa host
-and
-.Fa port
-It performs its operation via libevent callbacks in the libevent event loop
-denotes by
-.Fa ev_base
-which should be intialized prior to calling
-.Fn assl_event_serve .
-.Fa flags
-has the same meaning as in
-.Fn assl_serve .
-.Fa cb_fn
-will be called with the file descriptor and
-.Fa cb_arg
-when the listening socket is contacted the code then can
-fork or perform required configuration and accept the connection
-using
-.Fn assl_event_serve .
-.Pp
-.Fn assl_event_serve_stop
-will close the listen socket established by
-.Fn assl_event_serve .
-.Pp
 .Fn assl_accept
 is the equivalent of the
 .Xr accept 2
@@ -341,18 +289,6 @@ to
 .Fn assl_serve
 after a context has been allocated in said function.
 The function returns a non-zero value to indicate failure.
-.Pp
-.Fn assl_event_accept
-will configure libevent read and write callback functions for the accepted
-socket for the
-.Fa ev_base
-event loop.
-By default the write event will not be enabled and can be toggled
-with
-.Fn assl_event_enable_write
-and
-.Fn assl_event_disable_write
-when the write socket is found not be be accepting all of the written data.
 .Pp
 .Fn assl_read
 will read
@@ -446,36 +382,12 @@ ready and this mimics the
 .Xr poll 2
 semantics.
 .Pp
-.Fn assl_event_enable_write
-should be called when using libevent and
-.Fn assl_write
-returns \-1 or partially completed write, to schedule
-the completion of the write.
-Calling code must perform any necessary buffering.
-Can also be used if calling code has queued data that is to be written
-by buffer handling code.
-.Fn assl_event_disable_write
-should be called when all buffered data has been accepted by
-.Fn assl_write
-and no more data is available to send, used in conjunction with
-.Fn assl_event_enable_write .
-.Pp
 .Fn assl_destroy_mem_certs
 clears and frees in memory certificates identified by the
 .Fa token .
 .Pp
 .Fn assl_close
 function terminates all connections and unwinds all resources, including
-context memory.
-Do not use the context pointer after calling this function.
-It is recommended to set the context pointer to NULL after this call.
-.Pp
-.Fn assl_event_close
-function terminates
-.Fn assl_event_accept
-and
-.Fn assl_event_connect
-connections and unwinds all resources, including
 context memory.
 Do not use the context pointer after calling this function.
 It is recommended to set the context pointer to NULL after this call.

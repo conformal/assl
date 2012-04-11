@@ -1,4 +1,4 @@
-SUBDIRS = blocking event fork_event fork_nonblocking nonblocking nullcrypt
+SUBDIRS = blocking fork_nonblocking nonblocking nullcrypt
 TARGETS = clean obj install uninstall depend
 
 all: $(SUBDIRS)

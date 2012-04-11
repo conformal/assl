@@ -9,7 +9,7 @@ Homepage: http://opensource.conformal.com/wiki/assl
 Package: libassl-dev
 Section: libdevel
 Architecture: any
-Depends: libclens-dev (>= 0.0.5), libevent-dev, libassl4 (= ${binary:Version})
+Depends: libclens-dev (>= 0.0.5), libevent-dev, libassl5 (= ${binary:Version})
 Description: Library that provides a sane interface to the OpenSSL API - development
  This package contains the libraries, include files, and documentation
  to develop applications with assl.
@@ -18,7 +18,7 @@ Description: Library that provides a sane interface to the OpenSSL API - develop
  interface for programmers that are interested in writing applications that
  require the SSL/TLS protocol for secure communications.
 
-Package: libassl4
+Package: libassl5
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}

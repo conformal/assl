@@ -9,7 +9,7 @@ INCDIR?=${LOCALBASE}/include
 
 #WANTLINT=
 LIB= assl
-SRCS= assl.c assl_event.c assl_socket.c ssl_privsep.c
+SRCS= assl.c assl_socket.c ssl_privsep.c
 HDRS= assl.h
 MAN= assl.3
 MLINKS+=assl.3 assl_initialize.3
@@ -26,13 +26,6 @@ MLINKS+=assl.3 assl_puts.3
 MLINKS+=assl.3 assl_poll.3
 MLINKS+=assl.3 assl_close.3
 MLINKS+=assl.3 assl_fatalx.3
-MLINKS+=assl.3 assl_event_serve.3
-MLINKS+=assl.3 assl_event_serve_stop.3
-MLINKS+=assl.3 assl_event_accept.3
-MLINKS+=assl.3 assl_event_enable_write.3
-MLINKS+=assl.3 assl_event_disable_write.3
-MLINKS+=assl.3 assl_event_connect.3
-MLINKS+=assl.3 assl_event_close.3
 
 BUILDVERSION != sh "${.CURDIR}/buildver.sh"
 

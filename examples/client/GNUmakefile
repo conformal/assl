@@ -1,4 +1,4 @@
-SUBDIRS = blocking event nonblocking nonblocking_event nullcrypt
+SUBDIRS = blocking nonblocking nullcrypt
 TARGETS = clean obj install uninstall depend
 
 all: $(SUBDIRS)

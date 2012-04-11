@@ -9,13 +9,6 @@ lib/libassl_p.a
 @man man/man3/assl_alloc_context.3
 @man man/man3/assl_close.3
 @man man/man3/assl_connect.3
-@man man/man3/assl_event_accept.3
-@man man/man3/assl_event_close.3
-@man man/man3/assl_event_connect.3
-@man man/man3/assl_event_disable_write.3
-@man man/man3/assl_event_enable_write.3
-@man man/man3/assl_event_serve.3
-@man man/man3/assl_event_serve_stop.3
 @man man/man3/assl_fatalx.3
 @man man/man3/assl_gets.3
 @man man/man3/assl_initialize.3

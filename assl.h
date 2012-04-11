@@ -21,12 +21,6 @@
 #include <clens.h>
 #endif
 
-#include <event2/event.h>
-
-#if !defined(evutil_socket_t)
-#define evutil_socket_t int
-#endif
-
 #include <openssl/ssl.h>
 
 /* versioning */
@@ -101,10 +95,6 @@ struct assl_context {
 	int			as_bits;	/* -1 invalid */
 	char			as_protocol[128];
 
-	/* event */
-	struct event		*as_ev_rd;
-	struct event		*as_ev_wr;
-
 	/* peer IP */
 	char			*as_peername;
 };
@@ -119,29 +109,14 @@ int			assl_load_file_certs(struct assl_context *,
 			    const char *, const char *, const char *);
 int			assl_connect(struct assl_context *, const char *,
 				const char *, int);
-int			assl_event_connect(struct assl_context *, const char *,
-			    const char *, int, struct event_base *,
-			    void (*rd_cb)(evutil_socket_t, short, void *),
-			    void (*wr_cb)(evutil_socket_t, short, void *),
-			    void *);
 int			assl_serve(const char *, const char *, int,
 			    void (*)(int), void (*)(void));
-struct assl_serve_ctx	*assl_event_serve(const char *, const char *, int flags,
-			    struct event_base *, void (*)(int, short, void *),
-			    void *);
-void			assl_event_serve_stop(struct assl_serve_ctx *);
 int			assl_accept(struct assl_context *, int);
-int			assl_event_accept(struct assl_context *,
-			    struct event_base *, int,
-			    void (*)(evutil_socket_t, short, void *),
-			    void (*)(evutil_socket_t, short, void *),
-			    void *);
 __dead void		assl_fatalx(const char *, ...);
 void			assl_warnx(const char *, ...);
 ssize_t			assl_read(struct assl_context *, void *, size_t);
 ssize_t			assl_write(struct assl_context *, void *, size_t);
 int			assl_close(struct assl_context *);
-int			assl_event_close(struct assl_context *);
 int			assl_poll(struct assl_context *, int, short, short *);
 ssize_t			assl_read_timeout(struct assl_context *, void *, size_t,
 			    unsigned);
@@ -154,8 +129,6 @@ void			*assl_load_file_certs_to_mem(const char *, const char *,
 			    const char *);
 int			assl_use_mem_certs(struct assl_context *, void *);
 int			assl_destroy_mem_certs(void *);
-void			assl_event_enable_write(struct assl_context *);
-void			assl_event_disable_write(struct assl_context *);
 void			assl_set_log_callback(void (*)(int, const char *));
 
 #ifndef INFTIM

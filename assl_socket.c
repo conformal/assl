@@ -24,8 +24,6 @@
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 
-#include <event2/event.h>
-
 #include "assl.h"
 #include "assl_internal.h"
 
@@ -152,11 +150,3 @@ assl_set_recvtimeo(int fd, struct timeval *t)
 
 	return (0);
 }
-
-struct event *
-assl_event_new(struct event_base *ev_base, int fd, short what,
-    void (*fn)(evutil_socket_t, short, void *), void *arg)
-{
-	return event_new(ev_base, fd, what, fn, arg);
-}
-

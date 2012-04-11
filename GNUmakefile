@@ -44,11 +44,10 @@ INCFLAGS += -I$(INCDIR)/clens -I$(LOCALBASE)/ssl/include
 WARNFLAGS ?= -Wall -Werror
 DEBUG += -g
 CFLAGS += $(INCFLAGS) $(WARNFLAGS) $(DEBUG)
-LDFLAGS += -levent_core
 SHARED_OBJ_EXT ?= o
 
 LIB.NAME = assl
-LIB.SRCS = assl.c assl_event.c assl_socket.c ssl_privsep.c
+LIB.SRCS = assl.c assl_socket.c ssl_privsep.c
 LIB.HEADERS = assl.h
 LIB.MANPAGES = assl.3
 LIB.MLINKS  = assl.3 assl_initialize.3
@@ -65,13 +64,6 @@ LIB.MLINKS += assl.3 assl_puts.3
 LIB.MLINKS += assl.3 assl_poll.3
 LIB.MLINKS += assl.3 assl_close.3
 LIB.MLINKS += assl.3 assl_fatalx.3
-LIB.MLINKS += assl.3 assl_event_serve.3
-LIB.MLINKS += assl.3 assl_event_serve_stop.3
-LIB.MLINKS += assl.3 assl_event_accept.3
-LIB.MLINKS += assl.3 assl_event_enable_write.3
-LIB.MLINKS += assl.3 assl_event_disable_write.3
-LIB.MLINKS += assl.3 assl_event_connect.3
-LIB.MLINKS += assl.3 assl_event_close.3
 LIB.OBJS = $(addprefix $(OBJPREFIX), $(LIB.SRCS:.c=.o))
 LIB.SOBJS = $(addprefix $(OBJPREFIX), $(LIB.SRCS:.c=.$(SHARED_OBJ_EXT)))
 LIB.DEPS = $(addsuffix .depend, $(LIB.OBJS))
