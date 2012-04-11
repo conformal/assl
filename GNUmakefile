@@ -39,7 +39,7 @@ MKDIR ?= mkdir
 RM ?= rm -f
 
 # Compiler and linker flags.
-CPPFLAGS += -DNEED_LIBCLENS
+CPPFLAGS += -DNEED_LIBCLENS -DASSL_NO_FANCY_ERRORS
 INCFLAGS += -I . -I$(INCDIR)/clens -I$(LOCALBASE)/ssl/include
 WARNFLAGS ?= -Wall -Werror
 DEBUG += -g

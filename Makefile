@@ -32,6 +32,7 @@ BUILDVERSION != sh "${.CURDIR}/buildver.sh"
 DEBUG+= -g
 CFLAGS+= -Wall -Werror
 CFLAGS+= -I${.CURDIR} -I${INCDIR}
+CFLAGS+= -DASSL_NO_FANCY_ERRORS
 .if !${BUILDVERSION} == ""
 CPPFLAGS+= -DBUILDSTR=\"$(BUILDVERSION)\"
 .endif

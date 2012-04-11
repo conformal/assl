@@ -447,8 +447,8 @@ It is recommended to set the context pointer to NULL after this call.
 prints
 .Fa errstr
 and exits.
-If the library is compiled with ASSL_NO_FANCY_ERRORS then it will not
-record the calling stack.
+If the library is compiled with ASSL_NO_FANCY_ERRORS, which is the case by
+default, then it will not record the calling stack.
 The error handling code is not thread or re-entrant safe.
 It was written to accommodate finite state machines instead.
 .Pp
