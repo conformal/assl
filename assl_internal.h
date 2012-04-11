@@ -33,8 +33,6 @@ void		assl_fatalx(const char *, ...);
 
 /* pre-loaded certificates */
 struct assl_mem_cert {
-	RB_ENTRY(assl_mem_cert)	entry;
-
 	void			*assl_token;
 	void			*assl_mem_ca;
 	off_t			assl_mem_ca_len;

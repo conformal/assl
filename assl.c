@@ -91,17 +91,6 @@ assl_version(int *major, int *minor, int *patch)
 	*patch = ASSL_VERSION_PATCH;
 }
 
-/* memory certificates lookup */
-struct assl_mem_cert_list	assl_mc;
-RB_HEAD(assl_mem_cert_list, assl_mem_cert);
-
-int
-assl_mem_cert_cmp(struct assl_mem_cert *c1, struct assl_mem_cert *c2)
-{
-	return (c1->assl_token < c2->assl_token);
-}
-RB_GENERATE(assl_mem_cert_list, assl_mem_cert, entry, assl_mem_cert_cmp);
-
 static void	(*assl_log_fn)(int severity, const char *message) = NULL;
 
 void
@@ -344,8 +333,6 @@ assl_initialize(void)
 	OpenSSL_add_ssl_algorithms();
 
 	assl_err_stack_unwind();
-
-	RB_INIT(&assl_mc);
 }
 
 /* XXX this function has got to go, can't have globals like this */
@@ -475,25 +462,14 @@ assl_free_mem_cert(struct assl_mem_cert* mc)
 int
 assl_destroy_mem_certs(void *token)
 {
-	struct assl_mem_cert	*mc, mcfind;
-	int			rv = 1;
+	struct assl_mem_cert	*mc = token;
 
-	assl_err_stack_unwind();
+	if (mc != NULL)
+		return (1);
 
-	bzero(&mcfind, sizeof mcfind);
-	mcfind.assl_token = token;
-	mc = RB_FIND(assl_mem_cert_list, &assl_mc, &mcfind);
-	if (mc == NULL) {
-		assl_err_own("invalid certificate token");
-		ERROR_OUT(ERR_OWN, done);
-	}
-
-	RB_REMOVE(assl_mem_cert_list, &assl_mc, mc);
 	assl_free_mem_cert(mc);
 
-	rv = 0;
-done:
-	return (rv);
+	return (0);
 }
 
 int
