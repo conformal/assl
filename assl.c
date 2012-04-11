@@ -71,11 +71,8 @@ volatile sig_atomic_t	assl_stop_serving;
 /* set to indicate this is a child process */
 pid_t			assl_child;
 
-/* XXX these have to be global because openssl is retarded */
-int			assl_ignore_self_signed_cert;
-int			assl_ignore_expired_cert;
-
 static int		assl_init;
+static int		assl_ctx_idx;
 
 const char *
 assl_verstring(void)
@@ -333,22 +330,29 @@ assl_initialize(void)
 	OpenSSL_add_ssl_algorithms();
 
 	assl_err_stack_unwind();
+	assl_ctx_idx = SSL_get_ex_new_index(0, "assl context", NULL,
+	    NULL, NULL);
+
 }
 
-/* XXX this function has got to go, can't have globals like this */
 void
-assl_set_cert_flags(int flags)
+assl_set_cert_flags(struct assl_context *c, int flags)
 {
 	if (flags & ASSL_GF_IGNORE_EXPIRED)
-		assl_ignore_expired_cert = 1;
+		c->as_ignore_expired_cert = 1;
 	if (flags & ASSL_GF_IGNORE_SELF_SIGNED)
-		assl_ignore_self_signed_cert = 1;
+		c->as_ignore_self_signed_cert = 1;
 }
 
 int
 assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 {
-	/* openssl is retarded that it doesn't pass in a void * for params */
+	struct assl_context	*c;
+	SSL			*ssl;
+
+	ssl = X509_STORE_CTX_get_ex_data(ctx,
+	    SSL_get_ex_data_X509_STORE_CTX_idx());
+	c = SSL_get_ex_data(ssl, assl_ctx_idx);
 	/*
 	fprintf(stderr, "assl_verify_callback: ctx->error %d\n", ctx->error);
 	*/
@@ -360,7 +364,7 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 		rv = 1;
 		break;
 	case X509_V_ERR_CERT_HAS_EXPIRED:
-		if (assl_ignore_expired_cert) {
+		if (c->as_ignore_expired_cert) {
 			rv = 1;
 			ctx->error = X509_V_OK;
 			/*
@@ -370,7 +374,7 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 		break;
 	case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
 	case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
-		if (assl_ignore_self_signed_cert) {
+		if (c->as_ignore_self_signed_cert) {
 			rv = 1;
 			ctx->error = X509_V_OK;
 			/*
@@ -392,6 +396,7 @@ void
 assl_setup_verify(struct assl_context *c)
 {
 	/* use callback to ignore some errors such as expired cert */
+	SSL_set_ex_data(c->as_ssl, assl_ctx_idx, c);
 	SSL_CTX_set_verify(c->as_ctx, c->as_verify_mode, assl_verify_callback);
 	SSL_CTX_set_mode(c->as_ctx, SSL_MODE_AUTO_RETRY);
 	SSL_CTX_set_verify_depth(c->as_ctx, c->as_verify_depth);
@@ -596,7 +601,6 @@ assl_use_mem_certs(struct assl_context *c, void *token)
 	if (!SSL_CTX_check_private_key(c->as_ctx))
 		ERROR_OUT(ERR_SSL, done);
 
-	assl_setup_verify(c);
 
 	/* DH params */
 	if (mc->assl_mem_dh)
@@ -662,8 +666,6 @@ assl_load_file_certs(struct assl_context *c, const char *ca, const char *cert,
 		ERROR_OUT(ERR_SSL, done);
 	if (c->as_server)
 		SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file(ca));
-
-	assl_setup_verify(c);
 
 	if (cert) {
 		c->as_dh = assl_load_dh_params(cert);
@@ -1126,6 +1128,9 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 	/* go do ssl magic */
 	c->as_ssl = SSL_new(c->as_ctx);
 	c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
+
+	assl_setup_verify(c);
+
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 	SSL_set_connect_state(c->as_ssl);
 
@@ -1178,6 +1183,7 @@ assl_accept(struct assl_context *c, int s)
 	/* now that all the poopage has been setup get SSL going */
 	c->as_ssl = SSL_new(c->as_ctx);
 	c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
+	assl_setup_verify(c);
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 	SSL_set_accept_state(c->as_ssl);
 

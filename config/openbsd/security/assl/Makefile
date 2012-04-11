@@ -5,7 +5,7 @@ COMMENT=		hide awful SSL API in a sane interface
 DISTNAME=		assl-1.2.0
 EPOCH=			0
 CATEGORIES=		security devel
-SHARED_LIBS=		assl 5.1
+SHARED_LIBS=		assl 6.0
 
 HOMEPAGE=		http://opensource.conformal.com/wiki/Assl
 MASTER_SITES=		http://opensource.conformal.com/snapshots/assl/

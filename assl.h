@@ -110,6 +110,8 @@ struct assl_context {
 
 	/* peer IP */
 	char			*as_peername;
+	int			 as_ignore_expired_cert;
+	int			 as_ignore_self_signed_cert;
 };
 
 /* contents of this structure are private */
@@ -117,7 +119,7 @@ struct assl_serve_ctx;
 
 void			assl_initialize(void);
 struct assl_context	*assl_alloc_context(enum assl_method, int);
-void			assl_set_cert_flags(int);
+void			assl_set_cert_flags(struct assl_context *, int);
 int			assl_load_file_certs(struct assl_context *,
 			    const char *, const char *, const char *);
 int			assl_connect(struct assl_context *, const char *,
