@@ -194,13 +194,13 @@ assl_push_error(const char *file, const char *func, int line, int et)
 	struct assl_error	*ce;
 
 	if ((ce = calloc(1, sizeof *ce)) == NULL)
-		exit(ENOMEM);
-	if ((ce->file = strdup(file)) == NULL)
-		exit(ENOMEM);
-	if ((ce->func = strdup(func)) == NULL)
-		exit(ENOMEM);
-	if ((ce->errstr = strdup(assl_geterror(et))) == NULL)
-		exit(ENOMEM);
+		return;
+	if ((ce->errstr = strdup(assl_geterror(et))) == NULL) {
+		free(ce);
+		return;
+	}
+	ce->file = file;
+	ce->func = func;
 	ce->line = line;
 
 	SLIST_INSERT_HEAD(&aes, ce, link);
@@ -214,8 +214,6 @@ assl_err_stack_unwind(void)
 	while(!SLIST_EMPTY(&aes)) {
 		ce = SLIST_FIRST(&aes);
 		SLIST_REMOVE_HEAD(&aes, link);
-		free(ce->file);
-		free(ce->func);
 		free(ce->errstr);
 		free(ce);
 	}

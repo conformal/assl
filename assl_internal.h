@@ -60,8 +60,8 @@ struct assl_mem_cert {
 struct assl_error {
 	SLIST_ENTRY(assl_error)	link;
 
-	char			*file;
-	char			*func;
+	const char		*file;
+	const char		*func;
 	int			line;
 	char			*errstr;
 };
