@@ -28,7 +28,7 @@ INCFLAGS += -I ../../.. -I $(INCDIR)/clens
 WARNFLAGS ?= -Wall -Werror
 DEBUG += -g
 CFLAGS += $(INCFLAGS) $(WARNFLAGS) $(DEBUG)
-LDFLAGS += -L../../../obj -L../../.. -lassl -lssl -lcrypto -levent -lclens
+LDFLAGS += -L../../../obj -L../../.. -lassl -lssl -lcrypto -levent_core -lclens
 
 BIN.NAME = evserver
 BIN.SRCS = evserver.c

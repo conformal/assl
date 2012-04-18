@@ -44,7 +44,7 @@ INCFLAGS += -I$(INCDIR)/clens -I$(LOCALBASE)/ssl/include
 WARNFLAGS ?= -Wall -Werror
 DEBUG += -g
 CFLAGS += $(INCFLAGS) $(WARNFLAGS) $(DEBUG)
-LDFLAGS += -levent
+LDFLAGS += -levent_core
 SHARED_OBJ_EXT ?= o
 
 LIB.NAME = assl
