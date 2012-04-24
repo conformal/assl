@@ -1,5 +1,5 @@
 %define name		assl
-%define version		0.12.2
+%define version		1.0.0
 %define release		1
 
 Name: 		%{name}
@@ -55,6 +55,9 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Tue Apr 24 2012 - drahn 1.0.0-1
+- change to using libevent2
+- Other minor cleanup and bug fixes
 * Mon Feb 27 2012 - davec 0.12.2-1
 - Add support for latest version of libevent
 - Improve error reporting when loading file certificates
