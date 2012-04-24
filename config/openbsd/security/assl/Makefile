@@ -18,6 +18,8 @@ PERMIT_PACKAGE_FTP=	Yes
 PERMIT_DISTFILES_CDROM=	Yes
 PERMIT_DISTFILES_FTP=	Yes
 
+BUILD_DEPENDS = devel/libevent2
+
 NO_REGRESS=		Yes
 EG_DIR=			${PREFIX}/share/examples/assl
 
