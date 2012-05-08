@@ -62,6 +62,8 @@ pid_t			assl_child;
 int			assl_ignore_self_signed_cert;
 int			assl_ignore_expired_cert;
 
+static int		assl_init;
+
 const char *
 assl_verstring(void)
 {
@@ -314,6 +316,10 @@ assl_warnx(const char *s, ...)
 void
 assl_initialize(void)
 {
+	if (assl_init)
+		return;
+	assl_init = 1;
+
 	if (assl_initialize_sockets())
 		assl_fatalx("socket initialization failed");
 
