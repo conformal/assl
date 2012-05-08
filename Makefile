@@ -36,7 +36,7 @@ MLINKS+=assl.3 assl_event_close.3
 
 BUILDVERSION != sh "${.CURDIR}/buildver.sh"
 
-DEBUG+= -ggdb3
+DEBUG+= -g
 CFLAGS+= -Wall -Werror
 CFLAGS+= -I${.CURDIR} -I${INCDIR}
 .if !${BUILDVERSION} == ""
