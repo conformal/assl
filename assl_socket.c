@@ -150,3 +150,9 @@ assl_set_recvtimeo(int fd, struct timeval *t)
 
 	return (0);
 }
+int
+assl_fd(struct assl_context *c)
+{
+        return c->as_sock;
+}
+

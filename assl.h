@@ -130,6 +130,7 @@ void			*assl_load_file_certs_to_mem(const char *, const char *,
 int			assl_use_mem_certs(struct assl_context *, void *);
 int			assl_destroy_mem_certs(void *);
 void			assl_set_log_callback(void (*)(int, const char *));
+int			assl_fd(struct assl_context *);
 
 #ifndef INFTIM
 #define INFTIM		(-1)
