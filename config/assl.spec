@@ -51,6 +51,7 @@ develop applications with assl.
 %defattr(-,root,root)
 %doc /usr/share/man/man?/*
 /usr/include/assl.h
+/usr/include/assl_socket.h
 /usr/lib/libassl.so
 /usr/lib/libassl.a
 

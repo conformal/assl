@@ -3,6 +3,7 @@ lib/libassl_p.a
 lib/libassl.so.3
 lib/libassl.so
 include/assl.h
+include/assl_socket.h
 man/man3/assl.3.gz
 man/man3/assl_initialize.3.gz
 man/man3/assl_alloc_context.3.gz

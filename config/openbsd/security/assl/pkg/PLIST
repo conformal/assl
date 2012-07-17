@@ -1,5 +1,6 @@
 @comment $OpenBSD: PLIST,v 1.6 2011/06/23 22:50:28 naddy Exp $
 include/assl.h
+include/assl_socket.h
 lib/libassl.a
 %%SHARED%%
 lib/libassl_p.a
