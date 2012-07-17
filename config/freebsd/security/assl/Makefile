@@ -18,6 +18,6 @@ LICENSE=        ISCL
 LICENSE_COMB=   single
 
 BUILD_DEPENDS=  ${LOCALBASE}/lib/libclens.a:${PORTSDIR}/devel/clens
-LIB_DEPENDS=    event-1.4.4:${PORTSDIR}/devel/libevent
+LIB_DEPENDS=
 
 .include <bsd.port.mk>
