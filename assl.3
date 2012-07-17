@@ -50,6 +50,8 @@
 .Ft ssize_t
 .Fn assl_puts "struct assl_context *ctx" "char *buf" "int send_nul"
 .Ft int
+.Fn assl_fd "struct assl_context *ctx"
+.Ft int
 .Fn assl_poll "struct assl_context *ctx" "int mseconds" "short event" "short *revents"
 .Ft int
 .Fn assl_destroy_mem_certs "void *token"
@@ -355,6 +357,10 @@ All other errors simply return
 \-1.
 Upon success the function returns the number of bytes written.
 If the connection has been terminated the function will return 0.
+.Pp
+.Fn assl_fd
+returns the file descriptor associated with the supplied
+.Fa ctx .
 .Pp
 .Fn assl_poll
 polls the socket in
