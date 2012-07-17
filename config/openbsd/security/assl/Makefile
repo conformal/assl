@@ -2,7 +2,7 @@
 
 COMMENT=		hide awful SSL API in a sane interface
 
-DISTNAME=		assl-1.0.0
+DISTNAME=		assl-1.1.0
 EPOCH=			0
 CATEGORIES=		security devel
 SHARED_LIBS=		assl 5.0

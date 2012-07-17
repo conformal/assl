@@ -1,3 +1,15 @@
+assl (1.1.0-1) unstable; urgency=low
+
+  * Support clang builds
+  * Add function used to obtain file descriptor from context
+  * Remove support for SSL version 2
+  * Remove all assl_event APIs
+  * Update man page with new and removed functions
+  * Limit to a single initialization
+  * Other minor code cleanup
+
+ -- Conformal Systems <package-discuss@conformal.com>  Tue, 17 Jul 2012 17:07:41 -0500
+
 assl (1.0.0-1) unstable; urgency=low
 
   * change to using libevent2

@@ -1,5 +1,5 @@
 %define name		assl
-%define version		1.0.0
+%define version		1.1.0
 %define release		1
 
 Name: 		%{name}
@@ -55,6 +55,14 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Tue Jul 17 2012 - davec 1.1.0-1
+- Support clang builds
+- Add function used to obtain file descriptor from context
+- Remove support for SSL version 2
+- Remove all assl_event APIs
+- Update man page with new and removed functions
+- Limit to a single initialization
+- Other minor code cleanup
 * Tue Apr 24 2012 - drahn 1.0.0-1
 - change to using libevent2
 - Other minor cleanup and bug fixes
