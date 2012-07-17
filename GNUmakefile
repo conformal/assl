@@ -48,7 +48,7 @@ SHARED_OBJ_EXT ?= o
 
 LIB.NAME = assl
 LIB.SRCS = assl.c assl_socket.c ssl_privsep.c
-LIB.HEADERS = assl.h
+LIB.HEADERS = assl.h assl_socket.h
 LIB.MANPAGES = assl.3
 LIB.MLINKS  = assl.3 assl_initialize.3
 LIB.MLINKS += assl.3 assl_alloc_context.3

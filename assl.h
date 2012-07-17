@@ -21,7 +21,7 @@
 #include <clens.h>
 #endif
 
-#include <openssl/ssl.h>
+#include <assl_socket.h>
 
 /* versioning */
 #define ASSL_STRINGIFY(x)	#x
