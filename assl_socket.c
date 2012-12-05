@@ -115,9 +115,11 @@ assl_set_tos(int fd, int family, int flags)
 	if (family == AF_INET) {
 		level = IPPROTO_IP;
 		optname = IP_TOS;
+#ifdef IPV6_TCLASS
 	} else if (family == AF_INET6) {
 		level = IPPROTO_IPV6;
 		optname = IPV6_TCLASS;
+#endif
 	} else
 		return;
 

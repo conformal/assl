@@ -1,0 +1,11 @@
+ARFLAGS = crs
+
+LIB.SONAME = lib$(LIB.NAME).so.$(SO_MAJOR)
+LIB.SHARED = cyg$(LIB.NAME)-$(SO_MAJOR).dll
+LIB.DEVLNK = lib$(LIB.NAME).dll.a
+LIB.STATIC = lib$(LIB.NAME).a
+
+CPPFLAGS += -D_GNU_SOURCE
+LDFLAGS.SO = -shared -Wl,--out-implib,$(OBJPREFIX)$(LIB.DEVLNK)
+LDFLAGS.EXTRA += -lssl -lcrypto
+SHARED_OBJ_EXT = o

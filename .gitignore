@@ -1,5 +1,7 @@
 *.o
 *.so*
+*.dll
+*.exe
 *.depend
 *.po
 *.a

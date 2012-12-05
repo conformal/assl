@@ -1,6 +1,6 @@
 # Attempt to include platform specific makefile.
 # OSNAME may be passed in.
-OSNAME ?= $(shell uname -s)
+OSNAME ?= $(shell uname -s | sed -e 's/[-_].*//g')
 OSNAME := $(shell echo $(OSNAME) | tr A-Z a-z)
 -include config/Makefile.$(OSNAME)
 
@@ -102,9 +102,15 @@ depend:
 
 install:
 	$(INSTALL) -m 0755 -d $(DESTDIR)$(LIBDIR)/
-	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.SHARED) $(DESTDIR)$(LIBDIR)/
+ifeq ($(OSNAME),cygwin)
+	$(INSTALL) -m 0755 -d $(DESTDIR)$(BINDIR)/
+	$(INSTALL) -m 0755 $(OBJPREFIX)$(LIB.SHARED) $(DESTDIR)$(BINDIR)/
+	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.DEVLNK) $(DESTDIR)$(LIBDIR)/
+else
+	$(INSTALL) -m 0755 $(OBJPREFIX)$(LIB.SHARED) $(DESTDIR)$(LIBDIR)/
 	$(LN) $(LNFLAGS) $(LIB.SHARED) $(DESTDIR)$(LIBDIR)/$(LIB.SONAME)
 	$(LN) $(LNFLAGS) $(LIB.SHARED) $(DESTDIR)$(LIBDIR)/$(LIB.DEVLNK)
+endif
 	$(INSTALL) -m 0644 $(OBJPREFIX)$(LIB.STATIC) $(DESTDIR)$(LIBDIR)/
 	$(INSTALL) -m 0755 -d $(DESTDIR)$(INCDIR)/
 	$(INSTALL) -m 0644 $(LIB.HEADERS) $(DESTDIR)$(INCDIR)/
@@ -126,8 +132,12 @@ install:
 
 uninstall:
 	$(RM) $(DESTDIR)$(LIBDIR)/$(LIB.DEVLNK)
+ifeq ($(OSNAME),cygwin)
+	$(RM) $(DESTDIR)$(BINDIR)/$(LIB.SHARED)
+else
 	$(RM) $(DESTDIR)$(LIBDIR)/$(LIB.SONAME)
 	$(RM) $(DESTDIR)$(LIBDIR)/$(LIB.SHARED)
+endif
 	$(RM) $(DESTDIR)$(LIBDIR)/$(LIB.STATIC)
 	$(RM) $(addprefix $(DESTDIR)$(INCDIR)/, $(LIB.HEADERS))
 	@set $(addprefix $(DESTDIR)$(MANDIR)/, $(LIB.MLINKS)); \
@@ -148,8 +158,8 @@ uninstall:
 clean:
 	$(RM) $(LIB.SOBJS)
 	$(RM) $(OBJPREFIX)$(LIB.SHARED)
-	$(RM) $(OBJPREFIX)/$(LIB.SONAME)
-	$(RM) $(OBJPREFIX)/$(LIB.DEVLNK)
+	$(RM) $(OBJPREFIX)$(LIB.SONAME)
+	$(RM) $(OBJPREFIX)$(LIB.DEVLNK)
 	$(RM) $(LIB.OBJS)
 	$(RM) $(OBJPREFIX)$(LIB.STATIC)
 	$(RM) $(LIB.DEPS)
