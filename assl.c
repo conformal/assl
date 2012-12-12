@@ -665,17 +665,7 @@ assl_alloc_context(enum assl_method m, int flags)
 		assl_child = getpid();
 
 	switch (m) {
-	case ASSL_M_ALL:
-		meth = SSLv23_method();
-		server = 1;
-		break;
-	case ASSL_M_ALL_CLIENT:
-		meth = SSLv23_client_method();
-		break;
-	case ASSL_M_ALL_SERVER:
-		meth = SSLv23_server_method();
-		server = 1;
-		break;
+	/* SSL v3 */
 	case ASSL_M_SSLV3:
 		meth = SSLv3_method();
 		server = 1;
@@ -687,6 +677,7 @@ assl_alloc_context(enum assl_method m, int flags)
 		meth = SSLv3_server_method();
 		server = 1;
 		break;
+	/* TLS 1.0 */
 	case ASSL_M_TLSV1:
 		meth = TLSv1_method();
 		server = 1;
@@ -698,6 +689,31 @@ assl_alloc_context(enum assl_method m, int flags)
 		meth = TLSv1_server_method();
 		server = 1;
 		break;
+	/* TLS 1.1 */
+	case ASSL_M_TLSV1_1:
+		meth = TLSv1_1_method();
+		server = 1;
+		break;
+	case ASSL_M_TLSV1_1_CLIENT:
+		meth = TLSv1_1_client_method();
+		break;
+	case ASSL_M_TLSV1_1_SERVER:
+		meth = TLSv1_1_server_method();
+		server = 1;
+		break;
+	/* TLS 1.2 */
+	case ASSL_M_TLSV1_2:
+		meth = TLSv1_2_method();
+		server = 1;
+		break;
+	case ASSL_M_TLSV1_2_CLIENT:
+		meth = TLSv1_2_client_method();
+		break;
+	case ASSL_M_TLSV1_2_SERVER:
+		meth = TLSv1_2_server_method();
+		server = 1;
+		break;
+
 	default:
 		assl_err_own("invalid method %d", m);
 		ERROR_OUT(ERR_OWN, unwind);

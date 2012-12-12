@@ -25,7 +25,7 @@ serve_callback(int s)
 	char			buf[65536 * 10];
 	ssize_t			rd;
 
-	c = assl_alloc_context(ASSL_M_TLSV1_SERVER, 0);
+	c = assl_alloc_context(ASSL_M_TLSV1_2_SERVER, 0);
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 

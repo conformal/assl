@@ -107,7 +107,7 @@ serve_callback(int s)
 		return;
 	}
 
-	c = assl_alloc_context(ASSL_M_ALL, ASSL_F_CHILD);
+	c = assl_alloc_context(ASSL_M_TLSV1_2, ASSL_F_CHILD);
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
