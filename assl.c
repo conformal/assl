@@ -37,7 +37,7 @@ static const char *vertag = "version: "ASSL_VERSION;
 #endif
 
 /* borrowed from openssl the tool */
-static unsigned char	dh512_p[] = {
+static unsigned char	assl_dh512_p[] = {
 	0xDA, 0x58, 0x3C, 0x16, 0xD9, 0x85, 0x22, 0x89, 0xD0, 0xE4, 0xAF, 0x75,
 	0x6F, 0x4C, 0xCA, 0x92, 0xDD, 0x4B, 0xE5, 0x33, 0xB8, 0x04, 0xFB, 0x0F,
 	0xED, 0x94, 0xEF, 0x9C, 0x8A, 0x44, 0x03, 0xED, 0x57, 0x46, 0x50, 0xD3,
@@ -45,7 +45,7 @@ static unsigned char	dh512_p[] = {
 	0xE2, 0x18, 0xF4, 0xDD, 0x1E, 0x08, 0x4C, 0xF6, 0xD8, 0x00, 0x3E, 0x7C,
 	0x47, 0x74, 0xE8, 0x33,
 };
-static unsigned char	dh512_g[] = {
+static unsigned char	assl_dh512_g[] = {
 	0x02,
 };
 
@@ -425,7 +425,7 @@ assl_load_dh_params(const char *cert)
 {
 	BIO		*bio;
 	DH		*dh = NULL;
-fprintf(stderr, "LOAIND\n");
+
 	if ((bio = BIO_new_file(cert,"r")) == NULL)
 		ERROR_OUT(ERR_SSL, done);
 
@@ -435,8 +435,8 @@ fprintf(stderr, "LOAIND\n");
 		if ((dh = DH_new()) == NULL)
 			ERROR_OUT(ERR_SSL, done);
 
-		dh->p = BN_bin2bn(dh512_p, sizeof(dh512_p), NULL);
-		dh->g = BN_bin2bn(dh512_g, sizeof(dh512_g), NULL);
+		dh->p = BN_bin2bn(assl_dh512_p, sizeof(assl_dh512_p), NULL);
+		dh->g = BN_bin2bn(assl_dh512_g, sizeof(assl_dh512_g), NULL);
 		if ((dh->p == NULL) || (dh->g == NULL)) {
 			assl_err_own("BN_bin2bn failed in assl_load_dh_params");
 			ERROR_OUT(ERR_OWN, done);
