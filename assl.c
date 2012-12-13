@@ -36,6 +36,19 @@ static const char *vertag = "version: "ASSL_VERSION " " BUILDSTR;
 static const char *vertag = "version: "ASSL_VERSION;
 #endif
 
+/* borrowed from openssl the tool */
+static unsigned char	dh512_p[] = {
+	0xDA, 0x58, 0x3C, 0x16, 0xD9, 0x85, 0x22, 0x89, 0xD0, 0xE4, 0xAF, 0x75,
+	0x6F, 0x4C, 0xCA, 0x92, 0xDD, 0x4B, 0xE5, 0x33, 0xB8, 0x04, 0xFB, 0x0F,
+	0xED, 0x94, 0xEF, 0x9C, 0x8A, 0x44, 0x03, 0xED, 0x57, 0x46, 0x50, 0xD3,
+	0x69, 0x99, 0xDB, 0x29, 0xD7, 0x76, 0x27, 0x6B, 0xA2, 0xD3, 0xD4, 0x12,
+	0xE2, 0x18, 0xF4, 0xDD, 0x1E, 0x08, 0x4C, 0xF6, 0xD8, 0x00, 0x3E, 0x7C,
+	0x47, 0x74, 0xE8, 0x33,
+};
+static unsigned char	dh512_g[] = {
+	0x02,
+};
+
 /*
  * XXX todo:
  * XDR read/write
@@ -407,6 +420,36 @@ assl_setup_verify(struct assl_context *c)
 	SSL_CTX_set_verify_depth(c->as_ctx, c->as_verify_depth);
 }
 
+DH *
+assl_load_dh_params(const char *cert)
+{
+	BIO		*bio;
+	DH		*dh = NULL;
+fprintf(stderr, "LOAIND\n");
+	if ((bio = BIO_new_file(cert,"r")) == NULL)
+		ERROR_OUT(ERR_SSL, done);
+
+	dh = PEM_read_bio_DHparams(bio, NULL, NULL, NULL);
+	if (dh == NULL) {
+		/* try defaults */
+		if ((dh = DH_new()) == NULL)
+			ERROR_OUT(ERR_SSL, done);
+
+		dh->p = BN_bin2bn(dh512_p, sizeof(dh512_p), NULL);
+		dh->g = BN_bin2bn(dh512_g, sizeof(dh512_g), NULL);
+		if ((dh->p == NULL) || (dh->g == NULL)) {
+			assl_err_own("BN_bin2bn failed in assl_load_dh_params");
+			ERROR_OUT(ERR_OWN, done);
+		}
+	}
+
+done:
+	if (bio != NULL)
+		BIO_free(bio);
+
+	return (dh);
+}
+
 void
 assl_free_mem_cert(struct assl_mem_cert* mc)
 {
@@ -427,6 +470,12 @@ assl_free_mem_cert(struct assl_mem_cert* mc)
 		free(mc->assl_mem_key);
 		mc->assl_mem_key = NULL;
 		mc->assl_mem_key_len = 0;
+	}
+
+	/* DH params */
+	if (mc->assl_mem_dh) {
+		DH_free(mc->assl_mem_dh);
+		mc->assl_mem_dh = NULL;
 	}
 
 	bzero(mc, sizeof *mc);
@@ -521,6 +570,13 @@ assl_load_file_certs_to_mem(const char *ca, const char *cert, const char *key)
 		ERROR_OUT(ERR_OWN, done);
 	}
 
+	/* DH params */
+	if (cert) {
+		mc->assl_mem_dh = assl_load_dh_params(cert);
+		if (mc->assl_mem_dh == NULL)
+			goto done;
+	}
+
 	return (mc);
 done:
 	if (mc)
@@ -575,6 +631,10 @@ assl_use_mem_certs(struct assl_context *c, void *token)
 		ERROR_OUT(ERR_SSL, done);
 
 	assl_setup_verify(c);
+
+	/* DH params */
+	if (mc->assl_mem_dh)
+		c->as_dh = DHparams_dup(mc->assl_mem_dh);
 
 	rv = 0;
 done:
@@ -638,6 +698,12 @@ assl_load_file_certs(struct assl_context *c, const char *ca, const char *cert,
 		SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file(ca));
 
 	assl_setup_verify(c);
+
+	if (cert) {
+		c->as_dh = assl_load_dh_params(cert);
+		if (c->as_dh == NULL)
+			goto done;
+	}
 
 	rv = 0;
 done:
@@ -754,6 +820,8 @@ assl_alloc_context(enum assl_method m, int flags)
 	if (flags & ASSL_F_DONT_ENCRYPT)
 		if (!SSL_CTX_set_cipher_list(c->as_ctx, "eNULL"))
 			ERROR_OUT(ERR_SSL, unwind);
+	//if (!SSL_CTX_set_cipher_list(c->as_ctx, "ECDHE-ECDSA-AES256-SHA384"))
+	//		ERROR_OUT(ERR_SSL, unwind);
 
 	c->as_verify_depth = ASSL_VERIFY_DEPTH;
 
@@ -913,6 +981,7 @@ assl_get_parameters(struct assl_context *c)
 		    sizeof c->as_protocol);
 		s = c->as_protocol;
 		strsep(&s, "\n");
+		fprintf(stderr, "CIPHER: %s\n", c->as_protocol);
 	}
 }
 
@@ -1031,6 +1100,7 @@ int
 assl_accept(struct assl_context *c, int s)
 {
 	int			r, rv = 1;
+	EC_KEY			*ecdh = NULL;
 
 	assl_err_stack_unwind();
 
@@ -1046,6 +1116,18 @@ assl_accept(struct assl_context *c, int s)
 		ERROR_OUT(ERR_SOCKET, done);
 	c->as_nonblock = r;
 
+	/* set up DH */
+	if (c->as_dh)
+		SSL_CTX_set_tmp_dh(c->as_ctx, c->as_dh);
+
+	/* set up ECDHE */
+	ecdh = EC_KEY_new_by_curve_name(NID_secp521r1); // make this a flag
+	if (ecdh == NULL)
+		ERROR_OUT(ERR_SSL, done);
+	SSL_CTX_set_tmp_ecdh(c->as_ctx, ecdh);
+	EC_KEY_free(ecdh);
+
+	/* now that all the poopage has been setup get SSL going */
 	c->as_ssl = SSL_new(c->as_ctx);
 	c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
@@ -1268,8 +1350,14 @@ assl_close(struct assl_context *c)
 		SSL_CTX_free(c->as_ctx);
 		c->as_ctx = NULL;
 	}
-	if (c->as_peername)
+	if (c->as_peername) {
 		free(c->as_peername);
+		c->as_peername = NULL;
+	}
+	if (c->as_dh) {
+		DH_free(c->as_dh);
+		c->as_dh = NULL;
+	}
 
 	free(c);
 	if (assl_shutdown_sockets())

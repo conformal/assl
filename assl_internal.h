@@ -42,6 +42,7 @@ struct assl_mem_cert {
 	off_t			assl_mem_cert_len;
 	void			*assl_mem_key;
 	off_t			assl_mem_key_len;
+	DH			*assl_mem_dh;
 };
 
 #ifdef ASSL_NO_FANCY_ERRORS

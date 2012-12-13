@@ -86,6 +86,7 @@ struct assl_context {
 	SSL_SESSION		*as_ssl_session;
 	int			as_sock;
 	BIO			*as_sbio;
+	DH			*as_dh;		/* dh param */
 
 	/* memory certificates */
 	void			*as_token;
