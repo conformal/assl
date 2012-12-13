@@ -1042,7 +1042,6 @@ assl_get_parameters(struct assl_context *c)
 		    sizeof c->as_protocol);
 		s = c->as_protocol;
 		strsep(&s, "\n");
-		fprintf(stderr, "CIPHER: %s\n", c->as_protocol);
 	}
 }
 
