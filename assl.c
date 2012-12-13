@@ -717,10 +717,60 @@ done:
 #endif
 
 struct assl_context *
-assl_alloc_context(enum assl_method m, int flags)
+assl_internal_alloc_context(SSL_METHOD_CONST SSL_METHOD *meth, int flags, int server)
 {
 	struct assl_context	*c = NULL;
-	int			server = 0;
+
+	c = calloc(1, sizeof *c);
+	if (c == NULL)
+		ERROR_OUT(ERR_LIBC, unwind);
+
+	/* set some sane values */
+	c->as_sock = -1;
+	c->as_method = meth;
+	c->as_server = server;
+	c->as_ctx = SSL_CTX_new(meth);
+	if (c->as_ctx == NULL)
+		ERROR_OUT(ERR_SSL, unwind);
+
+	/* allow all buggy implementations to play */
+	SSL_CTX_set_options(c->as_ctx, SSL_OP_ALL);
+
+	if (c->as_server)
+		SSL_CTX_set_options(c->as_ctx,
+		    SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+
+	/*
+	 * Assume we want to verify client and server certificates
+	 * client ignores SSL_VERIFY_FAIL_IF_NO_PEER_CERT so just set it
+	 *
+	 * This needs to be set for anonymous connections
+	 */
+	if (flags & ASSL_F_DONT_VERIFY)
+		c->as_verify_mode = SSL_VERIFY_NONE;
+	else
+		c->as_verify_mode = SSL_VERIFY_FAIL_IF_NO_PEER_CERT |
+		    SSL_VERIFY_PEER;
+
+	/* do not encrypt transport */
+	if (flags & ASSL_F_DONT_ENCRYPT)
+		if (!SSL_CTX_set_cipher_list(c->as_ctx, "eNULL"))
+			ERROR_OUT(ERR_SSL, unwind);
+
+	c->as_verify_depth = ASSL_VERIFY_DEPTH;
+
+	return (c);
+unwind:
+	if (c)
+		free(c);
+
+	return (NULL);
+}
+
+struct assl_context *
+assl_alloc_context(enum assl_method m, int flags)
+{
+	int				server = 0;
 	SSL_METHOD_CONST SSL_METHOD	*meth;
 
 	assl_err_stack_unwind();
@@ -798,45 +848,43 @@ assl_alloc_context(enum assl_method m, int flags)
 		ERROR_OUT(ERR_OWN, unwind);
 	}
 
-	c = calloc(1, sizeof *c);
-	if (c == NULL)
-		ERROR_OUT(ERR_LIBC, unwind);
+	return (assl_internal_alloc_context(meth, flags, server));
+unwind:
+	return (NULL);
+}
 
-	/* set some sane values */
-	c->as_sock = -1;
-	c->as_server = server;
-	c->as_method = meth;
-	c->as_ctx = SSL_CTX_new(meth);
-	if (c->as_ctx == NULL)
-		ERROR_OUT(ERR_SSL, unwind);
+struct assl_context *
+assl_alloc_context_v2(int flags, char *argv[])
+{
+	struct assl_context		*c = NULL;
+	SSL_METHOD_CONST SSL_METHOD	*meth;
+	char				*named_curve = NULL;
+	int				i;
 
-	/* allow all buggy implementations to play */
-	SSL_CTX_set_options(c->as_ctx, SSL_OP_ALL);
+	meth = SSLv23_method();
+	if ((c = assl_internal_alloc_context(meth, flags, 1)) == NULL)
+		goto unwind;
 
-	if (server)
-		SSL_CTX_set_options(c->as_ctx,
-		    SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION);
+	SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_SSLv2); /* disallow SSL v2 */
 
-	/*
-	 * Assume we want to verify client and server certificates
-	 * client ignores SSL_VERIFY_FAIL_IF_NO_PEER_CERT so just set it
-	 *
-	 * This needs to be set for anonymous connections
-	 */
-	if (flags & ASSL_F_DONT_VERIFY)
-		c->as_verify_mode = SSL_VERIFY_NONE;
-	else
-		c->as_verify_mode = SSL_VERIFY_FAIL_IF_NO_PEER_CERT |
-		    SSL_VERIFY_PEER;
+	if (!(flags & ASSL_F_SSLV3))
+		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_SSLv3);
+	if (!(flags & ASSL_F_TLS1))
+		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_TLSv1);
+	if (!(flags & ASSL_F_TLS1_1))
+		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_TLSv1_1);
+	if (!(flags & ASSL_F_TLS1_2))
+		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_TLSv1_2);
 
-	/* do not encrypt transport */
-	if (flags & ASSL_F_DONT_ENCRYPT)
-		if (!SSL_CTX_set_cipher_list(c->as_ctx, "eNULL"))
-			ERROR_OUT(ERR_SSL, unwind);
-	//if (!SSL_CTX_set_cipher_list(c->as_ctx, "ECDHE-ECDSA-AES256-SHA384"))
-	//		ERROR_OUT(ERR_SSL, unwind);
-
-	c->as_verify_depth = ASSL_VERIFY_DEPTH;
+	for (i = 0; argv[i] != NULL; i++) {
+		if (!strncmp(argv[i], ASSL_ARG_NAMEDCURVE,
+		    strlen(ASSL_ARG_NAMEDCURVE)))
+			named_curve = argv[i] + strlen(ASSL_ARG_NAMEDCURVE);
+		else {
+			assl_err_own("invalid argument %s", argv[i]);
+			ERROR_OUT(ERR_OWN, unwind);
+		}
+	}
 
 	return (c);
 unwind:

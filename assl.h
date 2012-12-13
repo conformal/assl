@@ -47,6 +47,11 @@ void		 assl_version(int *major, int *minor, int *patch);
 #define ASSL_F_LOWDELAY		(1<<6)
 #define ASSL_F_THROUGHPUT	(1<<7)
 #define ASSL_F_BLOCK		(0)
+/* assl_alloc_context_v2 only flags */
+#define ASSL_F_TLS1_2		(1<<28)
+#define ASSL_F_TLS1_1		(1<<29)
+#define ASSL_F_TLS1		(1<<30)
+#define ASSL_F_SSLV3		(1<<31)
 
 #define ASSL_GF_IGNORE_SELF_SIGNED	(1<<0)
 #define ASSL_GF_IGNORE_EXPIRED		(1<<1)
@@ -138,6 +143,10 @@ int			assl_use_mem_certs(struct assl_context *, void *);
 int			assl_destroy_mem_certs(void *);
 void			assl_set_log_callback(void (*)(int, const char *));
 int			assl_fd(struct assl_context *);
+
+/* new api */
+#define ASSL_ARG_NAMEDCURVE	"named_curve="
+struct assl_context	*assl_alloc_context_v2(int, char *[]);
 
 #ifndef INFTIM
 #define INFTIM		(-1)
