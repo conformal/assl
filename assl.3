@@ -27,6 +27,8 @@
 .Fn assl_set_log_callback "void (*log_cb)(int severity, const char *message)"
 .Ft struct assl_context *
 .Fn assl_alloc_context "enum assl_method method" "int flags"
+.Ft struct assl_context *
+.Fn assl_alloc_context_v2 "int flags" "char *argv[]"
 .Ft void
 .Fn assl_set_cert_flags "int flags"
 .Ft int
@@ -162,6 +164,41 @@ network traffic.
 .Pp
 The function will return NULL to indicate failure.
 .Pp
+.Fn assl_alloc_context_v2
+allocates an
+.Nm
+context.
+Unlike assl_alloc_context the requested protocols are a binary inclusive using
+the following flags:
+.Bl -tag -width "ASSL_M_TLSV1_SERVER" -offset indent -compact
+.It Cm ASSL_F_TLS1_2
+TLS 1.2 client or server connection.
+.It Cm ASSL_F_TLS1_1
+TLS 1.1 client or server connection.
+.It Cm ASSL_F_TLS1
+TLS 1.0 client or server connection.
+.It Cm ASSL_F_SSLV3
+SSL 3.0 client or server connection.
+.El
+.Pp
+The
+.Fa flags
+described in the
+.Fa assl_alloc_context
+and
+.Fa assl_serve
+section are identical.
+.Pp
+The
+.Fa *argv[]
+argument takes key value pairs to provide the library with additional settings.
+The last argument must be set to
+.Fa NULL .
+There should be one key=value pair per argv[] pointer.
+E.g. "named_curve=secp384r1".
+Currently only named_curve is supported.
+When named curve is not specified the library will use secp521r1.
+.Pp
 .Fn assl_set_cert_flags
 sets global flags for certificate verification.
 If ASSL_GF_IGNORE_SELF_SIGNED is set than the library will ignore self signed
@@ -263,6 +300,8 @@ The
 .Fa flags
 parameter is a bitwise field and can be set to:
 .Bl -tag -width "ASSL_F_CLOSE_SOCKET" -offset indent -compact
+.It Cm ASSL_F_BLOCK
+Set the socket to block.
 .It Cm ASSL_F_NONBLOCK
 Set the socket to non-block.
 .It Cm ASSL_F_KEEPALIVE
