@@ -35,7 +35,7 @@ CFLAGS+= -I${.CURDIR} -I${INCDIR}
 .if !${BUILDVERSION} == ""
 CPPFLAGS+= -DBUILDSTR=\"$(BUILDVERSION)\"
 .endif
-
+LDADD+= -lssl -lcrypto
 
 CLEANFILES+= assl.cat3
 

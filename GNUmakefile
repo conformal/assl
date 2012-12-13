@@ -44,6 +44,7 @@ INCFLAGS += -I . -I$(INCDIR)/clens -I$(LOCALBASE)/ssl/include
 WARNFLAGS ?= -Wall -Werror
 DEBUG += -g
 CFLAGS += $(INCFLAGS) $(WARNFLAGS) $(DEBUG)
+LDADD += -lbsd
 SHARED_OBJ_EXT ?= o
 
 LIB.NAME = assl
