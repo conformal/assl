@@ -876,16 +876,27 @@ assl_alloc_context_v2(int flags, char *argv[])
 	if (!(flags & ASSL_F_TLS1_2))
 		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_TLSv1_2);
 
+	/* set defaults */
+	c->as_curve = NID_secp521r1;
+
+	if (argv == NULL)
+		goto done;
+
 	for (i = 0; argv[i] != NULL; i++) {
 		if (!strncmp(argv[i], ASSL_ARG_NAMEDCURVE,
-		    strlen(ASSL_ARG_NAMEDCURVE)))
+		    strlen(ASSL_ARG_NAMEDCURVE))) {
 			named_curve = argv[i] + strlen(ASSL_ARG_NAMEDCURVE);
-		else {
+			c->as_curve = OBJ_sn2nid(named_curve);
+			if (c->as_curve == 0) {
+				assl_err_own("invalid curve %s", named_curve);
+				ERROR_OUT(ERR_OWN, unwind);
+			}
+		} else {
 			assl_err_own("invalid argument %s", argv[i]);
 			ERROR_OUT(ERR_OWN, unwind);
 		}
 	}
-
+done:
 	return (c);
 unwind:
 	if (c)
@@ -1181,7 +1192,7 @@ assl_accept(struct assl_context *c, int s)
 		SSL_CTX_set_tmp_dh(c->as_ctx, c->as_dh);
 
 	/* set up ECDHE */
-	ecdh = EC_KEY_new_by_curve_name(NID_secp521r1); // make this a flag
+	ecdh = EC_KEY_new_by_curve_name(c->as_curve);
 	if (ecdh == NULL)
 		ERROR_OUT(ERR_SSL, done);
 	SSL_CTX_set_tmp_ecdh(c->as_ctx, ecdh);

@@ -106,6 +106,7 @@ struct assl_context {
 	X509			*as_peer;
 	int			as_bits;	/* -1 invalid */
 	char			as_protocol[128];
+	int			as_curve;	/* named curve */
 
 	/* peer IP */
 	char			*as_peername;
