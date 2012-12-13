@@ -731,6 +731,19 @@ assl_alloc_context(enum assl_method m, int flags)
 		assl_child = getpid();
 
 	switch (m) {
+	/* ALL versions */
+	case ASSL_M_ALL:
+		meth = SSLv23_method();
+		server = 1;
+		break;
+	case ASSL_M_ALL_CLIENT:
+		meth = SSLv23_client_method();
+		break;
+	case ASSL_M_ALL_SERVER:
+		meth = SSLv23_server_method();
+		server = 1;
+		break;
+
 	/* SSL v3 */
 	case ASSL_M_SSLV3:
 		meth = SSLv3_method();
