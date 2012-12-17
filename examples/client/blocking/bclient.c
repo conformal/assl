@@ -35,6 +35,7 @@ main(int argc, char *argv[])
 
 	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_BLOCK))
 		assl_fatalx("assl_connect");
+	printf("cipher: %s\n", c->as_protocol);
 
 	wr = assl_write(c, buf, sizeof buf);
 	if (wr == -1)

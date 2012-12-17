@@ -1,5 +1,5 @@
 #/bin/sh
 mkdir -p server/private
 chmod 700 server/private
-openssl genrsa -out server/private/server.key 1024
-openssl req -new -key server/private/server.key -out server/server.csr
+openssl ecparam -genkey -name secp521r1 -out server/private/server.key
+openssl req -new -days 7300 -key server/private/server.key -out server/server.csr

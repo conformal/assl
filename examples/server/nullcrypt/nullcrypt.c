@@ -31,7 +31,9 @@ serve_callback(int s)
 	*/
 
 	/* authenticated connections */
-	c = assl_alloc_context(ASSL_M_TLSV1_SERVER, ASSL_F_DONT_ENCRYPT);
+	//c = assl_alloc_context(ASSL_M_TLSV1_SERVER, ASSL_F_DONT_ENCRYPT);
+	char			*argv[] = { ASSL_ARG_NAMEDCURVE "prime256v1", NULL };
+	c = assl_alloc_context_v2(ASSL_F_TLS1_2 | ASSL_F_DONT_ENCRYPT, argv);
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
@@ -41,6 +43,7 @@ serve_callback(int s)
 
 	if (assl_accept(c, s))
 		assl_fatalx("assl_accept");
+	printf("CIPHER: %s\n", c->as_protocol);
 
 	rd = assl_read(c, buf, sizeof buf);
 	if (rd == -1)

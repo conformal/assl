@@ -30,7 +30,8 @@ serve_callback(int s)
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
-	if (assl_load_file_certs(c, "ca.crt", "server.crt", "server.key"))
+	if (assl_load_file_certs(c, "../ca/ca.crt", "server/server.crt",
+	    "server/private/server.key"))
 		assl_fatalx("assl_load_file_certs");
 
 	if (assl_accept(c, s))

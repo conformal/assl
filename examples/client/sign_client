@@ -1,2 +1,2 @@
 #/bin/sh
-openssl x509 -req -days 3650 -in client/client.csr -CA ../ca/ca.crt  -CAkey ../ca/private/ca.key -CAcreateserial -out client/client.crt
+openssl x509 -req -days 7300 -in client/client.csr -CA ../ca/ca.crt -CAkey ../ca/private/ca.key -out client/client.crt -CAcreateserial

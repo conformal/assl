@@ -52,6 +52,7 @@ main(int argc, char *argv[])
 #endif
 		if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_NONBLOCK))
 			assl_fatalx("assl_connect");
+		printf("cipher: %s\n", c->as_protocol);
 
 		memset(buf, 'M', sizeof buf);
 		for (tot = sizeof buf, b = buf; tot > 0;) {

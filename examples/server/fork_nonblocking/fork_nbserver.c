@@ -121,7 +121,7 @@ serve_callback(int s)
 #endif
 	if (assl_accept(c, s))
 		assl_fatalx("assl_accept");
-
+	printf("CIPHER: %s\n", c->as_protocol);
 	for (tot = sizeof buf, b = buf; tot > 0; ) {
 		rd = assl_read(c, b, tot);
 		if (rd == -1) {

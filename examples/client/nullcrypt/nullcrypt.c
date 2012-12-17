@@ -31,7 +31,7 @@ main(int argc, char *argv[])
 	*/
 
 	/* authenticated connections */
-	c = assl_alloc_context(ASSL_M_TLSV1_CLIENT, ASSL_F_DONT_ENCRYPT);
+	c = assl_alloc_context(ASSL_M_TLSV1_2_CLIENT, ASSL_F_DONT_ENCRYPT);
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
@@ -41,6 +41,7 @@ main(int argc, char *argv[])
 
 	if (assl_connect(c, "localhost", ASSL_DEFAULT_PORT, ASSL_F_BLOCK))
 		assl_fatalx("assl_connect");
+	printf("cipher: %s\n", c->as_protocol);
 
 	memset(buf, 'M', sizeof buf);
 	wr = assl_write(c, buf, sizeof buf);
