@@ -759,6 +759,9 @@ assl_internal_alloc_context(SSL_METHOD_CONST SSL_METHOD *meth, int flags, int se
 
 	c->as_verify_depth = ASSL_VERIFY_DEPTH;
 
+	/* set defaults */
+	c->as_curve = NID_secp521r1;
+
 	return (c);
 unwind:
 	if (c)
@@ -875,9 +878,6 @@ assl_alloc_context_v2(int flags, char *argv[])
 		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_TLSv1_1);
 	if (!(flags & ASSL_F_TLS1_2))
 		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_TLSv1_2);
-
-	/* set defaults */
-	c->as_curve = NID_secp521r1;
 
 	if (argv == NULL)
 		goto done;
