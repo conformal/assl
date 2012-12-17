@@ -1,12 +1,4 @@
-Create a CA by running the create_ca command like:
 $ sh create_ca
-Generating a 1024 bit RSA private key
-...........................++++++
-................................++++++
-writing new private key to 'ca/private/ca.key'
-Enter PEM pass phrase:
-Verifying - Enter PEM pass phrase:
------
 You are about to be asked to enter information that will be incorporated
 into your certificate request.
 What you are about to enter is what is called a Distinguished Name or a DN.
@@ -22,4 +14,4 @@ Organizational Unit Name (eg, section) []:Certificate Authority
 Common Name (eg, fully qualified host name) []:
 Email Address []:marco@peereboom.us
 
-Then go to client and server directory and follow those READMEs.
+Then go to client and server directories and follow those READMEs.
