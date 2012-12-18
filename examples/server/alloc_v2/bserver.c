@@ -24,9 +24,9 @@ serve_callback(int s)
 	struct assl_context	*c;
 	char			buf[65536 * 10];
 	ssize_t			rd;
-	char			*argv[] = { ASSL_ARG_NAMEDCURVE "prime256v1", NULL };
+	char			*argv[] = { ASSL_ARG_NAMEDCURVE "secp521r1", NULL };
 
-	c = assl_alloc_context_v2(ASSL_F_TLS1_2 | ASSL_F_TLS1_1, argv);
+	c = assl_alloc_context_v2(ASSL_F_TLS1_2 | ASSL_F_TLS1, argv);
 	if (c == NULL)
 		assl_fatalx("assl_alloc_context");
 
