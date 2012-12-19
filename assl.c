@@ -31,9 +31,9 @@
 #include "ssl_privsep.h"
 
 #ifdef BUILDSTR
-static const char *vertag = "version: "ASSL_VERSION " " BUILDSTR;
+static const char *vertag = ASSL_VERSION " " BUILDSTR;
 #else
-static const char *vertag = "version: "ASSL_VERSION;
+static const char *vertag = ASSL_VERSION;
 #endif
 
 /* borrowed from openssl the tool */
