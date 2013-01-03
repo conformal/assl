@@ -716,6 +716,19 @@ done:
 #define SSL_METHOD_CONST
 #endif
 
+/* older openssl does not support TLS > 1.0 */
+#if OPENSSL_VERSION_NUMBER < 0x10001000L
+#define TLSv1_1_method          TLSv1_method
+#define TLSv1_1_client_method   TLSv1_client_method
+#define TLSv1_1_server_method   TLSv1_server_method
+#define TLSv1_2_method          TLSv1_method
+#define TLSv1_2_client_method   TLSv1_client_method
+#define TLSv1_2_server_method   TLSv1_server_method
+#define SSL_OP_NO_TLSv1_1       SSL_OP_NO_TLSv1
+#define SSL_OP_NO_TLSv1_2       SSL_OP_NO_TLSv1
+/* #warning "Installed OpenSSL version does not support TLS > 1.0, falling back to 1.0" */
+#endif
+
 struct assl_context *
 assl_internal_alloc_context(SSL_METHOD_CONST SSL_METHOD *meth, int flags, int server)
 {
@@ -796,7 +809,6 @@ assl_alloc_context(enum assl_method m, int flags)
 		meth = SSLv23_server_method();
 		server = 1;
 		break;
-
 	/* SSL v3 */
 	case ASSL_M_SSLV3:
 		meth = SSLv3_method();
@@ -845,7 +857,6 @@ assl_alloc_context(enum assl_method m, int flags)
 		meth = TLSv1_2_server_method();
 		server = 1;
 		break;
-
 	default:
 		assl_err_own("invalid method %d", m);
 		ERROR_OUT(ERR_OWN, unwind);
