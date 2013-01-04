@@ -23,14 +23,6 @@ BUILD_DEPENDS =
 NO_REGRESS=		Yes
 EG_DIR=			${PREFIX}/share/examples/assl
 
-.if ${MACHINE_ARCH:Mmips64*}
-EXTRA_CFLAGS=   -D__BUILTIN_HACK
-# See bsd.lib.mk:162
-PKG_ARGS+=	-Dno_mips64=0
-.else
-PKG_ARGS+=	-Dno_mips64=1
-.endif
-
 FAKE_FLAGS=	MANDIR=${PREFIX}/man/man
 
 do-configure:
