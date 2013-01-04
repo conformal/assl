@@ -1,5 +1,5 @@
 %define name		assl
-%define version		1.1.0
+%define version		1.2.0
 %define release		1
 
 Name: 		%{name}
@@ -56,6 +56,15 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Fri Jan 04 2013 - davec 1.2.0-1
+- Add support for OpenSSL 1.0.1c
+- Add support for TLS 1.1 and TLS 1.2
+- Fall back to TLS 1.0 on older OpenSSL versions
+- Use DH parameters from certs
+- Always initialize the named curve in order to enable ECDHE
+- Remove the 'version: ' prefix from assl_verstring
+- Add support for Bitrig
+- Other minor code cleanup
 * Tue Jul 17 2012 - davec 1.1.0-1
 - Support clang builds
 - Add function used to obtain file descriptor from context
