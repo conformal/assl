@@ -370,37 +370,29 @@ assl_verify_callback(int rv, X509_STORE_CTX *ctx)
 	rv = 0; /* fail */
 
 	/* override expired and self signed certs */
-	switch (ctx->error)
-	{
-		case X509_V_OK:
-			rv = 1;
-			break;
-		case X509_V_ERR_CERT_HAS_EXPIRED:
-			if (assl_ignore_expired_cert) {
-				rv = 1;
-				ctx->error = X509_V_OK;
-				/*
-				fprintf(stderr, "ignoring expired\n");
-				*/
-			}
-			break;
-		case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
-			if (assl_ignore_self_signed_cert) {
-				rv = 1;
-				ctx->error = X509_V_OK;
-				/*
-				fprintf(stderr, "ignoring self signed\n");
-				*/
-			}
-			break;
-		case X509_V_ERR_CERT_UNTRUSTED:
-		case X509_V_ERR_UNABLE_TO_GET_ISSUER_CERT_LOCALLY:
+	switch (ctx->error) {
+	case X509_V_OK:
+		rv = 1;
+		break;
+	case X509_V_ERR_CERT_HAS_EXPIRED:
+		if (assl_ignore_expired_cert) {
 			rv = 1;
 			ctx->error = X509_V_OK;
 			/*
-			fprintf(stderr, "ignoring %d\n", ctx->error);
-			*/
-			break;
+			fprintf(stderr, "ignoring expired\n");
+			 */
+		}
+		break;
+	case X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT:
+	case X509_V_ERR_SELF_SIGNED_CERT_IN_CHAIN:
+		if (assl_ignore_self_signed_cert) {
+			rv = 1;
+			ctx->error = X509_V_OK;
+			/*
+			fprintf(stderr, "ignoring self signed\n");
+			 */
+		}
+		break;
 	}
 
 	/*
