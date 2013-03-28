@@ -396,7 +396,6 @@ void
 assl_setup_verify(struct assl_context *c)
 {
 	/* use callback to ignore some errors such as expired cert */
-	SSL_set_ex_data(c->as_ssl, assl_ctx_idx, c);
 	SSL_CTX_set_verify(c->as_ctx, c->as_verify_mode, assl_verify_callback);
 	SSL_CTX_set_mode(c->as_ctx, SSL_MODE_AUTO_RETRY);
 	SSL_CTX_set_verify_depth(c->as_ctx, c->as_verify_depth);
@@ -601,6 +600,7 @@ assl_use_mem_certs(struct assl_context *c, void *token)
 	if (!SSL_CTX_check_private_key(c->as_ctx))
 		ERROR_OUT(ERR_SSL, done);
 
+	assl_setup_verify(c);
 
 	/* DH params */
 	if (mc->assl_mem_dh)
@@ -666,6 +666,8 @@ assl_load_file_certs(struct assl_context *c, const char *ca, const char *cert,
 		ERROR_OUT(ERR_SSL, done);
 	if (c->as_server)
 		SSL_CTX_set_client_CA_list(ctx, SSL_load_client_CA_file(ca));
+
+	assl_setup_verify(c);
 
 	if (cert) {
 		c->as_dh = assl_load_dh_params(cert);
@@ -1127,9 +1129,9 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 
 	/* go do ssl magic */
 	c->as_ssl = SSL_new(c->as_ctx);
+	SSL_set_ex_data(c->as_ssl, assl_ctx_idx, c);
 	c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
 
-	assl_setup_verify(c);
 
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 	SSL_set_connect_state(c->as_ssl);
@@ -1182,8 +1184,8 @@ assl_accept(struct assl_context *c, int s)
 
 	/* now that all the poopage has been setup get SSL going */
 	c->as_ssl = SSL_new(c->as_ctx);
+	SSL_set_ex_data(c->as_ssl, assl_ctx_idx, c);
 	c->as_sbio = assl_bio_new_socket(c->as_sock, BIO_CLOSE);
-	assl_setup_verify(c);
 	SSL_set_bio(c->as_ssl, c->as_sbio, c->as_sbio);
 	SSL_set_accept_state(c->as_ssl);
 
