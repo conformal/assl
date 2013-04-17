@@ -1,5 +1,5 @@
 %define name		assl
-%define version		1.2.0
+%define version		1.3.0
 %define release		1
 
 Name: 		%{name}
@@ -56,6 +56,10 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Wed Apr 17 2013 - davec 1.3.0-1
+- Stop shipping pic.a libs that are no longer needed on OpenBSD
+- Improve thread safety
+- Other minor code cleanup
 * Fri Jan 04 2013 - davec 1.2.0-1
 - Add support for OpenSSL 1.0.1c
 - Add support for TLS 1.1 and TLS 1.2
