@@ -47,6 +47,12 @@ assl_close_socket(int s)
 	return close(s);
 }
 
+int
+assl_get_ssl_error(const SSL *ssl, int ret)
+{
+	return SSL_get_error(ssl, ret);
+}
+
 void
 assl_get_socket_error(int err, char *outstr, int len)
 {

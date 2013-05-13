@@ -971,7 +971,7 @@ assl_negotiate_nonblock(struct assl_context *c)
 			ERROR_OUT(ERR_OWN, done);
 		}
 
-		switch (SSL_get_error(c->as_ssl, r)) {
+		switch (assl_get_ssl_error(c->as_ssl, r)) {
 		case SSL_ERROR_NONE:
 			rv = 0;
 			goto done;
@@ -1325,7 +1325,7 @@ assl_read_write(struct assl_context *c, void *buf, size_t nbytes, int rd)
 			goto done;
 		}
 
-		switch (SSL_get_error(c->as_ssl, r)) {
+		switch (assl_get_ssl_error(c->as_ssl, r)) {
 		case SSL_ERROR_NONE:
 			tot += r;
 			b += r;

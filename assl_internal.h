@@ -21,6 +21,7 @@
 int		assl_initialize_sockets();
 int		assl_shutdown_sockets();
 int		assl_close_socket(int);
+int		assl_get_ssl_error(const SSL *ssl, int ret);
 void		assl_get_socket_error(int, char *, int);
 BIO		*assl_bio_new_socket(int sock, int close_flag);
 int		assl_is_nonblock(int);
