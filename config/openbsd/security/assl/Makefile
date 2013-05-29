@@ -3,7 +3,7 @@
 COMMENT=		hide awful SSL API in a sane interface
 
 DISTNAME=		assl-1.3.0
-EPOCH=			0
+EPOCH=			1
 CATEGORIES=		security devel
 SHARED_LIBS=		assl 6.0
 
@@ -14,13 +14,10 @@ MAINTAINER=		Conformal Systems LLC <info@conformal.com>
 
 # ISC
 PERMIT_PACKAGE_CDROM=	Yes
-PERMIT_PACKAGE_FTP=	Yes
-PERMIT_DISTFILES_CDROM=	Yes
-PERMIT_DISTFILES_FTP=	Yes
 
 BUILD_DEPENDS =
 
-NO_REGRESS=		Yes
+NO_TEST=		Yes
 EG_DIR=			${PREFIX}/share/examples/assl
 
 FAKE_FLAGS=	MANDIR=${PREFIX}/man/man
