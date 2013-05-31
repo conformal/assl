@@ -1,5 +1,5 @@
 %define name		assl
-%define version		1.3.0
+%define version		1.4.0
 %define release		1
 
 Name: 		%{name}
@@ -56,6 +56,10 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Fri May 31 2013 - davec 1.4.0-1
+- Add wrapper function (assl_get_ssl_error) to allow retrieval of OpenSSL
+  errors in a platform agnostic manner
+- Fix OpenBSD port Makefile for modern OpenBSD ports
 * Wed Apr 17 2013 - davec 1.3.0-1
 - Stop shipping pic.a libs that are no longer needed on OpenBSD
 - Improve thread safety
