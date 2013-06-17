@@ -468,7 +468,7 @@ assl_destroy_mem_certs(void *token)
 {
 	struct assl_mem_cert	*mc = token;
 
-	if (mc != NULL)
+	if (mc == NULL)
 		return (1);
 
 	assl_free_mem_cert(mc);
