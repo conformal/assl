@@ -1,3 +1,9 @@
+assl (1.4.1-1) unstable; urgency=low
+
+  * Plug memory leak in assl_destroy_mem_certs
+
+ -- Conformal Systems <package-discuss@conformal.com>  Fri, 28 Jun 2013 14:09:38 -0400
+
 assl (1.4.0-1) unstable; urgency=low
 
   * Add wrapper function (assl_get_ssl_error) to allow retrieval of OpenSSL

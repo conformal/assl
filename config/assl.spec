@@ -1,5 +1,5 @@
 %define name		assl
-%define version		1.4.0
+%define version		1.4.1
 %define release		1
 
 Name: 		%{name}
@@ -56,6 +56,8 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Fri Jun 28 2013 - dhill 1.4.1-1
+- Plug memory leak in assl_destroy_mem_certs
 * Fri May 31 2013 - davec 1.4.0-1
 - Add wrapper function (assl_get_ssl_error) to allow retrieval of OpenSSL
   errors in a platform agnostic manner
