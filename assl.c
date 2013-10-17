@@ -1041,19 +1041,32 @@ int
 assl_connect(struct assl_context *c, const char *host, const char *port,
     int flags)
 {
+	struct assl_connect_opts aco = {
+		.aco_flags = flags,
+	};
+
+	return (assl_connect_opts(c, host, port, &aco));
+}
+
+int
+assl_connect_opts(struct assl_context *c, const char *host, const char *port,
+    struct assl_connect_opts *aco)
+{
 	struct addrinfo		hints, *res = NULL, *ai;
 	int			p, s = -1, on = 1, rv = 1, retries;
 	int			gairv;
 
 	assl_err_stack_unwind();
 
-	if (c == NULL || host == NULL || port == NULL) {
+	if (c == NULL || host == NULL || port == NULL || aco == NULL) {
 		if (c == NULL)
 			assl_err_own("no context");
 		else if (host == NULL)
 			assl_err_own("no host");
 		else if (port == NULL)
 			assl_err_own("no port");
+		else if (aco == NULL)
+			assl_err_own("no aco");
 		ERROR_OUT(ERR_OWN, done);
 	}
 
@@ -1088,9 +1101,10 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 		if (setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on,
 		    sizeof(on)) == -1)
 			continue;
-		if (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT)
-			assl_set_tos(s, ai->ai_family, flags);
-		if (flags & ASSL_F_KEEPALIVE) {
+		if (aco->aco_flags & ASSL_F_LOWDELAY ||
+		    aco->aco_flags & ASSL_F_THROUGHPUT)
+			assl_set_tos(s, ai->ai_family, aco->aco_flags);
+		if (aco->aco_flags & ASSL_F_KEEPALIVE) {
 			if (assl_set_keepalive(s))
 				c->as_keepalive = 0;
 			else
@@ -1114,13 +1128,21 @@ assl_connect(struct assl_context *c, const char *host, const char *port,
 	if (s == -1)
 		ERROR_OUT(ERR_SOCKET, done);
 
-	if (flags & ASSL_F_NONBLOCK) {
+	if (aco->aco_flags & ASSL_F_NONBLOCK) {
 		if (assl_set_nonblock(s)) {
 			close(s);
 			s = -1;
 			ERROR_OUT(ERR_SOCKET, done);
 		}
 		c->as_nonblock = 1;
+	}
+
+	if (aco->aco_rcvbuf != 0) {
+		assl_set_recvbuf(s, aco->aco_rcvbuf);
+	}
+
+	if (aco->aco_sndbuf != 0) {
+		assl_set_sendbuf(s, aco->aco_sndbuf);
 	}
 
 	c->as_sock = s;
@@ -1206,6 +1228,17 @@ int
 assl_serve(const char *listen_ip, const char *listen_port, int flags,
 		void (*cb)(int), void (*intr_cb)(void))
 {
+	struct assl_connect_opts aco = {
+		.aco_flags = flags,
+	};
+
+	return (assl_serve_opts(listen_ip, listen_port, &aco, cb, intr_cb));
+}
+
+int
+assl_serve_opts(const char *listen_ip, const char *listen_port,
+    struct assl_connect_opts *aco, void (*cb)(int), void (*intr_cb)(void))
+{
 	struct addrinfo		hints, *res, *ai;
 	int			s = -1, on = 1, i, nfds, x, c;
 	struct pollfd		fds[2];
@@ -1214,6 +1247,10 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 
 	if (cb == NULL) {
 		assl_err_own("no callback");
+		ERROR_OUT(ERR_OWN, done);
+	}
+	if (aco == NULL) {
+		assl_err_own("no aco");
 		ERROR_OUT(ERR_OWN, done);
 	}
 
@@ -1237,20 +1274,29 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 		if (s < 0)
 			continue;
 
-		if (flags & ASSL_F_NONBLOCK)
+		if (aco->aco_flags & ASSL_F_NONBLOCK)
 			if (assl_set_nonblock(s)) {
 				assl_close_socket(s);
 				ERROR_OUT(ERR_SOCKET, done);
 			}
 
-		if (flags & ASSL_F_KEEPALIVE)
+		if (aco->aco_flags & ASSL_F_KEEPALIVE)
 			if (assl_set_keepalive(s)) {
 				assl_close_socket(s);
 				ERROR_OUT(ERR_SOCKET, done);
 			}
 
-		if (flags & ASSL_F_LOWDELAY || flags & ASSL_F_THROUGHPUT)
-			assl_set_tos(s, ai->ai_family, flags);
+		if (aco->aco_flags & ASSL_F_LOWDELAY ||
+		    aco->aco_flags & ASSL_F_THROUGHPUT)
+			assl_set_tos(s, ai->ai_family, aco->aco_flags);
+
+		if (aco->aco_rcvbuf != 0) {
+			assl_set_recvbuf(s, aco->aco_rcvbuf);
+		}
+
+		if (aco->aco_sndbuf != 0) {
+			assl_set_sendbuf(s, aco->aco_rcvbuf);
+		}
 
 		setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on));
 
@@ -1291,7 +1337,7 @@ assl_serve(const char *listen_ip, const char *listen_port, int flags,
 
 			/* hand off to caller */
 			cb(s);
-			if (flags & ASSL_F_CLOSE_SOCKET)
+			if (aco->aco_flags & ASSL_F_CLOSE_SOCKET)
 				assl_close_socket(s);
 		}
 	}

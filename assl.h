@@ -114,6 +114,12 @@ struct assl_context {
 	int			 as_ignore_self_signed_cert;
 };
 
+struct assl_connect_opts {
+	int		aco_rcvbuf; /* receive buffer size, 0 is unchanged. */
+	int		aco_sndbuf; /* send buffer size, 0 is unchanged. */
+	int		aco_flags; /* takes ASSL_F flags. */
+};
+
 /* contents of this structure are private */
 struct assl_serve_ctx;
 
@@ -122,8 +128,13 @@ struct assl_context	*assl_alloc_context(enum assl_method, int);
 void			assl_set_cert_flags(struct assl_context *, int);
 int			assl_load_file_certs(struct assl_context *,
 			    const char *, const char *, const char *);
+int			assl_connect_opts(struct assl_context *, const char *,
+				const char *, struct assl_connect_opts *);
 int			assl_connect(struct assl_context *, const char *,
 				const char *, int);
+int			assl_serve_opts(const char *, const char *,
+			    struct assl_connect_opts *,
+			    void (*)(int), void (*)(void));
 int			assl_serve(const char *, const char *, int,
 			    void (*)(int), void (*)(void));
 int			assl_accept(struct assl_context *, int);

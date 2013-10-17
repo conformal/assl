@@ -28,6 +28,8 @@ int		assl_is_nonblock(int);
 int		assl_set_nonblock(int);
 int		assl_set_keepalive(int);
 void		assl_set_tos(int, int, int);
+void		assl_set_recvbuf(int, int);
+void		assl_set_sendbuf(int, int);
 int		assl_get_recvtimeo(int, struct timeval *);
 int		assl_set_recvtimeo(int, struct timeval *);
 void		assl_fatalx(const char *, ...);

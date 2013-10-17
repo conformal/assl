@@ -38,7 +38,12 @@
 .Ft int
 .Fn assl_use_mem_certs "struct assl_context *c" "void *token"
 .Ft int
+.Fn assl_connect_opts "struct assl_context *ctx" "const char *host" "const char *port" "struct assl_connect_opts *aco"
+.Ft int
 .Fn assl_connect "struct assl_context *ctx" "const char *host" "const char *port" "int flags"
+.Ft int
+.Fn assl_serve_opts "const char *host" "const char *port" "struct
+assl_connect_opts *aco" "void (*callback)(int sock)" "void (*intr_cb)(void)"
 .Ft int
 .Fn assl_serve "const char *host" "const char *port" "int flags" "void (*callback)(int sock)" "void (*intr_cb)(void)"
 .Ft int
@@ -274,6 +279,20 @@ If
 .Fa flags
 is set to ASSL_F_KEEPALIVE then the socket will enable keepalive packets
 on the connection.
+.Fn assl_connect_opts
+is a function very similar to
+.Fn assl_connect ,
+it also allows the setting of socket buffer sizes by setting
+.Fa aco->aco_rcvbuf
+or
+.Fa aco->aco_sndbuf
+respectively.
+The flags in
+.Fa aco->aco_flags
+are the same as
+.Fa flags
+to
+.Fn assl_connect .
 .Pp
 .Fn assl_serve
 is a blocking function that sets up a listening socket that waits for
@@ -324,6 +343,13 @@ function.
 If
 .Fa intr_cb
 is non-NULL it will be called when the underlying functions are interrupted with EINTR.
+.Fn assl_serve_opts
+differs from
+.Fn assl_serve
+the same way that
+.Fn assl_connect_opts
+differs from
+.Fn assl_connect .
 .Pp
 .Fn assl_accept
 is the equivalent of the

@@ -139,6 +139,18 @@ assl_set_tos(int fd, int family, int flags)
 	}
 }
 
+void
+assl_set_recvbuf(int fd, int bufsize)
+{
+	setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &bufsize, sizeof(bufsize));
+}
+
+void
+assl_set_sendbuf(int fd, int bufsize)
+{
+	setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &bufsize, sizeof(bufsize));
+}
+
 int
 assl_get_recvtimeo(int fd, struct timeval *t)
 {
