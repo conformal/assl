@@ -1,3 +1,10 @@
+assl (1.5.0-1) unstable; urgency=low
+
+  * Add _opts versions of assl_connect and assl_serve
+    which allow setting the socket buffer sizes
+
+ -- Conformal Systems <package-discuss@conformal.com>  Thu, 07 Nov 2013 12:13:30 -0500
+
 assl (1.4.1-1) unstable; urgency=low
 
   * Plug memory leak in assl_destroy_mem_certs

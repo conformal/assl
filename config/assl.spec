@@ -1,5 +1,5 @@
 %define name		assl
-%define version		1.4.1
+%define version		1.5.0
 %define release		1
 
 Name: 		%{name}
@@ -56,6 +56,9 @@ develop applications with assl.
 /usr/lib/libassl.a
 
 %changelog
+* Thu Nov 07 2013 - dhill 1.5.0-1
+- Add _opts versions of assl_connect and assl_serve
+  which allow setting the socket buffer sizes
 * Fri Jun 28 2013 - dhill 1.4.1-1
 - Plug memory leak in assl_destroy_mem_certs
 * Fri May 31 2013 - davec 1.4.0-1
