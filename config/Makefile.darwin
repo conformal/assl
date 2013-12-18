@@ -1,0 +1,15 @@
+ARFLAGS = crs
+INCFLAGS+= -I /usr/local/include/clens
+INCFLAGS+= -I /usr/local/opt/openssl/lib/
+
+LDFLAGS.EXTRA += -L /usr/local/opt/openssl/lib/ -lssl -lcrypto
+LDFLAGS.SO = -dynamiclib
+
+LIB.SONAME = lib$(LIB.NAME).$(SO_MAJOR).dylib
+LIB.DEVLNK = lib$(LIB.NAME).dylib
+LIB.SHARED = lib$(LIB.NAME).$(SO_MAJOR).$(SO_MINOR).dylib
+LIB.STATIC = lib$(LIB.NAME).a
+
+PICFLAG = -fPIC
+
+SHARED_OBJ_EXT=os
