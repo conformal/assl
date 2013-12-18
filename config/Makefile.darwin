@@ -1,7 +1,8 @@
 ARFLAGS = crs
 INCFLAGS+= -I /usr/local/include/clens
+INCFLAGS+= -I /usr/local/opt/openssl/lib/
 
-LDFLAGS.EXTRA += -lssl -lcrypto
+LDFLAGS.EXTRA += -L /usr/local/opt/openssl/lib/ -lssl -lcrypto
 LDFLAGS.SO = -dynamiclib
 
 LIB.SONAME = lib$(LIB.NAME).$(SO_MAJOR).dylib
