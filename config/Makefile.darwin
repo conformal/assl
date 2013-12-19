@@ -1,8 +1,15 @@
 ARFLAGS = crs
-INCFLAGS+= -I /usr/local/include/clens
-INCFLAGS+= -I /usr/local/opt/openssl/lib/
 
-LDFLAGS.EXTRA += -L /usr/local/opt/openssl/lib/ -lssl -lcrypto
+#For MacPorts
+INCFLAGS+= -I/opt/local/include
+
+INCFLAGS+= -I /usr/local/include/clens
+INCFLAGS+= -I /usr/local/opt/openssl/lib
+
+#For MacPorts
+LDFLAGS.EXTRA += -L/opt/local/lib
+
+LDFLAGS.EXTRA += -L /usr/local/opt/openssl/lib -lssl -lcrypto
 LDFLAGS.SO = -dynamiclib
 
 LIB.SONAME = lib$(LIB.NAME).$(SO_MAJOR).dylib
