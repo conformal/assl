@@ -7,10 +7,15 @@
 # This special exception was added by Craig Small in version 0.37 of dh-make.
 
 # Uncomment this to turn on verbose mode.
-export DH_VERBOSE=1
+#export DH_VERBOSE=1
+
+DEB_HOST_MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH)
+
+export LOCALBASE=/usr
+export LIBDIR=/usr/lib/$(DEB_HOST_MULTIARCH)
 
 %:
 	dh  $@
 
-override_dh_auto_install:
-	dh_auto_install -- LOCALBASE=/usr
+override_dh_install:
+	dh_install --list-missing
