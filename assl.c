@@ -780,18 +780,6 @@ assl_alloc_context(enum assl_method m, int flags)
 		meth = SSLv23_server_method();
 		server = 1;
 		break;
-	/* SSL v3 */
-	case ASSL_M_SSLV3:
-		meth = SSLv3_method();
-		server = 1;
-		break;
-	case ASSL_M_SSLV3_CLIENT:
-		meth = SSLv3_client_method();
-		break;
-	case ASSL_M_SSLV3_SERVER:
-		meth = SSLv3_server_method();
-		server = 1;
-		break;
 	/* TLS 1.0 */
 	case ASSL_M_TLSV1:
 		meth = TLSv1_method();
@@ -851,9 +839,8 @@ assl_alloc_context_v2(int flags, char *argv[])
 		goto unwind;
 
 	SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_SSLv2); /* disallow SSL v2 */
+	SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_SSLv3); /* disallow SSL v3 */
 
-	if (!(flags & ASSL_F_SSLV3))
-		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_SSLv3);
 	if (!(flags & ASSL_F_TLS1))
 		SSL_CTX_set_options(c->as_ctx, SSL_OP_NO_TLSv1);
 	if (!(flags & ASSL_F_TLS1_1))
