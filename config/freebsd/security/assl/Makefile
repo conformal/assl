@@ -14,7 +14,7 @@ MASTER_SITES=   https://opensource.conformal.com/snapshots/assl/ \
 MAINTAINER=     None
 COMMENT=        hide awful SSL API in a sane interface
 
-LICENSE=        ISCL
+LICENSE=        ISC
 LICENSE_COMB=   single
 
 BUILD_DEPENDS=  ${LOCALBASE}/lib/libclens.a:${PORTSDIR}/devel/clens
